@@ -56,6 +56,19 @@ require('telescope').setup({
   },
 })
 
+local builtin = require('telescope.builtin')
+
+builtin.dotfiles = function ()
+  builtin.find_files({
+    prompt_title = 'Dotfiles',
+    cwd = "$HOME/dotfiles",
+    file_ignore_patterns = {
+      '^.git/',
+      '^git/submodules/',
+    },
+  })
+end
+
 require('telescope').load_extension('fzf')
 
 vim.keymap.set('n', '<leader>o', [[<cmd>lua require('telescope.builtin').find_files()<CR>]])
@@ -64,3 +77,5 @@ vim.keymap.set('n', '<leader>b', [[<cmd>lua require('telescope.builtin').buffers
 vim.keymap.set('n', '<leader>f', [[<cmd>lua require('telescope').extensions.live_grep_args.live_grep_args()<CR>]])
 vim.keymap.set('n', '<leader>h', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]])
 vim.keymap.set('n', '<leader>s', [[<cmd>lua require('telescope.builtin').lsp_document_symbols()<CR>]])
+vim.keymap.set('n', '<leader><leader>d', [[<cmd>lua require('telescope.builtin').dotfiles()<CR>]])
+

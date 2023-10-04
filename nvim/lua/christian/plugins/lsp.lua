@@ -15,9 +15,6 @@ require('lspconfig').volar.setup{
 require('lspconfig').rust_analyzer.setup{ capabilities = capabilities }
 
 
-require('lspconfig').tailwindcss.setup{ capabilities = capabilities }
-
-
 -- Keymaps
 vim.keymap.set('n', '<Leader>d', '<cmd>lua vim.diagnostic.open_float()<CR>')
 vim.keymap.set('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>')
@@ -29,6 +26,7 @@ vim.keymap.set('n', 'gr', ':Telescope lsp_references<CR>')
 vim.keymap.set('n', '<Leader>lr', ':LspRestart<CR>', { silent = true })
 vim.keymap.set('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>')
 vim.keymap.set('n', '<Leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>')
+vim.keymap.set('n', '<Leader>lr', ':LspRestart<CR>', { silent = true })
 
 -- Commands
 vim.api.nvim_create_user_command('Format', function() vim.lsp.buf.format({ timeout_ms = 5000 }) end, {})

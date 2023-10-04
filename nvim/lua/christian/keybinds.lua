@@ -42,4 +42,4 @@ vim.keymap.set('n', '<CR>', 'o<Esc>')
 vim.keymap.set('n', '<S-CR>', 'O<Esc>')
 
 -- NvimTree
-vim.keymap.set('n', '1', ':NvimTreeFindFileToggle<CR>', { silent = true })
+vim.keymap.set('n', '<Leader>1', ':NvimTreeFindFileToggle<CR>', { silent = true })

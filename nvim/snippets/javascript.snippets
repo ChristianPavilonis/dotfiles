@@ -1,0 +1,17 @@
+
+
+snippet conlog "console.log"
+	console.log(${0});
+
+
+snippet vitest "scaffold a vitest file"
+	import {expect, describe, it, beforeEach} from "vitest";
+ 
+	describe("${1}", () => {
+		${0}
+	});
+
+snippet it "write a test using it directive" 
+	it("${1}", async () => {
+		${0}
+	});
