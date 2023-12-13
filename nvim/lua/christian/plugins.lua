@@ -54,7 +54,7 @@ require('lazy').setup({
 
 
   'sickill/vim-pasta',
-
+  'ThePrimeagen/vim-be-good',
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
   {
@@ -278,6 +278,15 @@ require('lazy').setup({
     config = function()
       require('christian/plugins/vim-test')
     end 
+  },
+
+  {
+    'nvimdev/dashboard-nvim',
+    event = 'VimEnter',
+    config = function()
+      require('christian/plugins/dashboard')
+    end,
+    dependencies = { {'nvim-tree/nvim-web-devicons'}}
   }
 
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart

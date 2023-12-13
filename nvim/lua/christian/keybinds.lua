@@ -1,6 +1,3 @@
-
-
-
 -- When text is wrapping treat wrapped lines like normal lines
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true })
@@ -14,6 +11,16 @@ vim.keymap.set('v', 'y', 'myy`y')
 
 -- disables command line typo
 vim.keymap.set('n', 'q:', ':q')
+
+-- save
+vim.keymap.set('n', '<Leader>w', ':w<CR>')
+
+-- lsp code action
+vim.keymap.set('n', '<A-Enter>', ':lua vim.lsp.buf.code_action()<CR>')
+
+-- center screen after <C-d/u>
+-- vim.keymap.set('n', '<C-d>', '<C-d>zz')
+-- vim.keymap.set('n', '<C-u>', '<C-u>zz')
 
 -- Paste over selection without copying it
 vim.keymap.set('v', 'p', '"_dP')
@@ -43,3 +50,18 @@ vim.keymap.set('n', '<S-CR>', 'O<Esc>')
 
 -- NvimTree
 vim.keymap.set('n', '<Leader>1', ':NvimTreeFindFileToggle<CR>', { silent = true })
+
+-- can now delete empty lines quickly in normal mode without dd
+function _G.delete_line_if_only_whitespace()
+    local line = vim.fn.getline('.')
+    if string.match(line, '^%s*$') then
+        vim.api.nvim_del_current_line()
+    else
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<bs>", true, true, true), 'n', false)
+    end
+end
+
+vim.keymap.set('n', '<BS>', ':lua delete_line_if_only_whitespace()<Enter>k')
+
+-- Select whole file
+-- vim.keymap.set('n', '<C-a>', 'ggVG')
