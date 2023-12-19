@@ -204,7 +204,6 @@ require('lazy').setup({
       require('christian/plugins/telescope')
     end
   },
-
   {
     -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
@@ -216,6 +215,9 @@ require('lazy').setup({
     config = function() 
       require('nvim-treesitter.configs').setup {
         highlight = {
+          enable = true,
+        },
+        indent = {
           enable = true,
         },
         context_commentstring = {
