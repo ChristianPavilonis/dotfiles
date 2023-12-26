@@ -1,0 +1,64 @@
+return {
+  -- NOTE: First, some plugins that don't require any configuration
+  -- Git related plugins
+  'tpope/vim-fugitive',
+  'tpope/vim-rhubarb',
+
+  -- Detect tabstop and shiftwidth automatically
+  'tpope/vim-sleuth',
+
+  -- Plugin to surround things with quotes/brackets
+  'tpope/vim-surround',
+
+  -- add more repeatable things
+  'tpope/vim-repeat',
+
+  -- creates parent dirs when saving if they don't exist
+  'jessarcher/vim-heritage',
+
+  -- auto complete pairs such as {}, '', etc.
+  {  
+    'windwp/nvim-autopairs',
+    event = "InsertEnter",
+    opts = {} -- this is equalent to setup({}) function
+  },
+
+  -- smooth scroll for jumps ie C-d/C-u
+  {
+    'karb94/neoscroll.nvim',
+    opts = {}
+  },
+
+
+  'sickill/vim-pasta',
+  'ThePrimeagen/vim-be-good',
+
+  -- Useful plugin to show you pending keybinds.
+  { 'folke/which-key.nvim', opts = {} },
+
+
+  {
+    -- Add indentation guides even on blank lines
+    'lukas-reineke/indent-blankline.nvim',
+    -- Enable `lukas-reineke/indent-blankline.nvim`
+    -- See `:help indent_blankline.txt`
+    opts = {
+      char = '┊',
+      show_trailing_blankline_indent = false,
+    },
+  },
+
+  -- "gc" to comment visual regions/lines
+  { 'numToStr/Comment.nvim', opts = {} },
+
+
+  -- plugin for rust crates (better Cargo.toml)
+  {
+    'saecki/crates.nvim',
+    tag = 'stable',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    config = function()
+        require('crates').setup()
+    end,
+  },
+}

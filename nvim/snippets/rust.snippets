@@ -35,13 +35,13 @@ snippet test "scaffold test module"
 
 snippet it "create a unit test"
 	#[test]
-	fn it_${1} {
+	fn it_${1}() {
 		${0}
 	}
 
 snippet ait "create an async unit test with tokio"
 	#[tokio::test]
-	async fn it_${1} {
+	async fn it_${1}() {
 		${0}
 	}
 

@@ -1,50 +1,65 @@
+-- LSP config
+--  The configuration is done below. Search for lspconfig to find it below.
+return {
+  -- LSP Configuration & Plugins
+  'neovim/nvim-lspconfig',
+  dependencies = {
+    -- Automatically install LSPs to stdpath for neovim
+    { 'williamboman/mason.nvim', config = true },
+    'williamboman/mason-lspconfig.nvim',
 
-require('mason').setup()
-require('mason-lspconfig').setup({ automatic_installation = true })
+    -- Useful status updates for LSP
+    -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
+    { 'j-hui/fidget.nvim', tag = 'legacy', opts = {} },
 
-local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
+    -- Additional lua configuration, makes nvim stuff amazing!
+    'folke/neodev.nvim',
+  },
+  config = function()
+    require('mason').setup()
+    require('mason-lspconfig').setup({ automatic_installation = true })
 
-require('lspconfig').intelephense.setup{ 
-  filetypes = {'php'},
-  capabilities = capabilities,
- }
-require('lspconfig').volar.setup{
-  filetypes = {'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue', 'json'},
-  capabilities = capabilities
-}
+    local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
+    local util = require("lspconfig/util")
 
-require('lspconfig').rust_analyzer.setup{ capabilities = capabilities }
-
-
--- Keymaps
-vim.keymap.set('n', '<Leader>d', '<cmd>lua vim.diagnostic.open_float()<CR>')
-vim.keymap.set('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>')
-vim.keymap.set('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>')
-vim.keymap.set('n', 'gd', ':Telescope lsp_definitions<CR>')
-vim.keymap.set('n', 'ga', '<cmd>lua vim.lsp.buf.code_action()<CR>')
-vim.keymap.set('n', 'gi', ':Telescope lsp_implementations<CR>')
-vim.keymap.set('n', 'gr', ':Telescope lsp_references<CR>')
-vim.keymap.set('n', '<Leader>lr', ':LspRestart<CR>', { silent = true })
-vim.keymap.set('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>')
-vim.keymap.set('n', '<Leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>')
-vim.keymap.set('n', '<Leader>lr', ':LspRestart<CR>', { silent = true })
-
--- Commands
-vim.api.nvim_create_user_command('Format', function() vim.lsp.buf.format({ timeout_ms = 5000 }) end, {})
-
-vim.api.nvim_create_autocmd(
-    "BufWritePost",
-    {
-      pattern = "*.rs",
-      callback = function() 
-        vim.cmd("Format")
-      end
+    require('lspconfig').intelephense.setup{ 
+      filetypes = {'php'},
+      capabilities = capabilities,
     }
-)
+    require('lspconfig').volar.setup{
+      filetypes = {'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue', 'json'},
+      capabilities = capabilities
+    }
 
-vim.diagnostic.config({
-  virtual_text = false,
-  float = {
-    source = true,
-  }
-})
+    require('lspconfig').rust_analyzer.setup{ 
+      filetypes = {'rust'},
+      capabilities = capabilities,
+      root_dir = util.root_pattern("Cargo.toml"),
+      settings = {
+        cargo = {
+          allFeatures = true
+        }
+      }
+    }
+
+    -- Commands
+    vim.api.nvim_create_user_command('Format', function() vim.lsp.buf.format({ timeout_ms = 5000 }) end, {})
+
+    vim.api.nvim_create_autocmd(
+      "BufWritePost",
+      {
+        pattern = "*.rs",
+        callback = function() 
+          vim.cmd("Format")
+        end
+      }
+    )
+
+    vim.diagnostic.config({
+      virtual_text = false,
+      float = {
+        source = true,
+      }
+    })
+  end
+}
