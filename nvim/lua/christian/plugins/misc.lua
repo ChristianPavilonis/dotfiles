@@ -16,6 +16,8 @@ return {
   -- creates parent dirs when saving if they don't exist
   'jessarcher/vim-heritage',
 
+  'jesseleite/nvim-macroni',
+
   -- auto complete pairs such as {}, '', etc.
   {  
     'windwp/nvim-autopairs',

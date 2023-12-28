@@ -29,12 +29,36 @@ return {
               ['af'] = '@funciton.outer',
               ['ia'] = '@parameter.inner',
               ['aa'] = '@parameter.outer',
+              ['ic'] = '@class.inner',
+              ['ac'] = '@class.outer',
             },
             selection_modes = {
               ['@function.inner'] = 'V',
-              ['@function.outer'] = 'V',
+              ['@function.outer'] = 'v',
+              ['@class.inner'] = 'V',
+              ['@class.outer'] = 'V',
             },
-          }
+          },
+          move = {
+            enable = true,
+            set_jumps = true, -- whether to set jumps in the jumplist
+            goto_next_start = {
+              ["]m"] = "@function.outer",
+              ["]]"] = "@class.outer",
+            },
+            goto_next_end = {
+              ["]M"] = "@function.outer",
+              ["]["] = "@class.outer",
+            },
+            goto_previous_start = {
+              ["[m"] = "@function.outer",
+              ["[["] = "@class.outer",
+            },
+            goto_previous_end = {
+              ["[M"] = "@function.outer",
+              ["[]"] = "@class.outer",
+            },
+          },
         }
       }
     end,
