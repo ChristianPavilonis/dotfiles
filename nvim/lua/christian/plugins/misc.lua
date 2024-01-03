@@ -18,13 +18,6 @@ return {
 
   'jesseleite/nvim-macroni',
 
-  -- auto complete pairs such as {}, '', etc.
-  {  
-    'windwp/nvim-autopairs',
-    event = "InsertEnter",
-    opts = {} -- this is equalent to setup({}) function
-  },
-
   -- smooth scroll for jumps ie C-d/C-u
   {
     'karb94/neoscroll.nvim',
