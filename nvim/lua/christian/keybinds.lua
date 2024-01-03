@@ -105,3 +105,11 @@ vim.keymap.set('n', '<leader>ray', '^oray!();;hmkggOuse<Space>rs_ray::{ray,<Spac
 
 vim.keymap.set('n', '<leader>ri', 'vaco<Esc>f{byiw$%o<CR>impl<Space><Esc>pA<Space>{<CR><Esc>A<Tab>', { remap = true })
 
+
+-- Trouble
+vim.keymap.set("n", "<leader>xx", function() require("trouble").toggle() end)
+vim.keymap.set("n", "<leader>xw", function() require("trouble").toggle("workspace_diagnostics") end)
+vim.keymap.set("n", "<leader>xd", function() require("trouble").toggle("document_diagnostics") end)
+vim.keymap.set("n", "<leader>xq", function() require("trouble").toggle("quickfix") end)
+vim.keymap.set("n", "<leader>xl", function() require("trouble").toggle("loclist") end)
+vim.keymap.set("n", "gR", function() require("trouble").toggle("lsp_references") end)
