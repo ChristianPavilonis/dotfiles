@@ -1,5 +1,4 @@
 return {
-  -- NOTE: First, some plugins that don't require any configuration
   -- Git related plugins
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
@@ -16,13 +15,14 @@ return {
   -- creates parent dirs when saving if they don't exist
   'jessarcher/vim-heritage',
 
+  -- yank macros from a register :YankMacro j
   'jesseleite/nvim-macroni',
 
   -- smooth scroll for jumps ie C-d/C-u
-  {
-    'karb94/neoscroll.nvim',
-    opts = {}
-  },
+  -- {
+  --   'karb94/neoscroll.nvim',
+  --   opts = {}
+  -- },
 
 
   'sickill/vim-pasta',
