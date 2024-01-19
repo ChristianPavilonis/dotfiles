@@ -128,5 +128,6 @@ vim.keymap.set('n', '<leader>ga', function()
 end)
 
 vim.keymap.set('n', '<leader>gc', ':G commit<CR>')
+vim.keymap.set('n', '<leader>gs', ':G status<CR>')
 
 
