@@ -13,5 +13,11 @@ ln -s $DOTFILES/tmux/tmux.conf $HOME/.tmux.conf
 rm -rf $HOME/.config/nvim
 ln -s $DOTFILES/nvim $HOME/.config/nvim
 
+# nushell
+rm $nu.env-path
+rm $nu.config-path
+ln -s $DOTFILES/nu/env.nu $nu.env-path
+ln -s $DOTFILES/nu/config.nu $nu.config-path
+
 # Starship
 ln -s $DOTFILES/starship.toml $HOME/.config/
