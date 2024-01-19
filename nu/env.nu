@@ -1,28 +1,10 @@
 # Nushell Environment Config File
 
-def create_left_prompt [] {
-	let path_segment = ($env.PWD)
-
-	$path_segment
-}
-
-def create_right_prompt [] {
-	# let time_segment = ([
-	# 	(date now | date format '%m/%d/%Y %r')
-	# ] | str join)
-	#
-	# $time_segment
-}
-
-# Use nushell functions to define your right and left prompt
-$env.PROMPT_COMMAND = { create_left_prompt }
-$env.PROMPT_COMMAND_RIGHT = { create_right_prompt }
-
 # The prompt indicators are environmental variables that represent
 # the state of the prompt
 $env.PROMPT_INDICATOR = { "〉" }
-$env.PROMPT_INDICATOR_VI_INSERT = { ": " }
-$env.PROMPT_INDICATOR_VI_NORMAL = { "〉" }
+$env.PROMPT_INDICATOR_VI_INSERT = { "〉" }
+$env.PROMPT_INDICATOR_VI_NORMAL = { "| " }
 $env.PROMPT_MULTILINE_INDICATOR = { "::: " }
 
 # Specifies how environment variables are:
@@ -53,8 +35,5 @@ $env.NU_LIB_DIRS = [
 $env.NU_PLUGIN_DIRS = [
 	($nu.config-path | path dirname | path join 'plugins')
 ]
-
-# To add entries to PATH (on Windows you might use Path), you can use the following pattern:
-# $env.PATH = ($env.PATH | split row (char esep) | prepend '/some/path')
 
 source ~/dotfiles/nu/profile.nu

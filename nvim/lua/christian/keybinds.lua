@@ -127,7 +127,7 @@ vim.keymap.set('n', '<leader>ga', function()
     vim.cmd("G add " .. path) 
 end)
 
+vim.keymap.set('n', '<leader>gaa', ':G add .<CR>')
 vim.keymap.set('n', '<leader>gc', ':G commit<CR>')
 vim.keymap.set('n', '<leader>gs', ':G status<CR>')
-
 
