@@ -1,21 +1,21 @@
-let-env PATH = ($env.PATH | append '/Users/christian/.cargo/bin')
-let-env PATH = ($env.PATH | append '/opt/homebrew/bin')
-let-env PATH = ($env.PATH | append '/usr/local/bin')
-let-env PATH = ($env.PATH | append '/Users/christian/.composer/vendor/bin')
-let-env PATH = ($env.PATH | append '/Users/christian/.yarn/bin')
-let-env PATH = ($env.PATH | append '/usr/local/go/bin')
-let-env PATH = ($env.PATH | append '/Users/christian/Library/Application Support/JetBrains/Toolbox/scripts')
-let-env PATH = ($env.PATH | append '/Users/christian/Library/Application Support/Herd/bin')
-let-env PATH = ($env.PATH | append '/Users/christian/.bun/bin')
+# Paths!
+$env.PATH = ($env.PATH | append '/Users/christian/.cargo/bin')
+$env.PATH = ($env.PATH | append '/opt/homebrew/bin')
+$env.PATH = ($env.PATH | append '/usr/local/bin')
+$env.PATH = ($env.PATH | append '/Users/christian/.composer/vendor/bin')
+$env.PATH = ($env.PATH | append '/Users/christian/.yarn/bin')
+$env.PATH = ($env.PATH | append '/usr/local/go/bin')
+$env.PATH = ($env.PATH | append '/Users/christian/Library/Application Support/JetBrains/Toolbox/scripts')
+$env.PATH = ($env.PATH | append '/Users/christian/Library/Application Support/Herd/bin')
+$env.PATH = ($env.PATH | append '/Users/christian/.bun/bin')
 
-let-env TWITCH_OAUTH = "oauth:h3d0rwba6n0z0is9nrlckoeiqd4o5l"
-let-env OPENSSL_CONF = "/Users/christian/Library/Application Support/Herd/config/php/openssl.cnf"
-
-zoxide init nushell --hook prompt | save ~/.zoxide.nu -f
+$env.OPENSSL_CONF = "/Users/christian/Library/Application Support/Herd/config/php/openssl.cnf"
 
 # Aliases
+# neovim btw™
 alias vim = nvim
 
+# Git
 alias gst = git status
 alias gco = git checkout
 alias gcb = git checkout -b
@@ -26,30 +26,54 @@ alias gc = git commit
 alias gcmsg = git commit -m
 alias gl = git pull
 alias gp = git push
-alias gpsup = (git push --set-upstream origin (git rev-parse --abbrev-ref HEAD | str trim))
-alias gwip = (git add -A; git rm (git ls-files --deleted) 2> /dev/null; git commit --no-verify -m "--wip-- [skip ci]")
 alias gm = git merge
-alias gb = (git branch | lines)
-alias gbcp = (git branch --show-current | str trim | pbcopy)
-alias glog = (git log --pretty=%h»¦«%s»¦«%aN»¦«%aE»¦«%aD -n 25 | lines | split column "»¦«" commit subject name email date | upsert date {|d| $d.date | into datetime} | where ($it.date > ((date now) - 7day)))
-alias gbdm = (git branch --merged | egrep -v "(^\*|master|main|dev)" | xargs git branch -d)
 
-alias repolc = (git ls-files | xargs wc -l)
+def gb [] {
+	git branch | lines
+}
 
-alias quickpr = (gh pr create --base master --fill --assignee @me --head --title (git branch --show-current | str trim))
+# copy current branch name
+def gbcp [] {
+	git branch --show-current | str trim | pbcopy
+}
+# nice looking logs from this week
+def glog [] {
+	git log --pretty=%h»¦«%s»¦«%aN»¦«%aE»¦«%aD -n 25 | lines | split column "»¦«" commit subject name email date | upsert date {|d| $d.date | into datetime} | where ($it.date > ((date now) - 7day))
+}
+# I don't remember
+def gbdm [] {
+	git branch --merged | egrep -v "(^\*|master|main|dev)" | xargs git branch -d
+}
+# how many lines in this repo
+def repolc [] {
+	git ls-files | xargs wc -l
+)
+# make a pr using git hub cli
+def quickpr [] {
+	gh pr create --base master --fill --assignee @me --head --title (git branch --show-current | str trim)
+}
 
-alias docker-sweep = (docker ps -a -q | split row "\n" | par-each { |it| docker stop $it; docker rm $it })
+# Docker
 alias dc = docker compose
 alias dcx = dc exec
 
-alias docker-switch = (docker-sweep; dc up -d)
+# clean up all them containers
+def docker-sweep [] {
+	docker ps -a -q | split row "\n" | par-each { |it| docker stop $it; docker rm $it }
+}
+# cleanup one project and spin up another
+def docker-switch [] {
+	docker-sweep; dc up -d
+}
 
 alias commit = ~/Projects/amish-commit/src-tauri/target/release/amish-commit
-
 alias vitest = ./node_modules/bin/vitest
 
-alias cwd = (pwd | pbcopy)
+# Copy the working directory path
+def cwd [] {
+	pwd | pbcopy
+}
 
-source ~/.nu-scripts/php.nu
-source ~/.cache/starship/init.nu
-source ~/.zoxide.nu
+source ./php.nu
+source ./zoxide.nu
+use ~/.cache/starship/init.nu
