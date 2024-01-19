@@ -5,6 +5,7 @@ return {
     dependencies = {
       'nvim-treesitter/nvim-treesitter-textobjects',
       'JoosepAlviste/nvim-ts-context-commentstring',
+      'nushell/tree-sitter-nu',
     },
     build = ':TSUpdate',
     config = function() 
