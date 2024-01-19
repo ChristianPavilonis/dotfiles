@@ -9,12 +9,12 @@ vim.keymap.set('v', '>', '>gv')
 -- Leaves cursor as is after copy
 vim.keymap.set('v', 'y', 'myy`y')
 
--- disables command line typo
-vim.keymap.set('n', 'q:', ':q')
-
 -- save
 vim.keymap.set('n', '<Leader>w', ':w<CR>')
 
+-- navigate windows with tab/shift-tab
+vim.keymap.set('n', '<Tab>', '<C-w>w')
+vim.keymap.set('n', '<S-Tab>', '<C-w>W')
 
 -- telescope keybinds
 vim.keymap.set('n', '<leader>o', [[<cmd>lua require('telescope.builtin').find_files()<CR>]])
@@ -113,3 +113,20 @@ vim.keymap.set("n", "<leader>xd", function() require("trouble").toggle("document
 vim.keymap.set("n", "<leader>xq", function() require("trouble").toggle("quickfix") end)
 vim.keymap.set("n", "<leader>xl", function() require("trouble").toggle("loclist") end)
 vim.keymap.set("n", "gR", function() require("trouble").toggle("lsp_references") end)
+
+
+-- git gud
+function get_current_buff_path()
+    local bufnr = vim.api.nvim_get_current_buf()
+    return vim.api.nvim_buf_get_name(bufnr)
+end
+
+vim.keymap.set('n', '<leader>ga', function()
+    local path = get_current_buff_path()
+
+    vim.cmd("G add " .. path) 
+end)
+
+vim.keymap.set('n', '<leader>gc', ':G commit<CR>')
+
+
