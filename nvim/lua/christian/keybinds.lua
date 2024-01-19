@@ -130,4 +130,9 @@ end)
 vim.keymap.set('n', '<leader>gaa', ':G add .<CR>')
 vim.keymap.set('n', '<leader>gc', ':G commit<CR>')
 vim.keymap.set('n', '<leader>gs', ':G status<CR>')
+vim.keymap.set('n', '<leader>gd', function()
+    local path = get_current_buff_path()
+
+    vim.cmd("G diff " .. path) 
+end)
 
