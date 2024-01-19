@@ -40,14 +40,10 @@ def gbcp [] {
 def glog [] {
 	git log --pretty=%h»¦«%s»¦«%aN»¦«%aE»¦«%aD -n 25 | lines | split column "»¦«" commit subject name email date | upsert date {|d| $d.date | into datetime} | where ($it.date > ((date now) - 7day))
 }
-# I don't remember
-def gbdm [] {
-	git branch --merged | egrep -v "(^\*|master|main|dev)" | xargs git branch -d
-}
 # how many lines in this repo
 def repolc [] {
 	git ls-files | xargs wc -l
-)
+}
 # make a pr using git hub cli
 def quickpr [] {
 	gh pr create --base master --fill --assignee @me --head --title (git branch --show-current | str trim)
