@@ -21,11 +21,18 @@ alias dcx = dc exec
 
 # clean up all them containers
 def docker-sweep [] {
-	docker ps -a -q | split row "\n" | par-each { |it| docker stop $it; docker rm $it }
+	let containers = docker ps -a -q 
+	let no_containers = $containers | is-empty
+	if $no_containers {
+		echo "No containers to sweep up 🧹"
+	} else {
+		$containers | split row "\n" | par-each { |it| docker stop $it; docker rm $it }
+	}
 }
 # cleanup one project and spin up another
 def docker-switch [] {
-	docker-sweep; dc up -d
+	docker-sweep
+	dc up -d
 }
 
 alias commit = ~/Projects/amish-commit/src-tauri/target/release/amish-commit
@@ -34,6 +41,7 @@ alias vitest = ./node_modules/bin/vitest
 # Copy the working directory path
 def cwd [] {
 	pwd | pbcopy
+	echo "📋 Copied the current working directory"
 }
 
 source ./git.nu
