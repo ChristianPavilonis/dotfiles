@@ -80,6 +80,13 @@ return {
                 fallback()
               end
           end, {"i","s","c",}),
+        ['<C-CR>'] = cmp.mapping(function(fallback)
+            if luasnip.expand_or_locally_jumpable() then
+              luasnip.expand_or_jump()
+            else 
+              fallback()
+            end
+        end, {'i', 's', 'c'})
           -- ['<CR>'] = cmp.mapping.confirm({ select = false }),
         },
         sources = {
