@@ -50,7 +50,7 @@ def "nu-complete cargo vcs" [] {
 # Disabled due to messing with undefined cargo-subcommands
 
 # # Rust's package manager
-# export extern "cargo"  [
+# export extern "cargoargo"  [
 #   --version(-V)      # Print version info and exit
 #   --list             # List installed commands
 #   --explain: number  # Run `rustc --explain CODE`
@@ -69,7 +69,7 @@ def "nu-complete cargo vcs" [] {
 #*> Common Commands (Sorted by order shown by running the `cargo` command) <*#
 
 # Compile the current package
-export extern "c build" [
+export extern "cargoargo build" [
   --package(-p): string@"nu-complete cargo packages"  # Build only the specified packages
   --workspace         # Build all members in the workspace
   --exclude: string@"nu-complete cargo packages" # Exclude the specified packages
@@ -109,7 +109,7 @@ export extern "c build" [
 ]
 
 # Check the current package
-export extern "c check" [
+export extern "cargoargo check" [
   --package(-p): string@"nu-complete cargo packages" #Check only the specified packages
   --workspace # Check all members in the workspace
   --all # Alias for --workspace (deprecated)
@@ -148,7 +148,7 @@ export extern "c check" [
 ]
 
 # Remove the target directory
-export extern "c clean" [
+export extern "cargoargo clean" [
   --package(-p): string@"nu-complete cargo packages"    # Clean only the specified packages
   --doc                    # Remove only the doc directory in the target directory
   --release                # Remove all artifacts in the release directory
@@ -168,7 +168,7 @@ export extern "c clean" [
 ]
 
 # Build a package's documentation
-export extern "c doc" [
+export extern "cargo doc" [
   --open                    # Open the docs in a browser after building them
   --no-deps                 # Do not build documentation for dependencie
   --document-private-items  # Include non-public items in the documentation
@@ -204,7 +204,7 @@ export extern "c doc" [
 ]
 
 # Create a new cargo package
-export extern "c new" [
+export extern "cargo new" [
   path: path          # The directory that will contain the project
   --bin               # Create a package with a binary target (src/main.rs) (default)
   --lib               # Create a package with a library target (src/lib.rs)
@@ -220,7 +220,7 @@ export extern "c new" [
 ]
 
 # Create a new cargo package in an existing directory
-export extern "c init" [
+export extern "cargo init" [
   path: path # The directory that will contain the project
   --bin # Create a package with a binary target (src/main.rs) (default)
   --lib # Create a package with a library target (src/lib.rs)
@@ -236,7 +236,7 @@ export extern "c init" [
 ]
 
 # Run the current cargo package
-export extern "c run" [
+export extern "cargo run" [
   ...args: any                              # Arguments to be passed to your program
   --bin: string@"nu-complete cargo bins"    # Name of the bin target to run
   --example: string@"nu-complete cargo examples" # Name of the example target to run
@@ -265,7 +265,7 @@ export extern "c run" [
 ]
 
 # Run the tests
-export extern "c test" [
+export extern "cargo test" [
   test_arg_separator?: string
    ...args: any        # Arguments to be passed to the tests
   --no-run       # Compile, but don't run tests
@@ -309,7 +309,7 @@ export extern "c test" [
 ]
 
 # Execute benchmarks of a package
-export extern "c bench" [
+export extern "cargo bench" [
   bench_option_seperator?: string
   ...options: any # Options to be passed to the benchmarks
   --no-run # Compile, but don't run benchmarks
@@ -351,7 +351,7 @@ export extern "c bench" [
 ]
 
 # Update dependencies listed in Cargo.lock
-export extern "c update" [
+export extern "cargo update" [
   --package(-p): string@"nu-complete cargo packages" # Update only the specified packages
   --aggressive # Dependencies of the specified packages are forced to update as well
   --precise: any # Allows you to specify a specific version number to set the package to
@@ -369,7 +369,7 @@ export extern "c update" [
 ]
 
 # Search packages in crates.io
-export extern "c search" [
+export extern "cargo search" [
   query: string # The thing to search
   --limit: number # Limit the number of results. (default: 10, max: 100)
   --index: string # The URL of the registry index to use
@@ -382,7 +382,7 @@ export extern "c search" [
 ]
 
 # Package and upload a package to the registry
-export extern "c publish" [
+export extern "cargo publish" [
   --dry-run # Perform all checks without uploading
   --token: any # API token to use when authenticating
   --no-verify # Don't verify the contents by building them
@@ -409,7 +409,7 @@ export extern "c publish" [
 ]
 
 # Build and install a Rust binary
-export extern "c install" [
+export extern "cargo install" [
   crate?: string # The crate to install
   --version: string # Specify a version to install
   --vers: string    # Specify a version to install
@@ -449,7 +449,7 @@ export extern "c install" [
 ]
 
 # Remove a Rust binary
-export extern "c uninstall" [
+export extern "cargo uninstall" [
   package?: string@"nu-complete cargo packages" # Package to uninstall
   --package(-p): string@"nu-complete cargo packages" # Package to uninstall
   --bin: string@"nu-complete cargo bins" # Only uninstall the binary name
@@ -464,7 +464,7 @@ export extern "c uninstall" [
 #*> Other Commands <*#
 
 # Output the resolved dependencies of a package in machine-readable format
-export extern "c metadata"  [
+export extern "cargo metadata"  [
   --no-deps # Output information only about the workspace members and don't fetch dependencies
   --format-version: number # Specify the version of the output format to use. Currently 1 is the only possible value
   --filter-platform: string  # This filters the resolve output to only include dependencies for the iven target triple
@@ -483,7 +483,7 @@ export extern "c metadata"  [
 ]
 
 # Get the help of the given cargo subcommand
-export extern "c help" [
+export extern "cargo help" [
   subcommand: string@"nu-complete cargo subcommands"
   --color: string@"nu-complete cargo color" # Control when colored output is used
   --config: string # Override a configuration value
@@ -495,7 +495,7 @@ export extern "c help" [
 ]
 
 # A bunch of lints to catch common mistakes and improve your Rust code
-export extern "c clippy" [
+export extern "cargo clippy" [
   --no-deps      # Run Clippy only on the given crate, without linting the dependencies
   --fix          # Automatically apply lint suggestions. This flag implies `--no-deps
   --version(-V)  # Prints version information
@@ -543,7 +543,7 @@ export extern "c clippy" [
 ]
 
 # Parameters from cargo update
-export extern "c install-update" [
+export extern "cargo install-update" [
   --all(-a)             # Update all packages
   --allow-no-update(-i) # Allow for fresh-installing packages
   --downdate(-d)        # Downdate packages to match latest unyanked registry version
@@ -560,7 +560,7 @@ export extern "c install-update" [
 ]
 
 # Parameters from cargo add
-export extern "c add" [
+export extern "cargo add" [
   --no-default-features   # Disable the default features
   --default-features      # Re-enable the default features
   --features(-F)          # Space or comma separated list of features to activate
