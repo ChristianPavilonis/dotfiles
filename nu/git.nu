@@ -180,7 +180,7 @@ def "nu-complete git add" [] {
 }
 
 # Check out git branches and files
-export extern "gco" [
+export extern "git checkout" [
   ...targets: string@"nu-complete git checkout"   # name of the branch or files to checkout
   --conflict: string                              # conflict style (merge or diff3)
   --detach(-d)                                    # detach HEAD at named commit
