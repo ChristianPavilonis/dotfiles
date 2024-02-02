@@ -27,6 +27,23 @@ def repolc [] {
 def quickpr [] {
   gh pr create --base master --fill --assignee @me --head --title (git branch --show-current | str trim)
 }
+
+
+def keep_the-streak-alive [] {
+  # Get the date for the previous day
+  let date = (/bin/date -v-1d '' +%F) + " 12:00:00"
+
+  # Set and export GIT_COMMITTER_DATE
+  $env.GIT_COMMITTER_DATE = $date
+
+  # Amend the commit with the new date
+  git commit --amend --no-edit --date=$date
+
+  # Unset GIT_COMMITTER_DATE to not interfere with future commits
+  hide-env GIT_COMMITTER_DATE
+}
+
+
 # Completions 
 def "nu-complete git available upstream" [] {
   ^git branch -a | lines | each { |line| $line | str replace '\* ' "" | str trim }
@@ -408,6 +425,7 @@ export extern "git checkout" [
         --amend                                             # amend the previous commit rather than adding a new one
         --message(-m)                                       # specify the commit message rather than opening an editor
         --no-edit                                           # don't edit the commit message (useful with --amend)
+        --date
       ]
 
 # List commits
