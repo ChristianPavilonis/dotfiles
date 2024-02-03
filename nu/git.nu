@@ -29,9 +29,11 @@ def quickpr [] {
 }
 
 
-def keep_the-streak-alive [] {
+def keep-the-streak-alive [] {
   # Get the date for the previous day
-  let date = (/bin/date -v-1d '' +%F) + " 12:00:00"
+  mut date = (/bin/date -v-1d +%F)
+
+  $date = $date + " 12:00:00"
 
   # Set and export GIT_COMMITTER_DATE
   $env.GIT_COMMITTER_DATE = $date
