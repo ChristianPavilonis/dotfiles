@@ -11,6 +11,8 @@ $env.PATH = ($env.PATH | append '/Users/christian/.bun/bin')
 
 $env.OPENSSL_CONF = "/Users/christian/Library/Application Support/Herd/config/php/openssl.cnf"
 
+$env.RUST_LOG = "debug"
+
 # Aliases
 # neovim btw™
 alias vim = nvim
