@@ -114,7 +114,6 @@ vim.keymap.set("n", "<leader>xq", function() require("trouble").toggle("quickfix
 vim.keymap.set("n", "<leader>xl", function() require("trouble").toggle("loclist") end)
 vim.keymap.set("n", "gR", function() require("trouble").toggle("lsp_references") end)
 
-
 -- git gud
 function get_current_buff_path()
     local bufnr = vim.api.nvim_get_current_buf()
@@ -136,3 +135,10 @@ vim.keymap.set('n', '<leader>gd', function()
     vim.cmd("G diff " .. path) 
 end)
 
+vim.keymap.set('n', '<leader>tl', function()
+    vim.cmd("colorscheme kanagawa-lotus")
+end)
+
+vim.keymap.set('n', '<leader>td', function()
+    vim.cmd("colorscheme kanagawa-wave")
+end)
