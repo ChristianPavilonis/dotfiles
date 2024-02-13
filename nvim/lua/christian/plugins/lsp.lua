@@ -23,7 +23,7 @@ return {
     local util = require("lspconfig/util")
 
     require('lspconfig').intelephense.setup{ 
-      filetypes = {'php'},
+      filetypes = {'php', 'antlers.html'},
       capabilities = capabilities,
     }
     require('lspconfig').volar.setup{
