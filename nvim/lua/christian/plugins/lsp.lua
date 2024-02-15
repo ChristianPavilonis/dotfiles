@@ -31,6 +31,10 @@ return {
       capabilities = capabilities
     }
 
+   require('lspconfig').cssls.setup{
+      capabilities = capabilities,
+    }
+    
     require('lspconfig').rust_analyzer.setup{ 
       filetypes = {'rust'},
       capabilities = capabilities,
