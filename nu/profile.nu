@@ -10,8 +10,8 @@ $env.PATH = ($env.PATH | append '/Users/christian/Library/Application Support/He
 $env.PATH = ($env.PATH | append '/Users/christian/.bun/bin')
 
 $env.OPENSSL_CONF = "/Users/christian/Library/Application Support/Herd/config/php/openssl.cnf"
-
-$env.RUST_LOG = "debug"
+$env.TAURI_PRIVATE_KEY = (cat /Users/christian/.tauri/geapp.key)
+# $env.RUST_LOG = "debug"
 
 # Aliases
 # neovim btw™

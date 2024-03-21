@@ -10,6 +10,8 @@ alias gcmsg = git commit -m
 alias gl = git pull
 alias gp = git push
 alias gm = git merge
+alias gd = git diff
+alias gdc = git diff --cached
 
 def gb [] {
   git branch | lines
