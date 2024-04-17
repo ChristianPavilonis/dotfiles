@@ -22,7 +22,7 @@ vim.keymap.set('n', '<leader>O', [[<cmd>lua require('telescope.builtin').find_fi
 vim.keymap.set('n', '<leader>b', [[<cmd>lua require('telescope.builtin').buffers()<CR>]])
 vim.keymap.set('n', '<leader>f', [[<cmd>lua require('telescope').extensions.live_grep_args.live_grep_args()<CR>]])
 vim.keymap.set('n', '<leader>h', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]])
-vim.keymap.set('n', '<leader>s', [[<cmd>lua require('telescope.builtin').lsp_document_symbols()<CR>]])
+vim.keymap.set('n', '<leader>s', [[<cmd>lua require('telescope.builtin').lsp_workspace_symbols()<CR>]])
 vim.keymap.set('n', '<leader><leader>d', [[<cmd>lua require('telescope.builtin').dotfiles()<CR>]])
 
 
@@ -64,6 +64,10 @@ vim.keymap.set('n', '<A-j>', ':move .+1<CR>==')
 vim.keymap.set('n', '<A-k>', ':move .-2<CR>==')
 vim.keymap.set('v', '<A-j>', ":move '>+1<CR>gv=gv")
 vim.keymap.set('v', '<A-k>', ":move '<-2<CR>gv=gv")
+
+-- quick find and replace
+vim.keymap.set('n', '<A-r>', ":%s/")
+vim.keymap.set('v', '<A-r>', "y:<C-f>i%s/<Esc>pa/")
 
 -- add lines but stay in normal mode
 vim.keymap.set('n', '<CR>', 'o<Esc>')
