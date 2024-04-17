@@ -8,6 +8,7 @@ $env.PATH = ($env.PATH | append '/usr/local/go/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/Library/Application Support/JetBrains/Toolbox/scripts')
 $env.PATH = ($env.PATH | append '/Users/christian/Library/Application Support/Herd/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.bun/bin')
+$env.PATH = ($env.PATH | append '/Users/christian/.rbenv/versions/3.3.0/bin')
 
 $env.OPENSSL_CONF = "/Users/christian/Library/Application Support/Herd/config/php/openssl.cnf"
 $env.TAURI_PRIVATE_KEY = (cat /Users/christian/.tauri/geapp.key)
