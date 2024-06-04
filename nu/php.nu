@@ -1,4 +1,4 @@
-alias art = dcx php php artisan
+alias art = php artisan
 
 alias amfs = art migrate:fresh --seed
 alias asd = art db:seed
