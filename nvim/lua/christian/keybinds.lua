@@ -18,7 +18,8 @@ vim.keymap.set('n', '<S-Tab>', '<C-w>W')
 
 -- telescope keybinds
 vim.keymap.set('n', '<leader>o', [[<cmd>lua require('telescope.builtin').find_files()<CR>]])
-vim.keymap.set('n', '<leader>O', [[<cmd>lua require('telescope.builtin').find_files({ no_ignore = true, prompt_title = 'All Files' })<CR>]])
+vim.keymap.set('n', '<leader>O',
+    [[<cmd>lua require('telescope.builtin').find_files({ no_ignore = true, prompt_title = 'All Files' })<CR>]])
 vim.keymap.set('n', '<leader>b', [[<cmd>lua require('telescope.builtin').buffers()<CR>]])
 vim.keymap.set('n', '<leader>f', [[<cmd>lua require('telescope').extensions.live_grep_args.live_grep_args()<CR>]])
 vim.keymap.set('n', '<leader>h', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]])
@@ -50,7 +51,7 @@ vim.keymap.set('v', 'p', '"_dP')
 vim.keymap.set('i', ';;', '<Esc>A;<Esc>')
 vim.keymap.set('i', ',,', '<Esc>A,<Esc>')
 
--- jk back to normal mode as per Jesse 
+-- jk back to normal mode as per Jesse
 vim.keymap.set('i', 'jk', '<Esc>')
 
 -- Clear search highlights
@@ -127,7 +128,7 @@ end
 vim.keymap.set('n', '<leader>ga', function()
     local path = get_current_buff_path()
 
-    vim.cmd("G add " .. path) 
+    vim.cmd("G add " .. path)
 end)
 
 vim.keymap.set('n', '<leader>gaa', ':G add .<CR>')
@@ -136,7 +137,7 @@ vim.keymap.set('n', '<leader>gs', ':G status<CR>')
 vim.keymap.set('n', '<leader>gd', function()
     local path = get_current_buff_path()
 
-    vim.cmd("G diff " .. path) 
+    vim.cmd("G diff " .. path)
 end)
 
 vim.keymap.set('n', '<leader>tl', function()
@@ -146,3 +147,8 @@ end)
 vim.keymap.set('n', '<leader>td', function()
     vim.cmd("colorscheme kanagawa-wave")
 end)
+
+vim.keymap.set('n', '<leader>lf', function()
+    vim.lsp.buf.format({ async = false })
+end)
+

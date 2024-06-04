@@ -55,19 +55,6 @@ return {
     require('lspconfig').gopls.setup{
     }
 
-    -- Commands
-    vim.api.nvim_create_user_command('Format', function() vim.lsp.buf.format({ timeout_ms = 5000 }) end, {})
-
-    vim.api.nvim_create_autocmd(
-      "BufWritePost",
-      {
-        pattern = "*.rs",
-        callback = function() 
-          vim.cmd("Format")
-        end
-      }
-    )
-
     vim.diagnostic.config({
       virtual_text = false,
       float = {
