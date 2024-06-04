@@ -34,6 +34,12 @@ return {
    require('lspconfig').cssls.setup{
       capabilities = capabilities,
     }
+
+
+    require('lspconfig').lua_ls.setup{ 
+      filetypes = {'lua'},
+      capabilities = capabilities,
+    }
     
     require('lspconfig').rust_analyzer.setup{ 
       filetypes = {'rust'},
@@ -44,6 +50,9 @@ return {
           allFeatures = true
         }
       }
+    }
+
+    require('lspconfig').gopls.setup{
     }
 
     -- Commands

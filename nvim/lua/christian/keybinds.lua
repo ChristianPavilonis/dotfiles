@@ -103,7 +103,7 @@ vim.keymap.set('n', '<Leader>tl', ':TestLast<CR>')
 vim.keymap.set('n', '<Leader>tv', ':TestVisit<CR>')
 
 -- Rust
-vim.keymap.set('n', '<leader>rd', 'vaco<Esc>O#[derive()]<Esc>hi', { remap = true })
+vim.keymap.set('n', '<leader>rd', 'vaco<Esc>O#[derive()]<Esc>', { remap = true })
 --  add a ray call and import the crate in one go
 vim.keymap.set('n', '<leader>ray', '^oray!();;hmkggOuse<Space>rs_ray::{ray,<Space>Ray};;`ki', { remap = true })
 

@@ -24,14 +24,6 @@ return {
     event = "InsertEnter",
     opts = {} -- this is equalent to setup({}) function
   },
-
-  -- smooth scroll for jumps ie C-d/C-u
-  -- {
-  --   'karb94/neoscroll.nvim',
-  --   opts = {}
-  -- },
-
-
   'sickill/vim-pasta',
   'ThePrimeagen/vim-be-good',
 
