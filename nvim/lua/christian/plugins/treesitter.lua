@@ -16,9 +16,6 @@ return {
         indent = {
           enable = true,
         },
-        context_commentstring = {
-          enable = true,
-        },
         ensure_installed = 'all',
         auto_install = true,
         textobjects = {
