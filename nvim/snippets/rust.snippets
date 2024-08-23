@@ -57,8 +57,14 @@ snippet ait "create an async unit test with tokio"
 		${0}
 	}
 
+
 snippet tcmd "creat a tauri::command"
 	#[tauri::command]
 	async fn ${1}() {
+		${0}
+	}
+
+snippet fnnew "implement a new fn"
+	pub fn new() -> Self {
 		${0}
 	}
