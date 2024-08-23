@@ -74,7 +74,7 @@ return {
               fallback()
             end
           end, { "i", "s" }),
-          ['<CR>'] = cmp.mapping(function(fallback)
+          ['<C-k>'] = cmp.mapping(function(fallback)
             if cmp.visible() then
               local entry = cmp.get_selected_entry()
               if not entry then
