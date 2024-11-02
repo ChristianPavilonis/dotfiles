@@ -57,10 +57,10 @@ keybinds {
         bind "b" { BreakPane; SwitchToMode "Normal"; }
         bind "]" { BreakPaneRight; SwitchToMode "Normal"; }
         bind "[" { BreakPaneLeft; SwitchToMode "Normal"; }
-        bind "1" { GoToTab 1; SwitchToMode "Normal"; }
-        bind "2" { GoToTab 2; SwitchToMode "Normal"; }
-        bind "3" { GoToTab 3; SwitchToMode "Normal"; }
-        bind "4" { GoToTab 4; SwitchToMode "Normal"; }
+        bind "u" { GoToTab 1; SwitchToMode "Normal"; }
+        bind "i" { GoToTab 2; SwitchToMode "Normal"; }
+        bind "o" { GoToTab 3; SwitchToMode "Normal"; }
+        bind "p" { GoToTab 4; SwitchToMode "Normal"; }
         bind "5" { GoToTab 5; SwitchToMode "Normal"; }
         bind "6" { GoToTab 6; SwitchToMode "Normal"; }
         bind "7" { GoToTab 7; SwitchToMode "Normal"; }
@@ -284,29 +284,30 @@ plugins {
 
 
 themes {
-    christian {
-        bg "#585b70" // Surface2
-        fg "#cdd6f4"
-        red "#f38ba8"
-        green "#48567f"
-        blue "#89b4fa"
-        yellow "#f9e2af"
-        magenta "#f5c2e7" // Pink
-        orange "#fab387" // Peach
-        cyan "#89dceb" // Sky
-        black "#181825" // Mantle
-        white "#cdd6f4"
+    default {
+        bg "#DCD7BA"
+        fg "#1F1F28"
+        white "#090618"
+        black "#dcd6ba"
+        red "#e82424"
+        green "#98bb6c"
+        yellow "#e6c384"
+        blue "#7fb4ca"
+        magenta "#938aa9"
+        cyan "#7aa89f"
+        orange "#FFA066"
+
     }
 }
 // Choose the theme that is specified in the themes section.
 // Default: default
 //
-theme "christian"
+theme "default"
 
 // The name of the default layout to load on startup
 // Default: "default"
 //
-default_layout "default"
+default_layout "christian"
 // default_layout "compact"
 
 // Choose the mode that zellij uses when starting up.
