@@ -17,9 +17,10 @@ snippet fn "fn"
 	}
 
 snippet paf "public async fn"
-	public async fn ${1}() {
+	pub async fn ${1}() {
 		${0}
 	}
+
 
 
 snippet st "public struct"
@@ -39,28 +40,28 @@ snippet af "async fn"
 		${0}
 	}
 
-snippet test "scaffold test module"
+snippet tests "scaffold test module"
 	#[cfg(test)]
 	mod tests {
 		${0}
 	}
 
-snippet it "create a unit test"
+snippet test "create a unit test"
 	#[test]
-	fn it_${1}() {
+	fn test_${1}() {
 		${0}
 	}
 
-snippet ait "create an async unit test with tokio"
+snippet ttest "create an async unit test with tokio"
 	#[tokio::test]
-	async fn it_${1}() {
+	async fn test_${1}() {
 		${0}
 	}
 
 
-snippet tcmd "creat a tauri::command"
+snippet tcmd "create a tauri::command"
 	#[tauri::command]
-	async fn ${1}() {
+	pub async fn ${1}() {
 		${0}
 	}
 
