@@ -1,5 +1,10 @@
 alias c = cargo
 alias tauri = cargo tauri
+alias cr = cargo run
+alias crw = cargo watch -q -c -x  run
+alias crbt = RUST_BACKTRACE=1 cargo run
+alias ct  = cargo test
+alias ctw = cargo watch -q -c -x  test
 
 ## Completions
 
