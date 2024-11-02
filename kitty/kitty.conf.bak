@@ -1,9 +1,20 @@
-font_family JetBrainsMono Nerd Font Mono
+# font_family JetBrainsMono Nerd Font Mono
+font_family ShureTechMono Nerd Font Mono
 
-font_size 12
-adjust_line_height 150%
+font_size 20
+adjust_line_height 135%
 
 cursor_blink_interval 0
 enable_audio_bell 0
 hide_window_decorations yes
-window_padding_width 10
+window_padding_width 0
+
+macos_option_as_alt yes
+
+map cmd+t new_tab_with_cwd
+map cmd+n new_os_window_with_cwd
+
+# BEGIN_KITTY_THEME
+# Duotone Dark
+include current-theme.conf
+# END_KITTY_THEME
