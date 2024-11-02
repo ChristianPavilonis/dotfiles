@@ -77,7 +77,7 @@ vim.keymap.set('n', '<S-CR>', 'O<Esc>')
 -- NvimTree
 vim.keymap.set('n', '<Leader>1', ':NvimTreeFindFileToggle<CR>', { silent = true })
 -- Oil
-vim.keymap.set('n', '-', require('oil').open_float, {desc = "Open parent directory"})
+vim.keymap.set('n', '-', require('oil').open_float, { desc = "Open parent directory" })
 
 -- can now delete empty lines quickly in normal mode without dd
 function _G.delete_line_if_only_whitespace()
@@ -104,14 +104,6 @@ vim.keymap.set('n', '<Leader>tf', ':TestFile<CR>')
 vim.keymap.set('n', '<Leader>ts', ':TestSuite<CR>')
 vim.keymap.set('n', '<Leader>tl', ':TestLast<CR>')
 vim.keymap.set('n', '<Leader>tv', ':TestVisit<CR>')
-
--- Rust
-vim.keymap.set('n', '<leader>rd', 'vaco<Esc>O#[derive()]<Esc>', { remap = true })
---  add a ray call and import the crate in one go
-vim.keymap.set('n', '<leader>ray', '^oray!();;hmkggOuse<Space>rs_ray::{ray,<Space>Ray};;`ki', { remap = true })
-
-vim.keymap.set('n', '<leader>ri', 'vaco<Esc>f{byiw$%o<CR>impl<Space><Esc>pA<Space>{<CR><Esc>A<Tab>', { remap = true })
-
 
 -- Trouble
 vim.keymap.set("n", "<leader>xx", function() require("trouble").toggle() end)
@@ -156,5 +148,16 @@ end)
 
 
 
+-- Keybinds
+vim.keymap.set("n", "<leader>a", function() harpoon:list():append() end)
+
+vim.keymap.set("n", "gj", function() harpoon:list():select(1) end)
+vim.keymap.set("n", "gk", function() harpoon:list():select(2) end)
+vim.keymap.set("n", "gl", function() harpoon:list():select(3) end)
+vim.keymap.set("n", "g;", function() harpoon:list():select(4) end)
+vim.keymap.set('n', 'gh', function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
 
 
+vim.keymap.set({ 'n', 'v' }, '<Leader>m', function()
+    require('telescope').extensions.macroni.saved_macros()
+end)
