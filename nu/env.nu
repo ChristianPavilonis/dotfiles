@@ -37,3 +37,4 @@ $env.NU_PLUGIN_DIRS = [
 ]
 
 source ~/dotfiles/nu/profile.nu
+source ~/dotfiles/nu/secrets.nu
