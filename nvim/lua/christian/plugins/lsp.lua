@@ -10,7 +10,7 @@ return {
 
     -- Useful status updates for LSP
     -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-    { 'j-hui/fidget.nvim', tag = 'legacy', opts = {} },
+    { 'j-hui/fidget.nvim',       tag = 'legacy', opts = {} },
 
     -- Additional lua configuration, makes nvim stuff amazing!
     'folke/neodev.nvim',
@@ -22,27 +22,36 @@ return {
     local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
     local util = require("lspconfig/util")
 
-    require('lspconfig').intelephense.setup{ 
-      filetypes = {'php', 'antlers.html'},
-      capabilities = capabilities,
-    }
-    require('lspconfig').volar.setup{
-      filetypes = {'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue', 'json'},
-      capabilities = capabilities
-    }
-
-   require('lspconfig').cssls.setup{
+    require('lspconfig').intelephense.setup {
+      filetypes = { 'php', 'antlers.html' },
       capabilities = capabilities,
     }
 
-
-    require('lspconfig').lua_ls.setup{ 
-      filetypes = {'lua'},
+    require('lspconfig').html.setup {
+      filetypes = { 'html', 'blade', 'antlers' },
       capabilities = capabilities,
     }
-    
-    require('lspconfig').rust_analyzer.setup{ 
-      filetypes = {'rust'},
+
+    require('lspconfig').volar.setup {
+      filetypes = { 'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue', 'json' },
+      init_options = {
+        vue = {
+          hybridMode = false
+        },
+      }
+    }
+
+    require('lspconfig').cssls.setup {
+      capabilities = capabilities,
+    }
+
+    require('lspconfig').lua_ls.setup {
+      filetypes = { 'lua' },
+      capabilities = capabilities,
+    }
+
+    require('lspconfig').rust_analyzer.setup {
+      filetypes = { 'rust' },
       capabilities = capabilities,
       root_dir = util.root_pattern("Cargo.toml"),
       settings = {
@@ -52,7 +61,7 @@ return {
       }
     }
 
-    require('lspconfig').gopls.setup{
+    require('lspconfig').gopls.setup {
     }
 
     vim.diagnostic.config({
