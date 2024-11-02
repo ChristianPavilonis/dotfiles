@@ -9,9 +9,24 @@ $env.PATH = ($env.PATH | append '/Users/christian/Library/Application Support/Je
 $env.PATH = ($env.PATH | append '/Users/christian/Library/Application Support/Herd/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.bun/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.rbenv/versions/3.3.0/bin')
+$env.PATH = ($env.PATH | append '/Users/christian/Library/Python/3.9/bin')
+$env.PATH = ($env.PATH | append '/Users/christian/.deno/bin')
 
 $env.OPENSSL_CONF = "/Users/christian/Library/Application Support/Herd/config/php/openssl.cnf"
 $env.TAURI_PRIVATE_KEY = (cat /Users/christian/.tauri/geapp.key)
+
+# esp32 vars
+$env.LIBCLANG_PATH = "/Users/christian/.rustup/toolchains/esp/xtensa-esp32-elf-clang/esp-17.0.1_20240419/esp-clang/lib"
+$env.PATH = ($env.PATH | append '/Users/christian/.rustup/toolchains/esp/xtensa-esp-elf/esp-13.2.0_20230928/xtensa-esp-elf/bin')
+
+## android
+
+$env.PATH = ($env.PATH | append '/opt/homebrew/opt/openjdk@17/bin')
+$env.JAVA_HOME = '/opt/homebrew/opt/openjdk@17'
+
+$env.ANDROID_HOME = "/Users/christian/Library/Android/sdk/"
+$env.NDK_HOME = "/Users/christian/Library/Android/sdk/ndk/28.0.12433566/"
+
 # $env.RUST_LOG = "debug"
 
 # Aliases
@@ -51,4 +66,6 @@ source ./git.nu
 source ./php.nu
 source ./rust.nu
 source ./zoxide.nu
+
+
 use ~/.cache/starship/init.nu
