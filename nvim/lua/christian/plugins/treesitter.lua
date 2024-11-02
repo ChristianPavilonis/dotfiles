@@ -8,7 +8,7 @@ return {
       'nushell/tree-sitter-nu',
     },
     build = ':TSUpdate',
-    config = function() 
+    config = function()
       require('nvim-treesitter.configs').setup {
         highlight = {
           enable = true,
@@ -59,23 +59,22 @@ return {
           },
         }
       }
+      local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
+      parser_config.blade = {
+        install_info = {
+          url = "https://github.com/EmranMR/tree-sitter-blade",
+          files = { "src/parser.c" },
+          branch = "main",
+        },
+        filetype = "blade",
+      }
+      vim.filetype.add({
+          pattern = {
+              [".*%.blade%.php"] = "blade",
+          },
+      })
     end,
     opts = {
     }
   },
-  -- {
-  --     "rayliwell/tree-sitter-rstml",
-  --     dependencies = { "nvim-treesitter" },
-  --     build = ":TSUpdate",
-  --     config = function ()
-  --        require("tree-sitter-rstml").setup()
-  --     end
-  -- },
-  -- Experimental automatic tag closing and renaming (optional)
-  -- {
-  --   "rayliwell/nvim-ts-autotag",
-  --   config = function()
-  --     require("nvim-ts-autotag").setup()
-  --   end,
-  -- },
 }

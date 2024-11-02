@@ -57,4 +57,7 @@ return {
         require('crates').setup()
     end,
   },
+
+  'rcarriga/nvim-notify'
+
 }
