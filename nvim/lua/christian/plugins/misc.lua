@@ -24,7 +24,6 @@ return {
     event = "InsertEnter",
     opts = {} -- this is equalent to setup({}) function
   },
-  'sickill/vim-pasta',
   'ThePrimeagen/vim-be-good',
 
   -- Useful plugin to show you pending keybinds.

@@ -45,9 +45,9 @@ vim.keymap.set('n', '<Leader>lr', ':LspRestart<CR>', { silent = true })
 -- vim.keymap.set('n', '<C-u>', '<C-u>zz')
 
 -- Paste over selection without copying it
-vim.keymap.set('v', 'p', '"_dP')
+vim.keymap.set('x', 'p', '"_dP')
 
--- Easy add semicolon or comma to end of line while in insert mode.
+
 vim.keymap.set('i', ';;', '<Esc>A;<Esc>')
 vim.keymap.set('i', ',,', '<Esc>A,<Esc>')
 
@@ -161,3 +161,17 @@ vim.keymap.set('n', 'gh', function() harpoon.ui:toggle_quick_menu(harpoon:list()
 vim.keymap.set({ 'n', 'v' }, '<Leader>m', function()
     require('telescope').extensions.macroni.saved_macros()
 end)
+
+
+-- AI?
+vim.keymap.set({ "n", "v" }, "<leader>ai", ":PrtChatToggle<CR>", { desc = "Parrot Toggle AI Chat" })
+vim.keymap.set({ "n", "v" }, "<leader>an", ":PrtChatNew<CR>", { desc = "Parrot New AI Chat" })
+vim.keymap.set({ "n", "v" }, "<leader>af", ":PrtChatFinder<CR>", { desc = "Parrot Find Chat" })
+vim.keymap.set({ "n", "v" }, "<leader>ar", ":PrtChatResponde<CR>", { desc = "Parrot Respond", silent = true })
+vim.keymap.set({ "n", "v" }, "<leader>as", ":PrtChatStop<CR>", { desc = "Parrot Stop Streaming" })
+vim.keymap.set({ "n", "v" }, "<leader>ad", ":PrtChatDelete<CR>", { desc = "Parrot Delete Chat" })
+vim.keymap.set({ "n", "v" }, "<leader>ap", ":PrtProvider<CR>", { desc = "Parrot Select Provider" })
+vim.keymap.set({ "n", "v" }, "<leader>am", ":PrtModel<CR>", { desc = "Parrot Select Model" })
+vim.keymap.set({ "v" }, "<leader>rw", ":PrtRewrite<CR>", { desc = "Rewrite" })
+
+
