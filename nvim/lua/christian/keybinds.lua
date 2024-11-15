@@ -149,7 +149,7 @@ end)
 
 
 -- Keybinds
-vim.keymap.set("n", "<leader>a", function() harpoon:list():append() end)
+-- vim.keymap.set("n", "<leader>a", function() harpoon:list():append() end)
 
 vim.keymap.set("n", "gj", function() harpoon:list():select(1) end)
 vim.keymap.set("n", "gk", function() harpoon:list():select(2) end)
@@ -172,6 +172,7 @@ vim.keymap.set({ "n", "v" }, "<leader>as", ":PrtChatStop<CR>", { desc = "Parrot 
 vim.keymap.set({ "n", "v" }, "<leader>ad", ":PrtChatDelete<CR>", { desc = "Parrot Delete Chat" })
 vim.keymap.set({ "n", "v" }, "<leader>ap", ":PrtProvider<CR>", { desc = "Parrot Select Provider" })
 vim.keymap.set({ "n", "v" }, "<leader>am", ":PrtModel<CR>", { desc = "Parrot Select Model" })
+vim.keymap.set({ "n", "v" }, "<leader>ac", ":PrtContext<CR>", { desc = "opens a chat with the content of the current file" })
 vim.keymap.set({ "v" }, "<leader>rw", ":PrtRewrite<CR>", { desc = "Rewrite" })
 
 

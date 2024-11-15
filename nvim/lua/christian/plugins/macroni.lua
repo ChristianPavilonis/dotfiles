@@ -10,7 +10,8 @@ return {
       },
 
       rust_impl = {
-        macro = 'vaco<Esc>f{byiw$%o<CR>impl<Space><Esc>pA<Space>{<CR><Esc>A<Tab>',
+        macro = 'vaco<Esc>/struct<CR>wyW$%o<CR>impl<Space>{<CR><CR>}<Esc>k',
+        -- macro = 'vaco<Esc>f{byiw$%o<CR>impl<Space><Esc>pA<Space>{<CR><Esc>A<Tab>',
         keymap = '<leader>ri',
         desc = 'Rust: impl the current struct'
       }

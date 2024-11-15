@@ -25,7 +25,7 @@ return {
     end
 
     -- Keybinds
-    vim.keymap.set("n", "<leader>a", function() harpoon:list():append() end)
+    -- vim.keymap.set("n", "a", function() harpoon:list():append() end)
 
     vim.keymap.set("n", "gj", function() harpoon:list():select(1) end)
     vim.keymap.set("n", "gk", function() harpoon:list():select(2) end)

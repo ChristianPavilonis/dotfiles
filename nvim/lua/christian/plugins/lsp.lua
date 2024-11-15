@@ -50,14 +50,16 @@ return {
       capabilities = capabilities,
     }
 
+    -- Rust Analyzer
+    -- configuration: https://rust-analyzer.github.io/manual.html#configuration
     require('lspconfig').rust_analyzer.setup {
       filetypes = { 'rust' },
       capabilities = capabilities,
       root_dir = util.root_pattern("Cargo.toml"),
       settings = {
         cargo = {
-          allFeatures = true
-        }
+          allFeatures = true,
+        },
       }
     }
 
