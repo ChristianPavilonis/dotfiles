@@ -1,4 +1,5 @@
 # Paths!
+
 $env.PATH = ($env.PATH | append '/Users/christian/.cargo/bin')
 $env.PATH = ($env.PATH | append '/opt/homebrew/bin')
 $env.PATH = ($env.PATH | append '/usr/local/bin')
@@ -9,11 +10,13 @@ $env.PATH = ($env.PATH | append '/Users/christian/Library/Application Support/Je
 $env.PATH = ($env.PATH | append '/Users/christian/Library/Application Support/Herd/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.bun/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.rbenv/versions/3.3.0/bin')
-$env.PATH = ($env.PATH | append '/Users/christian/Library/Python/3.9/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.deno/bin')
+$env.PATH = ($env.PATH | append '/Users/christian/.pyenv/shims')
 
-$env.OPENSSL_CONF = "/Users/christian/Library/Application Support/Herd/config/php/openssl.cnf"
+$env.OPENSSL_CONF = "/System/Library/OpenSSL/openssl.cnf"
 $env.TAURI_PRIVATE_KEY = (cat /Users/christian/.tauri/geapp.key)
+
+$env.OPENSSL_DIR = "/opt/homebrew/opt/openssl@3.4/"
 
 # esp32 vars
 $env.LIBCLANG_PATH = "/Users/christian/.rustup/toolchains/esp/xtensa-esp32-elf-clang/esp-17.0.1_20240419/esp-clang/lib"
@@ -26,6 +29,8 @@ $env.JAVA_HOME = '/opt/homebrew/opt/openjdk@17'
 
 $env.ANDROID_HOME = "/Users/christian/Library/Android/sdk/"
 $env.NDK_HOME = "/Users/christian/Library/Android/sdk/ndk/28.0.12433566/"
+
+
 
 # $env.RUST_LOG = "debug"
 
@@ -52,6 +57,9 @@ def docker-switch [] {
 	docker-sweep
 	dc up -d
 }
+
+# mac open
+alias mopen = /usr/bin/open
 
 alias commit = ~/Projects/amish-commit/src-tauri/target/release/amish-commit
 alias vitest = ./node_modules/bin/vitest
