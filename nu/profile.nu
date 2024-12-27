@@ -12,6 +12,7 @@ $env.PATH = ($env.PATH | append '/Users/christian/.bun/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.rbenv/versions/3.3.0/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.deno/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.pyenv/shims')
+$env.PATH = ($env.PATH | append '/Users/christian/.local/bin')
 
 $env.OPENSSL_CONF = "/System/Library/OpenSSL/openssl.cnf"
 $env.TAURI_PRIVATE_KEY = (cat /Users/christian/.tauri/geapp.key)
@@ -69,6 +70,27 @@ def cwd [] {
 	pwd | pbcopy
 	echo "📋 Copied the current working directory"
 }
+
+def lsofi [port] {
+    lsof -i ($":($port)") | detect columns
+}
+
+def killop [port] {
+    lsofi ($port) | each { |it| kill ($it.PID | into int) }
+}
+
+
+# Yazi
+def --env y [...args] {
+	let tmp = (mktemp -t "yazi-cwd.XXXXXX")
+	yazi ...$args --cwd-file $tmp
+	let cwd = (open $tmp)
+	if $cwd != "" and $cwd != $env.PWD {
+		cd $cwd
+	}
+	rm -fp $tmp
+}
+
 
 source ./git.nu
 source ./php.nu

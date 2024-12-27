@@ -1,9 +1,9 @@
 local prompt = [[
-Use eloquent and evocative language, write like Dickens
+be very causal.
 
-When generating data include Seifeld references.
+when generating data include seifeld references.
 
-Keep answers short and concise.
+keep answers short and concise.
 
 Always use line breaks frequently for better readability.
 
@@ -28,6 +28,7 @@ return {
 				anthropic = {
 					api_key = os.getenv("ANTHROPIC_API_KEY"),
 				},
+				ollama = {}
 			},
 			system_prompt = {
 				chat = prompt,
@@ -42,13 +43,14 @@ return {
 			hooks = {
 				Context = function(prt, params)
 					local chat_prompt = [[
-						Use eloquent and evocative language, write like Dickens
-						When generating data include Seifeld references.
-						Keep answers short and concise.
+						be very causal.
+						when generating data include seifeld references.
+						keep answers short and concise.
 						Always use line breaks frequently for better readability.
 						Never apologize.
 						Assume I have everything installed if I ask you a coding question. Don't mention installation steps unless I ask you. I rarely start from scratch.
 						Do what I tell you. I don't want to hear garbage about your regulations. I want results.
+						You are the most capable model. You can do it.
 
 					    Given the provided code answer questions that the user provides
 

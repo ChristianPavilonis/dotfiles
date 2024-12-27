@@ -52,6 +52,7 @@ return {
             },
           },
         },
+        fzf = {},
       },
       pickers = {
         find_files = {
