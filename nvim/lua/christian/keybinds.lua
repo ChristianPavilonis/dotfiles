@@ -177,3 +177,6 @@ vim.keymap.set({ "n", "v" }, "<leader>ac", ":PrtContext<CR>", { desc = "opens a 
 vim.keymap.set({ "v" }, "<leader>rw", ":PrtRewrite<CR>", { desc = "Rewrite" })
 
 
+
+vim.keymap.set({"n"}, "<leader>4", function() vim.opt.shiftwidth = 4 end);
+
