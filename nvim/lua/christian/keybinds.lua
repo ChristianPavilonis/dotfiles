@@ -78,7 +78,7 @@ vim.keymap.set('n', '<S-CR>', 'O<Esc>')
 -- NvimTree
 vim.keymap.set('n', '<Leader>1', ':NvimTreeFindFileToggle<CR>', { silent = true })
 -- Oil
-vim.keymap.set('n', '-', require('oil').open_float, { desc = "Open parent directory" })
+vim.keymap.set('n', '-', require('oil').open, { desc = "Open parent directory" })
 
 -- can now delete empty lines quickly in normal mode without dd
 function _G.delete_line_if_only_whitespace()

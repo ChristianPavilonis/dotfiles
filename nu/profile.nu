@@ -13,6 +13,7 @@ $env.PATH = ($env.PATH | append '/Users/christian/.rbenv/versions/3.3.0/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.deno/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.pyenv/shims')
 $env.PATH = ($env.PATH | append '/Users/christian/.local/bin')
+$env.PATH = ($env.PATH | append '/System/Volumes/Data/opt/podman/bin')
 
 $env.OPENSSL_CONF = "/System/Library/OpenSSL/openssl.cnf"
 $env.TAURI_PRIVATE_KEY = (cat /Users/christian/.tauri/geapp.key)
@@ -30,8 +31,6 @@ $env.JAVA_HOME = '/opt/homebrew/opt/openjdk@17'
 
 $env.ANDROID_HOME = "/Users/christian/Library/Android/sdk/"
 $env.NDK_HOME = "/Users/christian/Library/Android/sdk/ndk/28.0.12433566/"
-
-
 
 # $env.RUST_LOG = "debug"
 
