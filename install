@@ -6,9 +6,6 @@ DOTFILES=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 rm -rf $HOME/.config/kitty
 ln -s $DOTFILES/kitty $HOME/.config/kitty
 
-# tmux
-ln -s $DOTFILES/tmux/tmux.conf $HOME/.tmux.conf
-
 # Neo Vim
 rm -rf $HOME/.config/nvim
 ln -s $DOTFILES/nvim $HOME/.config/nvim
@@ -20,4 +17,9 @@ ln -s $DOTFILES/nu/env.nu $nu.env-path
 ln -s $DOTFILES/nu/config.nu $nu.config-path
 
 # Starship
+rm -rf $HOME/.config/starship.toml
 ln -s $DOTFILES/starship.toml $HOME/.config/
+
+# Aerospace
+rm -rf $HOME/.aerospace.toml
+ln -s $DOTFLES/.aerospace.toml $HOME/

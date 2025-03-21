@@ -90,6 +90,12 @@ def --env y [...args] {
 	rm -fp $tmp
 }
 
+## aerospace
+
+def ff [] {
+    aerospace list-windows --all | fzf --bind 'enter:execute(bash -c "aerospace focus --window-id {1}")+abort'
+}
+
 
 source ./git.nu
 source ./php.nu
