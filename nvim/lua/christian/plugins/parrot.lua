@@ -1,7 +1,7 @@
 local prompt = [[
 be very causal.
 
-when generating data include seifeld references.
+when generating data include seinfeld references.
 
 keep answers short and concise.
 
