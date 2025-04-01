@@ -1,6 +1,6 @@
 return {
   'saghen/blink.cmp',
-  version = 'v0.11.0',
+  version = 'v1.0.0',
   dependencies = { 'L3MON4D3/LuaSnip', version = 'v2.*' },
   opts = {
     -- 'default' for mappings similar to built-in completion
