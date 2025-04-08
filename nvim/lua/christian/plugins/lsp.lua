@@ -60,9 +60,12 @@ return {
       capabilities = capabilities,
       root_dir = util.root_pattern("Cargo.toml"),
       settings = {
-        cargo = {
-          allFeatures = true,
-        },
+        ["rust-analyzer"] = {
+          cargo = {
+            allFeatures = true,
+            targetDir = true,
+          },
+        }
       }
     }
 
