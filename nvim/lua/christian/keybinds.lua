@@ -17,9 +17,6 @@ vim.keymap.set('n', '<Tab>', '<C-w>w')
 vim.keymap.set('n', '<S-Tab>', '<C-w>W')
 
 -- telescope keybinds
-vim.keymap.set('n', '<leader>o', [[<cmd>lua require('telescope.builtin').find_files()<CR>]])
-vim.keymap.set('n', '<leader>O',
-    [[<cmd>lua require('telescope.builtin').find_files({ no_ignore = true, prompt_title = 'All Files' })<CR>]])
 vim.keymap.set('n', '<leader>b', [[<cmd>lua require('telescope.builtin').buffers()<CR>]])
 vim.keymap.set('n', '<leader>h', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]])
 vim.keymap.set('n', '<leader>s', [[<cmd>lua require('telescope.builtin').lsp_workspace_symbols()<CR>]])

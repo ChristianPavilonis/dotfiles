@@ -14,6 +14,11 @@ $env.PATH = ($env.PATH | append '/Users/christian/.deno/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.pyenv/shims')
 $env.PATH = ($env.PATH | append '/Users/christian/.local/bin')
 $env.PATH = ($env.PATH | append '/System/Volumes/Data/opt/podman/bin')
+$env.PATH = ($env.PATH | append '/Users/christian/Library/Python/3.9/bin')
+$env.PATH = ($env.PATH | append '/Users/christian/.opencode/bin')
+
+
+$env.OLLAMA_API_BASE_URL = "http://localhost:11434"
 
 $env.OPENSSL_CONF = "/System/Library/OpenSSL/openssl.cnf"
 $env.TAURI_PRIVATE_KEY = (cat /Users/christian/.tauri/geapp.key)

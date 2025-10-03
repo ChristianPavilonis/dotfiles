@@ -1,4 +1,6 @@
 alias c = cargo
+alias ca = cargo add
+alias cc = cargo check
 alias tauri = cargo tauri
 alias cr = cargo run
 alias crw = cargo watch -q -c -x  run
