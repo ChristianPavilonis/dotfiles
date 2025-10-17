@@ -54,9 +54,6 @@ keybinds {
         bind "n" { NewTab; SwitchToMode "Normal"; }
         bind "x" { CloseTab; SwitchToMode "Normal"; }
         bind "s" { ToggleActiveSyncTab; SwitchToMode "Normal"; }
-        bind "b" { BreakPane; SwitchToMode "Normal"; }
-        bind "]" { BreakPaneRight; SwitchToMode "Normal"; }
-        bind "[" { BreakPaneLeft; SwitchToMode "Normal"; }
         bind "u" { GoToTab 1; SwitchToMode "Normal"; }
         bind "i" { GoToTab 2; SwitchToMode "Normal"; }
         bind "o" { GoToTab 3; SwitchToMode "Normal"; }
@@ -66,6 +63,8 @@ keybinds {
         bind "7" { GoToTab 7; SwitchToMode "Normal"; }
         bind "8" { GoToTab 8; SwitchToMode "Normal"; }
         bind "9" { GoToTab 9; SwitchToMode "Normal"; }
+        bind "Shift l" { MoveTab "Right"; }
+        bind "Shift h" { MoveTab "Left"; }
         bind "Tab" { ToggleTab; }
     }
     scroll {
