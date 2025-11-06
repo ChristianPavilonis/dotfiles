@@ -53,7 +53,7 @@ keybinds {
         bind "l" "Right" "Down" "j" { GoToNextTab; }
         bind "n" { NewTab; SwitchToMode "Normal"; }
         bind "x" { CloseTab; SwitchToMode "Normal"; }
-        bind "s" { ToggleActiveSyncTab; SwitchToMode "Normal"; }
+        bind "s" { SwitchToMode "Normal"; }
         bind "u" { GoToTab 1; SwitchToMode "Normal"; }
         bind "i" { GoToTab 2; SwitchToMode "Normal"; }
         bind "o" { GoToTab 3; SwitchToMode "Normal"; }
