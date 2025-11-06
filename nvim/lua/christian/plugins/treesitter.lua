@@ -43,14 +43,16 @@ return {
             goto_next_start = {
               ["gm"] = "@function.outer",
               ["]]"] = "@class.outer",
+              ["]c"] = "@comment",
             },
             goto_next_end = {
               ["]M"] = "@function.outer",
-              ["]["] = "@class.outer",
+              ["]["] = "@class",
             },
             goto_previous_start = {
               ["[m"] = "@function.outer",
               ["[["] = "@class.outer",
+              ["[c"] = "@comment.outer",
             },
             goto_previous_end = {
               ["[M"] = "@function.outer",
