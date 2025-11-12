@@ -2,6 +2,7 @@
 
 $env.PATH = ($env.PATH | append '/Users/christian/.cargo/bin')
 $env.PATH = ($env.PATH | append '/opt/homebrew/bin')
+$env.PATH = ($env.PATH | append '/opt/homebrew/opt/openssl@3.6/bin')
 $env.PATH = ($env.PATH | append '/usr/local/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.composer/vendor/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.yarn/bin')
@@ -16,7 +17,6 @@ $env.PATH = ($env.PATH | append '/Users/christian/.local/bin')
 $env.PATH = ($env.PATH | append '/System/Volumes/Data/opt/podman/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/Library/Python/3.9/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.opencode/bin')
-
 
 $env.OLLAMA_API_BASE_URL = "http://localhost:11434"
 
@@ -37,7 +37,7 @@ $env.JAVA_HOME = '/opt/homebrew/opt/openjdk@17'
 $env.ANDROID_HOME = "/Users/christian/Library/Android/sdk/"
 $env.NDK_HOME = "/Users/christian/Library/Android/sdk/ndk/28.0.12433566/"
 
-# $env.RUST_LOG = "debug"
+$env.RUST_LOG = "info"
 
 # Aliases
 # neovim btw™
@@ -93,6 +93,13 @@ def --env y [...args] {
 		cd $cwd
 	}
 	rm -fp $tmp
+}
+
+def start_ts [] {
+    source ~/Projects/trusted-server/envs/load.nu
+    cd ~/Projects/trusted-server
+    cargo build 
+    fastly compute serve
 }
 
 ## aerospace
