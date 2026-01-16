@@ -95,12 +95,18 @@ def --env y [...args] {
 	rm -fp $tmp
 }
 
-def start_ts [] {
-    source ~/Projects/trusted-server/envs/load.nu
-    cd ~/Projects/trusted-server
+def ts_start [name] {
+    open $"/Users/christian/Projects/stackpop/envs/.env.($name)" | lines | where { |l| not ($l | str starts-with "#") } | parse "{k}={v}" | reduce -f {} { |it, acc| $acc | merge { $it.k: $it.v } } | load-env
+
     cargo build 
     fastly compute serve
 }
+
+
+def rigzilla_scrape_upload [file_path] {
+    curl -X POST "https://rigzilla.com/api/imports/upload"  -H "Authorization: Basic d2ViaG9va3VzZXI6YzhKYTdIb1Z4Y280UXI="   -H"Accept: application/json"   -F $"file=@($file_path)" -F "force=1" -F "update=1"
+}
+
 
 ## aerospace
 

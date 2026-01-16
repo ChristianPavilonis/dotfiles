@@ -23,3 +23,14 @@ ln -s $DOTFILES/starship.toml $HOME/.config/
 # Aerospace
 rm -rf $HOME/.aerospace.toml
 ln -s $DOTFLES/.aerospace.toml $HOME/
+
+# OpenCode
+mkdir -p $HOME/.config/opencode
+rm -rf $HOME/.config/opencode/agent
+ln -s $DOTFILES/opencode/agent $HOME/.config/opencode/agent
+rm -rf $HOME/.config/opencode/plugin
+ln -s $DOTFILES/opencode/plugin $HOME/.config/opencode/plugin
+rm -rf $HOME/.config/opencode/themes
+ln -s $DOTFILES/opencode/themes $HOME/.config/opencode/themes
+rm -f $HOME/.config/opencode/config.json
+ln -s $DOTFILES/opencode/config.json $HOME/.config/opencode/config.json
