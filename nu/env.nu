@@ -36,5 +36,35 @@ $env.NU_PLUGIN_DIRS = [
 	($nu.config-path | path dirname | path join 'plugins')
 ]
 
+'
+let mise_path = $nu.default-config-dir | path join mise.nu
+^mise activate nu | save $mise_path --force
+' | save $nu.env-path --append
+"\nuse ($nu.default-config-dir | path join mise.nu)" | save $nu.config-path --append
+
+
+
 source ~/dotfiles/nu/profile.nu
 source ~/dotfiles/nu/secrets.nu
+
+
+let mise_path = $nu.default-config-dir | path join mise.nu
+^mise activate nu | save $mise_path --force
+
+let mise_path = $nu.default-config-dir | path join mise.nu
+^mise activate nu | save $mise_path --force
+
+let mise_path = $nu.default-config-dir | path join mise.nu
+^mise activate nu | save $mise_path --force
+
+let mise_path = $nu.default-config-dir | path join mise.nu
+^mise activate nu | save $mise_path --force
+
+let mise_path = $nu.default-config-dir | path join mise.nu
+^mise activate nu | save $mise_path --force
+
+let mise_path = $nu.default-config-dir | path join mise.nu
+^mise activate nu | save $mise_path --force
+
+let mise_path = $nu.default-config-dir | path join mise.nu
+^mise activate nu | save $mise_path --force

@@ -14,7 +14,7 @@ description: >-
   to perform a comprehensive review of your authentication module.'
   <commentary>The user is requesting a code review, so use the
   rust-code-reviewer agent to analyze the module.</commentary></example>
-mode: all
+mode: subagent
 tools:
   write: false
   edit: false

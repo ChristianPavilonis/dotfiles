@@ -1,0 +1,40 @@
+import { tool } from "@opencode-ai/plugin"
+
+interface PRComment {
+  user: string
+  path: string
+  line: number | null
+  body: string
+}
+
+export default tool({
+  description:
+    "Fetch review comments from a GitHub pull request. Returns comments with author, file path, line number, and body.",
+  args: {
+    owner: tool.schema.string().describe("Repository owner"),
+    repo: tool.schema.string().describe("Repository name"),
+    pull_id: tool.schema.number().describe("Pull request number"),
+  },
+  async execute(args) {
+    const { owner, repo, pull_id } = args
+    const endpoint = `repos/${owner}/${repo}/pulls/${pull_id}/comments`
+
+    const stdout = await Bun.$`gh api ${endpoint}`.text()
+    const raw = JSON.parse(stdout) as Array<{
+      user: { login: string }
+      path: string
+      line: number | null
+      original_line: number | null
+      body: string
+    }>
+
+    const comments: PRComment[] = raw.map((comment) => ({
+      user: comment.user.login,
+      path: comment.path,
+      line: comment.line ?? comment.original_line,
+      body: comment.body,
+    }))
+
+    return JSON.stringify(comments, null, 2)
+  },
+})
