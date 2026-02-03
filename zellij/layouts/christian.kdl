@@ -1,0 +1,20 @@
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+    }
+    tab name="neovim" {
+        pane command="nvim"
+    }
+    tab name="opencode" {
+        pane command="opencode"
+    }
+    tab name="run" {
+        pane
+    }
+    tab name="lazy" {
+        pane command="lazygit"
+    }
+}

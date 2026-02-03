@@ -1,0 +1,71 @@
+
+snippet pl "println"
+	println!("${0}");
+
+
+snippet r# "raw string"
+	r#"${0}"#
+
+snippet pf "public fn"
+	pub fn ${1}() {
+		${0}
+	}
+
+snippet fn "fn"
+	fn ${1}() {
+		${0}
+	}
+
+snippet paf "public async fn"
+	pub async fn ${1}() {
+		${0}
+	}
+
+
+
+snippet st "public struct"
+	#[derive(Debug)]
+	struct ${0} {
+
+	}
+
+snippet pst "public struct"
+	#[derive(Debug)]
+	pub struct ${0} {
+
+	}
+
+snippet af "async fn"
+	async fn ${1}() {
+		${0}
+	}
+
+snippet tests "scaffold test module"
+	#[cfg(test)]
+	mod tests {
+		${0}
+	}
+
+snippet test "create a unit test"
+	#[test]
+	fn test_${1}() {
+		${0}
+	}
+
+snippet ttest "create an async unit test with tokio"
+	#[tokio::test]
+	async fn test_${1}() {
+		${0}
+	}
+
+
+snippet tcmd "create a tauri::command"
+	#[tauri::command]
+	pub async fn ${1}() {
+		${0}
+	}
+
+snippet fnnew "implement a new fn"
+	pub fn new() -> Self {
+		${0}
+	}

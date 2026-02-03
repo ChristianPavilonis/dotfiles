@@ -1,0 +1,33 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "theme": "kanagawa",
+  "autoshare": false,
+  "autoupdate": true,
+  "layout": "stretch",
+   "plugin": [
+    "opencode-anthropic-auth@latest"
+  ],
+  "keybinds": {
+    "agent_cycle": "<leader>p",
+    "command_list": "<leader>/",
+    "variant_cycle": "<leader>t",
+  },
+  "permission": {
+    "external_directory": {
+      "~/.cargo/**": "allow",
+      "~/Documents/MyObsidianVault/**": "allow"
+    }
+  },
+  "mcp": {
+    "chrome-devtools": {
+      "type": "local",
+      "command": ["npx", "chrome-devtools-mcp@latest"],
+      "enabled": true
+    },
+    "gitbutler" : {
+       "type": "local",
+      "command": ["but", "mcp"],
+      "enabled": false,
+    }
+  }
+}

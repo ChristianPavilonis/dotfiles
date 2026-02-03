@@ -1,0 +1,19 @@
+extends javascript
+
+
+snippet pinia "define a pinia store"
+	import { defineStore } from "pinia";
+
+	interface State {
+	}
+
+	export const use${1} = defineStore("${2}", {
+		state: (): State => ({
+			${0}
+		}),
+
+		getters: {},
+
+		actions: {
+		},
+	});

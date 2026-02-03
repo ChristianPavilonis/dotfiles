@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+DOTFILES=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+
+# Kitty
+rm -rf $HOME/.config/kitty
+ln -s $DOTFILES/kitty $HOME/.config/kitty
+
+# Neo Vim
+rm -rf $HOME/.config/nvim
+ln -s $DOTFILES/nvim $HOME/.config/nvim
+
+# nushell
+rm $nu.env-path
+rm $nu.config-path
+ln -s $DOTFILES/nu/env.nu $nu.env-path
+ln -s $DOTFILES/nu/config.nu $nu.config-path
+
+# Starship
+rm -rf $HOME/.config/starship.toml
+ln -s $DOTFILES/starship.toml $HOME/.config/
+
+# Aerospace
+rm -rf $HOME/.aerospace.toml
+ln -s $DOTFLES/.aerospace.toml $HOME/
+
+# OpenCode
+mkdir -p $HOME/.config/opencode
+rm -rf $HOME/.config/opencode/agent
+ln -s $DOTFILES/opencode/agent $HOME/.config/opencode/agent
+rm -rf $HOME/.config/opencode/plugin
+ln -s $DOTFILES/opencode/plugin $HOME/.config/opencode/plugin
+rm -rf $HOME/.config/opencode/themes
+ln -s $DOTFILES/opencode/themes $HOME/.config/opencode/themes
+rm -f $HOME/.config/opencode/config.json
+ln -s $DOTFILES/opencode/config.json $HOME/.config/opencode/config.json

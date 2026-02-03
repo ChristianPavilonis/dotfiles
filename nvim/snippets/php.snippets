@@ -1,0 +1,52 @@
+
+
+
+
+snippet class "new php class"
+	<?php
+	namespace $1;
+
+	class ${2:Name}
+	{
+		${0://}
+	}
+
+
+snippet pubf "new public method"
+	public function $1($2)
+	{
+		${0://}
+	}
+
+
+
+snippet prof "new protected method"
+	protected function $1($2)
+	{
+		${0://}
+	}
+
+
+snippet prif "new private method"
+	private function $1($2)
+	{
+		${0://}
+	}
+
+
+snippet _c "constructor"
+	public function __construct($1)
+    {
+        ${0://}
+    }
+
+snippet php "start a php file"
+    <?php    
+
+snippet pest "pest file"
+    <?php
+
+    describe("$0", function() {
+
+    });
+
