@@ -2,9 +2,7 @@
 ## General rules
 
 - Do not ask about backwards compatability, 90% of the time it is not an issue, I will bring it up first
-- Never perform destructive git operations (ie. commit, push, pull, etc.)
-  - Always let me review your changes as unstaged changes and let me manage my own git worktree / staging area
-
+- Don't perform destructive git operations unless otherwise instructed (ie. commit, push, pull, etc.)
 
 
 ## Obsidian Vault
@@ -44,8 +42,4 @@ The user may want you to log some things we did today, or notes for later.
 
 ### Notes
 This is where notes and documentation that we want to use later will be stored.
-
-### Searching
-Use fzf and rg to search for what you need to find
-
 

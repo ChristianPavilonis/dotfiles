@@ -1,36 +1,36 @@
 #!/usr/bin/env bash
 
-DOTFILES=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+set -euo pipefail
 
-# Kitty
-rm -rf $HOME/.config/kitty
-ln -s $DOTFILES/kitty $HOME/.config/kitty
+DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Neo Vim
-rm -rf $HOME/.config/nvim
-ln -s $DOTFILES/nvim $HOME/.config/nvim
+# Cleanup legacy links from pre-stow layout.
+legacy_links=(
+  "$HOME/.config/kitty"
+  "$HOME/.config/nvim"
+  "$HOME/.config/zellij"
+  "$HOME/.config/starship.toml"
+  "$HOME/.config/opencode/AGENTS.md"
+  "$HOME/.config/opencode/agent"
+  "$HOME/.config/opencode/config.json"
+  "$HOME/.config/opencode/plugin"
+  "$HOME/.config/opencode/skills"
+  "$HOME/.config/opencode/themes"
+  "$HOME/.config/opencode/tools"
+)
 
-# nushell
-rm $nu.env-path
-rm $nu.config-path
-ln -s $DOTFILES/nu/env.nu $nu.env-path
-ln -s $DOTFILES/nu/config.nu $nu.config-path
+for link in "${legacy_links[@]}"; do
+  if [ -L "$link" ]; then
+    rm "$link"
+  fi
+done
 
-# Starship
-rm -rf $HOME/.config/starship.toml
-ln -s $DOTFILES/starship.toml $HOME/.config/
+mkdir -p "$HOME/.config/opencode"
 
-# Aerospace
-rm -rf $HOME/.aerospace.toml
-ln -s $DOTFLES/.aerospace.toml $HOME/
+if [ -e "$HOME/.aerospace.toml" ] && [ ! -L "$HOME/.aerospace.toml" ]; then
+  stow --adopt -d "$DOTFILES" -t "$HOME" aerospace
+else
+  stow -d "$DOTFILES" -t "$HOME" aerospace
+fi
 
-# OpenCode
-mkdir -p $HOME/.config/opencode
-rm -rf $HOME/.config/opencode/agent
-ln -s $DOTFILES/opencode/agent $HOME/.config/opencode/agent
-rm -rf $HOME/.config/opencode/plugin
-ln -s $DOTFILES/opencode/plugin $HOME/.config/opencode/plugin
-rm -rf $HOME/.config/opencode/themes
-ln -s $DOTFILES/opencode/themes $HOME/.config/opencode/themes
-rm -f $HOME/.config/opencode/config.json
-ln -s $DOTFILES/opencode/config.json $HOME/.config/opencode/config.json
+stow -d "$DOTFILES" -t "$HOME" git kitty nu nvim opencode starship zellij

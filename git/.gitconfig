@@ -1,0 +1,31 @@
+[user]
+	email = christianpavilonis@outlook.com
+	name = Christian
+	signingkey = /Users/christian/.ssh/id_rsa.pub
+[diff]
+    external = difft
+[pull]
+	ff = true
+	rebase = false
+[core]
+	editor = nvim
+	fileMode = false
+[submodule]
+	recurse = true
+[init]
+	defaultBranch = master
+[alias]
+	nah = "!f(){ git reset --hard; git clean -df; if [ -d \".git/rebase-apply\" ] || [ -d \".git/rebase-merge\" ]; then git rebase --abort; fi; }; f"
+[push]
+	autoSetupRemote = true
+[rerere]
+	enabled = true
+[gitbutler]
+	aiModelProvider = openai
+[gpg]
+	format = ssh
+	program = /opt/homebrew/bin/gpg
+[commit]
+	gpgsign = true
+[gpg "ssh"]
+	allowedSignersFile = /Users/christian/.ssh/allowed_signers
