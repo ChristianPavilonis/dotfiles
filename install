@@ -3,6 +3,13 @@
 set -euo pipefail
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PACKAGES=(aerospace git kitty nu nvim opencode starship zellij)
+
+if ! command -v stow >/dev/null 2>&1; then
+  echo "Error: GNU Stow is required but not installed."
+  echo "Install it first (macOS): brew install stow"
+  exit 1
+fi
 
 # Cleanup legacy links from pre-stow layout.
 legacy_links=(
@@ -33,4 +40,6 @@ else
   stow -d "$DOTFILES" -t "$HOME" aerospace
 fi
 
-stow -d "$DOTFILES" -t "$HOME" git kitty nu nvim opencode starship zellij
+stow -d "$DOTFILES" -t "$HOME" "${PACKAGES[@]:1}"
+
+echo "Done. Dotfiles linked with stow."
