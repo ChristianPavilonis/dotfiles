@@ -8,9 +8,12 @@ Managed with [GNU Stow](https://www.gnu.org/software/stow/).
 git clone <your-dotfiles-repo-url> ~/dotfiles
 cd ~/dotfiles
 ./bootstrap
+./scripts/install-tools.sh
+./scripts/doctor.sh
 ```
 
 `bootstrap` will:
+- install Linux prerequisites for Homebrew (Linux only)
 - install Homebrew if needed
 - install `stow` if needed
 - run `./install` to create all symlinks
@@ -27,11 +30,31 @@ cd ~/dotfiles
 This uses:
 - `Brewfile` for cross-platform Homebrew packages
 - `Brewfile.macos` for macOS-only packages/casks
+- `Brewfile.linux` for Linux-only Homebrew packages
 - `mise.toml` for language runtimes
 - `cargo-tools.txt` for cargo-installed binaries
 
 PHP is intentionally not managed by `mise` right now because Herd is in use.
 Current `mise` runtimes: Rust, Bun, Python, Node.js, Java, Gradle, and Ruby.
+
+Validate the setup:
+
+```bash
+cd ~/dotfiles
+./scripts/doctor.sh
+```
+
+## Linux quickstart (Ubuntu/Debian)
+
+```bash
+cd ~/dotfiles
+./bootstrap
+./scripts/install-tools.sh
+./scripts/doctor.sh
+./scripts/audit-tools.sh
+```
+
+`bootstrap`/`install-tools.sh` will call `scripts/install-linux-prereqs.sh` when running on Linux.
 
 ## Tooling audit
 
@@ -55,7 +78,7 @@ cd ~/dotfiles
 
 ## Managed packages
 
-- `aerospace` -> `~/.aerospace.toml`
+- `aerospace` -> `~/.aerospace.toml` (macOS only)
 - `git` -> `~/.gitconfig`
 - `kitty` -> `~/.config/kitty`
 - `nu` -> `~/.config/nushell`

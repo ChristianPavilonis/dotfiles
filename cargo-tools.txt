@@ -18,7 +18,6 @@ dioxus-cli
 esp-generate
 espflash
 espup
-gobang
 hyperfine
 ldproxy
 nu
@@ -37,6 +36,7 @@ zellij
 zesh
 
 # Non-registry installs found in audit (manual handling for now)
+# gobang is currently unavailable in crates.io/binstall metadata.
 # anyedge-cli (path: /Users/christian/Projects/anyedge/crates/anyedge-cli)
 # subkey (git: https://github.com/paritytech/substrate#b66c051f118898ef78e68e0ccf78b1cd8f00090b)
 # tokei (git: https://github.com/XAMPPRocky/tokei.git#1770db0afdaf2e29179b39b18275b0eaec8dbfb6)

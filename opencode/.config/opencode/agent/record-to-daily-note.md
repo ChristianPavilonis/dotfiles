@@ -42,7 +42,7 @@ Read it first, then append your entry to the `## today's log` section (or create
 
 **If the daily note doesn't exist:**
 
-find the `/Users/christian/Documents/MyObsidianVault/templates/Daily template.md` file and use that.
+find the `~/Documents/MyObsidianVault/templates/Daily template.md` file and use that.
 
 
 **Guidelines:**

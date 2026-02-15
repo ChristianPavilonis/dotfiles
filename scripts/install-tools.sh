@@ -5,6 +5,19 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OS_NAME="$(uname -s)"
 
+refresh_starship_init() {
+  local starship_cache_dir="$HOME/.cache/starship"
+  local starship_init_file="$starship_cache_dir/init.nu"
+
+  mkdir -p "$starship_cache_dir"
+
+  if command -v starship >/dev/null 2>&1; then
+    starship init nu > "$starship_init_file"
+  elif [ ! -e "$starship_init_file" ]; then
+    printf 'export-env {}\n' > "$starship_init_file"
+  fi
+}
+
 ensure_brew_in_path() {
   if command -v brew >/dev/null 2>&1; then
     return 0
@@ -22,17 +35,26 @@ ensure_brew_in_path() {
 }
 
 if ! ensure_brew_in_path; then
+  if [ "$OS_NAME" = "Linux" ] && [ -x "$ROOT_DIR/scripts/install-linux-prereqs.sh" ]; then
+    "$ROOT_DIR/scripts/install-linux-prereqs.sh"
+  fi
+
   echo "Homebrew not found. Installing Homebrew..."
   NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   ensure_brew_in_path
 fi
 
 echo "Installing Homebrew packages from Brewfile..."
-brew bundle --file "$ROOT_DIR/Brewfile"
+brew bundle --file "$ROOT_DIR/Brewfile" --no-upgrade
 
 if [ "$OS_NAME" = "Darwin" ] && [ -f "$ROOT_DIR/Brewfile.macos" ]; then
   echo "Installing macOS-only Homebrew packages..."
-  brew bundle --file "$ROOT_DIR/Brewfile.macos"
+  brew bundle --file "$ROOT_DIR/Brewfile.macos" --no-upgrade
+fi
+
+if [ "$OS_NAME" = "Linux" ] && [ -f "$ROOT_DIR/Brewfile.linux" ]; then
+  echo "Installing Linux-only Homebrew packages..."
+  brew bundle --file "$ROOT_DIR/Brewfile.linux" --no-upgrade
 fi
 
 if ! command -v mise >/dev/null 2>&1; then
@@ -50,5 +72,7 @@ if [ -f "$ROOT_DIR/cargo-tools.txt" ]; then
   echo "Installing cargo tools from cargo-tools.txt..."
   "$ROOT_DIR/scripts/install-cargo-tools.sh" "$ROOT_DIR/cargo-tools.txt"
 fi
+
+refresh_starship_init
 
 echo "Done. Tool bootstrap complete."

@@ -3,11 +3,14 @@
 set -euo pipefail
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PACKAGES=(aerospace git kitty nu nvim opencode starship zellij)
+OS_NAME="$(uname -s)"
+
+COMMON_PACKAGES=(git kitty nu nvim opencode starship zellij)
+MACOS_PACKAGES=(aerospace)
 
 if ! command -v stow >/dev/null 2>&1; then
   echo "Error: GNU Stow is required but not installed."
-  echo "Install it first (macOS): brew install stow"
+  echo "Install it first: brew install stow"
   exit 1
 fi
 
@@ -34,29 +37,53 @@ done
 
 mkdir -p "$HOME/.config/opencode"
 
-if [ -e "$HOME/.aerospace.toml" ] && [ ! -L "$HOME/.aerospace.toml" ]; then
-  stow --adopt -d "$DOTFILES" -t "$HOME" aerospace
-else
-  stow -d "$DOTFILES" -t "$HOME" aerospace
+if [ "$OS_NAME" = "Darwin" ]; then
+  if [ -e "$HOME/.aerospace.toml" ] && [ ! -L "$HOME/.aerospace.toml" ]; then
+    stow --adopt -d "$DOTFILES" -t "$HOME" "${MACOS_PACKAGES[@]}"
+  else
+    stow -d "$DOTFILES" -t "$HOME" "${MACOS_PACKAGES[@]}"
+  fi
 fi
 
-stow -d "$DOTFILES" -t "$HOME" "${PACKAGES[@]:1}"
+stow -d "$DOTFILES" -t "$HOME" "${COMMON_PACKAGES[@]}"
 
-# Nushell on macOS reads from ~/Library/Application Support/nushell by default.
-nu_default_dir="$HOME/Library/Application Support/nushell"
-mkdir -p "$nu_default_dir"
+if [ "$OS_NAME" = "Darwin" ]; then
+  # Nushell on macOS reads from ~/Library/Application Support/nushell by default.
+  nu_default_dir="$HOME/Library/Application Support/nushell"
+  mkdir -p "$nu_default_dir"
 
-for nu_file in config.nu env.nu; do
-  target="$nu_default_dir/$nu_file"
-  source_file="$DOTFILES/nu/.config/nushell/$nu_file"
+  for nu_file in config.nu env.nu mise.nu; do
+    target="$nu_default_dir/$nu_file"
+    source_file="$DOTFILES/nu/.config/nushell/$nu_file"
 
-  if [ -L "$target" ]; then
-    rm "$target"
-  elif [ -e "$target" ]; then
-    mv "$target" "$target.bak"
+    if [ -L "$target" ]; then
+      rm "$target"
+    elif [ -e "$target" ]; then
+      mv "$target" "$target.bak"
+    fi
+
+    ln -s "$source_file" "$target"
+  done
+fi
+
+mkdir -p "$HOME/.config/nushell"
+
+for local_nu_file in local.nu secrets.nu; do
+  local_nu_path="$HOME/.config/nushell/$local_nu_file"
+  if [ ! -e "$local_nu_path" ]; then
+    if [ "$local_nu_file" = "secrets.nu" ]; then
+      printf '# secrets for this machine\n' > "$local_nu_path"
+    else
+      printf '# local machine overrides\n' > "$local_nu_path"
+    fi
   fi
-
-  ln -s "$source_file" "$target"
 done
+
+mkdir -p "$HOME/.cache/starship"
+if [ ! -e "$HOME/.cache/starship/init.nu" ]; then
+  cat <<'EOF' > "$HOME/.cache/starship/init.nu"
+export-env {}
+EOF
+fi
 
 echo "Done. Dotfiles linked with stow."

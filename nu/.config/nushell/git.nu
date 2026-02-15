@@ -18,8 +18,23 @@ def gb [] {
 }
 
 # copy current branch name
+def git-copy-to-clipboard [] {
+  let value = ($in | into string)
+  if (which pbcopy | is-not-empty) {
+    $value | encode utf8 | ^pbcopy
+  } else if (which wl-copy | is-not-empty) {
+    $value | encode utf8 | ^wl-copy
+  } else if (which xclip | is-not-empty) {
+    $value | encode utf8 | ^xclip -selection clipboard
+  } else if (which xsel | is-not-empty) {
+    $value | encode utf8 | ^xsel --clipboard --input
+  } else {
+    print "No clipboard utility found (pbcopy/wl-copy/xclip/xsel)."
+  }
+}
+
 def gbcp [] {
-  git branch --show-current | str trim | pbcopy
+  git branch --show-current | str trim | git-copy-to-clipboard
 }
 # how many lines in this repo
 def repolc [] {
@@ -33,7 +48,12 @@ def quickpr [] {
 
 def keep-the-streak-alive [] {
   # Get the date for the previous day
-  mut date = (/bin/date -v-1d +%F)
+  mut date = ""
+  if ($nu.os-info.name == "macos") {
+    $date = (/bin/date -v-1d +%F)
+  } else {
+    $date = (^date -d "yesterday" +%F)
+  }
 
   $date = $date + " 12:00:00"
 
@@ -429,7 +449,7 @@ export extern "git checkout" [
         --amend                                             # amend the previous commit rather than adding a new one
         --message(-m)                                       # specify the commit message rather than opening an editor
         --no-edit                                           # don't edit the commit message (useful with --amend)
-        --date
+        --date: string
       ]
 
 # List commits

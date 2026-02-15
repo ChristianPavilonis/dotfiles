@@ -6,6 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT_DIR="${1:-$ROOT_DIR/audit/latest}"
 
 mkdir -p "$OUT_DIR"
+rm -f "$OUT_DIR"/*.txt
 
 write_not_found() {
   local path="$1"

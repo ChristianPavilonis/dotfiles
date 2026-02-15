@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OS_NAME="$(uname -s)"
+
 ensure_brew_in_path() {
   if command -v brew >/dev/null 2>&1; then
     return 0
@@ -18,6 +21,10 @@ ensure_brew_in_path() {
   return 1
 }
 
+if [ "$OS_NAME" = "Linux" ] && [ -x "$SCRIPT_DIR/scripts/install-linux-prereqs.sh" ]; then
+  "$SCRIPT_DIR/scripts/install-linux-prereqs.sh"
+fi
+
 if ! ensure_brew_in_path; then
   echo "Homebrew not found. Installing Homebrew..."
   NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -29,7 +36,6 @@ if ! command -v stow >/dev/null 2>&1; then
   brew install stow
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 "$SCRIPT_DIR/install"
 
 echo "Dotfiles linked. Run ./scripts/install-tools.sh to install toolchains and CLIs."

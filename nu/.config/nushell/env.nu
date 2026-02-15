@@ -37,4 +37,5 @@ $env.NU_PLUGIN_DIRS = [
 ]
 
 source ~/.config/nushell/profile.nu
+source ~/.config/nushell/local.nu
 source ~/.config/nushell/secrets.nu

@@ -46,6 +46,29 @@ if [ "$use_mise_cargo" -eq 0 ] && command -v cargo-binstall >/dev/null 2>&1; the
   supports_binstall=1
 fi
 
+failed_crates=()
+
+install_crate() {
+  local crate="$1"
+
+  if [ "$supports_binstall" -eq 1 ]; then
+    echo "Installing $crate via cargo-binstall..."
+    if ! cargo binstall --no-confirm "$crate"; then
+      echo "Falling back to cargo install for $crate..."
+      if ! run_cargo install --locked "$crate"; then
+        return 1
+      fi
+    fi
+  else
+    echo "Installing $crate via cargo install..."
+    if ! run_cargo install --locked "$crate"; then
+      return 1
+    fi
+  fi
+
+  return 0
+}
+
 while IFS= read -r raw_line || [ -n "$raw_line" ]; do
   line="${raw_line%%#*}"
   crate="$(trim "$line")"
@@ -54,16 +77,15 @@ while IFS= read -r raw_line || [ -n "$raw_line" ]; do
     continue
   fi
 
-  if [ "$supports_binstall" -eq 1 ]; then
-    echo "Installing $crate via cargo-binstall..."
-    if ! cargo binstall --no-confirm "$crate"; then
-      echo "Falling back to cargo install for $crate..."
-      run_cargo install --locked "$crate"
-    fi
-  else
-    echo "Installing $crate via cargo install..."
-    run_cargo install --locked "$crate"
+  if ! install_crate "$crate"; then
+    echo "Failed to install $crate"
+    failed_crates+=("$crate")
   fi
 done < "$TOOLS_FILE"
+
+if [ "${#failed_crates[@]}" -gt 0 ]; then
+  echo "Cargo tool installation finished with failures: ${failed_crates[*]}"
+  exit 1
+fi
 
 echo "Cargo tool installation complete."

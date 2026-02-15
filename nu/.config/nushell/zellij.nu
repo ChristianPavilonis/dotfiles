@@ -3,6 +3,14 @@
 const ZELLIJ_SWITCH_PLUGIN = "https://github.com/mostafaqanbaryan/zellij-switch/releases/download/0.2.1/zellij-switch.wasm"
 const SCRIPT_DIR = (path self | path dirname)
 
+def dir-atime [dir: string] {
+    if ($nu.os-info.name == "macos") {
+        ^stat -f "%a" $dir | str trim | into int
+    } else {
+        ^stat -c "%X" $dir | str trim | into int
+    }
+}
+
 # Generate the list of project directories with zellij session status annotations
 def zellij-sessionizer-list [] {
     let search_paths = if ($env | get -o ZELLIJ_SESSIONIZER_SEARCH_PATHS | is-not-empty) {
@@ -29,7 +37,7 @@ def zellij-sessionizer-list [] {
 
     # Combine and sort by access time (most recent first)
     let all_dirs = $search_dirs | append $specific_dirs
-        | each { |dir| { atime: (^stat -f "%a" $dir | str trim | into int), path: $dir } }
+        | each { |dir| { atime: (try { dir-atime $dir } catch { 0 }), path: $dir } }
         | sort-by atime --reverse
         | get path
 
