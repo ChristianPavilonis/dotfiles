@@ -74,10 +74,16 @@ Defaults:
 Important flags:
 - `VPS_USER=...` sets the admin username (default `christian`)
 - `VPS_USER_SSH_PUBKEY='ssh-ed25519 ...'` appends a key for the admin user
+- `VPS_PASSWORDLESS_SUDO=1` (default) configures NOPASSWD sudo for the admin user
+- `DOTFILES_REPO=https://...` clones the dotfiles repo into `~/dotfiles` on the VPS
 - `ALLOW_PUBLIC_SSH=1` keeps port 22 open in UFW (useful for first bootstraps)
 - `SKIP_UFW=1` skips firewall setup
 - `INSTALL_VPS_CARGO_TOOLS=1` installs `cargo-tools.vps.txt`
 - `TAILSCALE_REQUIRED=0` lets `doctor-vps.sh` pass when Tailscale is intentionally not connected yet
+
+Note: if Tailscale is not connected when the firewall is configured, `ALLOW_PUBLIC_SSH`
+is automatically promoted to `1` with a warning to prevent SSH lockout. Rerun the
+bootstrap after Tailscale is connected to close port 22.
 
 ## Tooling audit
 

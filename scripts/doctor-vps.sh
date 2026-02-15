@@ -109,9 +109,41 @@ for tool, spec in data.get("tools", {}).items():
 PY
 }
 
+check_passwordless_sudo() {
+  if sudo -n true 2>/dev/null; then
+    pass "passwordless sudo works for current user"
+  else
+    fail "passwordless sudo not configured for current user"
+  fi
+}
+
+check_dotfiles() {
+  local user_home
+  user_home="$(getent passwd "$VPS_USER" | cut -d: -f6)"
+  local dotfiles_dir="$user_home/dotfiles"
+
+  if [ -d "$dotfiles_dir/.git" ]; then
+    pass "dotfiles repo present at $dotfiles_dir"
+  else
+    fail "dotfiles repo not found at $dotfiles_dir"
+  fi
+
+  if [ -d "$dotfiles_dir" ]; then
+    local owner
+    owner="$(stat -c '%U' "$dotfiles_dir" 2>/dev/null || true)"
+    if [ "$owner" = "$VPS_USER" ]; then
+      pass "dotfiles owned by $VPS_USER"
+    elif [ -n "$owner" ]; then
+      fail "dotfiles owned by '$owner', expected '$VPS_USER'"
+    fi
+  fi
+}
+
 echo "Running VPS doctor checks..."
 
 check_admin_user
+check_passwordless_sudo
+check_dotfiles
 
 check_cmd git
 check_cmd stow

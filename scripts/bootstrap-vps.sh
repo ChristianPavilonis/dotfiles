@@ -11,8 +11,10 @@ VPS_USER="${VPS_USER:-christian}"
 VPS_USER_SHELL="${VPS_USER_SHELL:-/bin/bash}"
 VPS_USER_SSH_PUBKEY="${VPS_USER_SSH_PUBKEY:-}"
 VPS_COPY_ROOT_AUTH_KEYS="${VPS_COPY_ROOT_AUTH_KEYS:-1}"
+VPS_PASSWORDLESS_SUDO="${VPS_PASSWORDLESS_SUDO:-1}"
 DISABLE_ROOT_SSH="${DISABLE_ROOT_SSH:-1}"
 DISABLE_PASSWORD_SSH="${DISABLE_PASSWORD_SSH:-1}"
+DOTFILES_REPO="${DOTFILES_REPO:-}"
 
 TAILSCALE_AUTHKEY="${TAILSCALE_AUTHKEY:-}"
 TAILSCALE_HOSTNAME="${TAILSCALE_HOSTNAME:-$(hostname -s)}"
@@ -105,6 +107,45 @@ provision_admin_user() {
   fi
 
   echo "Admin user '$VPS_USER' is ready (group: $ADMIN_GROUP)."
+}
+
+configure_passwordless_sudo() {
+  if [ "$VPS_PASSWORDLESS_SUDO" != "1" ]; then
+    return
+  fi
+
+  local sudoers_file="/etc/sudoers.d/$VPS_USER"
+
+  echo "$VPS_USER ALL=(ALL) NOPASSWD:ALL" > /tmp/sudoers-vps-user
+  if visudo -cf /tmp/sudoers-vps-user >/dev/null 2>&1; then
+    run_root install -m 0440 /tmp/sudoers-vps-user "$sudoers_file"
+    echo "Passwordless sudo configured for '$VPS_USER'."
+  else
+    echo "Warning: failed to validate sudoers file; skipping passwordless sudo."
+  fi
+
+  rm -f /tmp/sudoers-vps-user
+}
+
+clone_dotfiles() {
+  if [ -z "$DOTFILES_REPO" ]; then
+    return
+  fi
+
+  local user_home
+  user_home="$(getent passwd "$VPS_USER" | cut -d: -f6)"
+  local dotfiles_dir="$user_home/dotfiles"
+
+  if [ -d "$dotfiles_dir/.git" ]; then
+    echo "Dotfiles already cloned at $dotfiles_dir"
+    run_root chown -R "$VPS_USER:$VPS_USER" "$dotfiles_dir"
+    return
+  fi
+
+  echo "Cloning dotfiles from $DOTFILES_REPO..."
+  run_root git clone "$DOTFILES_REPO" "$dotfiles_dir"
+  run_root chown -R "$VPS_USER:$VPS_USER" "$dotfiles_dir"
+  echo "Dotfiles cloned to $dotfiles_dir"
 }
 
 confirm_access_safety() {
@@ -263,9 +304,9 @@ configure_firewall() {
 
   if [ "$ALLOW_PUBLIC_SSH" != "1" ]; then
     if ! run_root tailscale ip -4 >/dev/null 2>&1; then
-      echo "Refusing to lock down SSH without an active Tailscale connection."
-      echo "Either set TAILSCALE_AUTHKEY and rerun, or set ALLOW_PUBLIC_SSH=1 for first boot."
-      exit 1
+      echo "Warning: Tailscale is not connected. Auto-enabling public SSH (port 22) to avoid lockout."
+      echo "Rerun bootstrap after Tailscale is connected to close public SSH."
+      ALLOW_PUBLIC_SSH=1
     fi
   fi
 
@@ -286,7 +327,11 @@ install_base_packages
 
 echo "Provisioning admin user..."
 provision_admin_user
+configure_passwordless_sudo
 confirm_access_safety
+
+echo "Cloning dotfiles..."
+clone_dotfiles
 
 echo "Applying SSH hardening..."
 configure_sshd_hardening
@@ -298,5 +343,50 @@ bring_up_tailscale
 echo "Configuring firewall..."
 configure_firewall
 
-echo "VPS bootstrap complete."
-echo "Next: SSH in as '$VPS_USER' and run ./scripts/install-tools-vps.sh"
+print_connection_summary() {
+  local user_home
+  user_home="$(getent passwd "$VPS_USER" | cut -d: -f6)"
+
+  echo ""
+  echo "=============================="
+  echo "  VPS bootstrap complete"
+  echo "=============================="
+  echo ""
+  echo "  User:  $VPS_USER"
+
+  local ts_ip=""
+  if command -v tailscale >/dev/null 2>&1; then
+    ts_ip="$(run_root tailscale ip -4 2>/dev/null || true)"
+  fi
+
+  local pub_ip=""
+  pub_ip="$(curl -s --max-time 5 https://ifconfig.me 2>/dev/null || true)"
+
+  if [ -n "$ts_ip" ]; then
+    echo "  Tailscale IP:  $ts_ip"
+    echo "  Connect:       ssh $VPS_USER@$ts_ip"
+  fi
+
+  if [ -n "$pub_ip" ]; then
+    echo "  Public IP:     $pub_ip"
+    if [ "$ALLOW_PUBLIC_SSH" = "1" ]; then
+      echo "  Connect:       ssh $VPS_USER@$pub_ip"
+    else
+      echo "  (port 22 blocked — use Tailscale)"
+    fi
+  fi
+
+  if [ -d "$user_home/dotfiles" ]; then
+    echo "  Dotfiles:      $user_home/dotfiles"
+  fi
+
+  echo ""
+  echo "  Next steps:"
+  echo "    ssh $VPS_USER@${ts_ip:-$pub_ip}"
+  echo "    cd ~/dotfiles"
+  echo "    ./scripts/install-tools-vps.sh"
+  echo "    ./scripts/doctor-vps.sh"
+  echo ""
+}
+
+print_connection_summary
