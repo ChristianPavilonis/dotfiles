@@ -24,25 +24,6 @@ install_mise_if_needed() {
   export PATH="$HOME/.local/bin:$PATH"
 }
 
-list_vps_mise_tools() {
-  local config_file="$1"
-
-  python3 - "$config_file" <<'PY'
-import sys
-import tomllib
-
-path = sys.argv[1]
-with open(path, "rb") as f:
-    data = tomllib.load(f)
-
-for tool, spec in data.get("tools", {}).items():
-    if isinstance(spec, str):
-        print(f"{tool}@{spec}")
-    elif isinstance(spec, dict) and isinstance(spec.get("version"), str):
-        print(f"{tool}@{spec['version']}")
-PY
-}
-
 install_vps_mise_tools() {
   local config_file="$1"
 
@@ -53,14 +34,8 @@ install_vps_mise_tools() {
 
   mise trust "$config_file" >/dev/null 2>&1 || true
 
-  while IFS= read -r tool_spec; do
-    if [ -z "$tool_spec" ]; then
-      continue
-    fi
-
-    echo "Installing runtime $tool_spec via mise..."
-    mise install "$tool_spec"
-  done < <(list_vps_mise_tools "$config_file")
+  echo "Installing runtimes from $config_file..."
+  MISE_CONFIG_FILE="$config_file" mise install
 }
 
 if [ "$STOW_DOTFILES" = "1" ]; then
