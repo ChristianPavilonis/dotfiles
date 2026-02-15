@@ -1,0 +1,3 @@
+# Keep this list minimal for servers.
+# Example:
+# cargo-audit

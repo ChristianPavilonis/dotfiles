@@ -56,6 +56,23 @@ cd ~/dotfiles
 
 `bootstrap`/`install-tools.sh` will call `scripts/install-linux-prereqs.sh` when running on Linux.
 
+## VPS bootstrap (minimal)
+
+Use these scripts for a locked-down Linux VPS flow:
+
+```bash
+cd ~/dotfiles
+TAILSCALE_AUTHKEY=tskey-auth-... ./scripts/bootstrap-vps.sh
+./scripts/install-tools-vps.sh
+./scripts/doctor-vps.sh
+```
+
+Important flags:
+- `ALLOW_PUBLIC_SSH=1` keeps port 22 open in UFW (useful for first bootstraps)
+- `SKIP_UFW=1` skips firewall setup
+- `INSTALL_VPS_CARGO_TOOLS=1` installs `cargo-tools.vps.txt`
+- `TAILSCALE_REQUIRED=0` lets `doctor-vps.sh` pass when Tailscale is intentionally not connected yet
+
 ## Tooling audit
 
 Generate a snapshot of what is currently installed:

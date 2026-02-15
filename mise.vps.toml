@@ -1,0 +1,6 @@
+[tools]
+python = "3.12"
+node = "22"
+
+# Keep this intentionally small for VPS hosts.
+# Add more runtimes only when the server needs them.
