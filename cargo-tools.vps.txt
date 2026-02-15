@@ -1,3 +1,16 @@
 # Keep this list minimal for servers.
 # Example:
 # cargo-audit
+
+cargo-llvm-cov
+cargo-sort
+cargo-watch
+create-tauri-app
+difftastic
+nu
+nu_plugin_query
+sqlx-cli
+tauri-cli
+viceroy
+zellij
+zesh

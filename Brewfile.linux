@@ -1,2 +1,20 @@
 # Linux-only Homebrew packages go here.
 # Keep cross-platform packages in Brewfile.
+
+brew "bat"
+brew "docker"
+brew "docker-compose"
+brew "docker-credential-helper"
+brew "ffmpeg"
+brew "fzf"
+brew "gh"
+brew "gitleaks"
+brew "jq"
+brew "lazygit"
+brew "mise"
+brew "neovim"
+brew "rclone"
+brew "ripgrep"
+brew "stow"
+brew "watchexec"
+brew "zoxide"
