@@ -167,6 +167,7 @@ install_base_packages() {
   if command -v apt-get >/dev/null 2>&1; then
     run_root apt-get update
     run_root apt-get install -y \
+      build-essential \
       ca-certificates \
       curl \
       git \
@@ -182,8 +183,10 @@ install_base_packages() {
     run_root dnf install -y \
       ca-certificates \
       curl \
+      gcc \
       git \
       jq \
+      make \
       procps-ng \
       ripgrep \
       stow \
@@ -193,8 +196,10 @@ install_base_packages() {
     run_root yum install -y \
       ca-certificates \
       curl \
+      gcc \
       git \
       jq \
+      make \
       procps-ng \
       ripgrep \
       stow \
