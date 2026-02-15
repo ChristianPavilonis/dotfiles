@@ -10,7 +10,6 @@ $env.PATH = ($env.PATH | append '/usr/local/go/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/Library/Application Support/JetBrains/Toolbox/scripts')
 $env.PATH = ($env.PATH | append '/Users/christian/Library/Application Support/Herd/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.bun/bin')
-$env.PATH = ($env.PATH | append '/Users/christian/.rbenv/versions/3.3.0/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.deno/bin')
 $env.PATH = ($env.PATH | append '/Users/christian/.pyenv/shims')
 $env.PATH = ($env.PATH | append '/Users/christian/.local/bin')
@@ -30,9 +29,6 @@ $env.LIBCLANG_PATH = "/Users/christian/.rustup/toolchains/esp/xtensa-esp32-elf-c
 $env.PATH = ($env.PATH | append '/Users/christian/.rustup/toolchains/esp/xtensa-esp-elf/esp-13.2.0_20230928/xtensa-esp-elf/bin')
 
 ## android
-
-$env.PATH = ($env.PATH | append '/opt/homebrew/opt/openjdk@17/bin')
-$env.JAVA_HOME = '/opt/homebrew/opt/openjdk@17'
 
 $env.ANDROID_HOME = "/Users/christian/Library/Android/sdk/"
 $env.NDK_HOME = "/Users/christian/Library/Android/sdk/ndk/28.0.12433566/"

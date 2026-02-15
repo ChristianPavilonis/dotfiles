@@ -14,7 +14,7 @@ def zellij-sessionizer-list [] {
     let specific_paths = if ($env | get -o ZELLIJ_SESSIONIZER_SPECIFIC_PATHS | is-not-empty) {
         $env.ZELLIJ_SESSIONIZER_SPECIFIC_PATHS | split row " "
     } else {
-        [$"($env.HOME)/.dotfiles", $"($env.HOME)/.dotfiles/.config/nvim"]
+        [$"($env.HOME)/dotfiles", $"($env.HOME)/dotfiles/nvim/.config/nvim"]
     }
 
     # Collect first-level directories from search paths

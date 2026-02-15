@@ -2,9 +2,26 @@
 
 set -euo pipefail
 
-if ! command -v brew >/dev/null 2>&1; then
+ensure_brew_in_path() {
+  if command -v brew >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local brew_bin
+  for brew_bin in /opt/homebrew/bin/brew /home/linuxbrew/.linuxbrew/bin/brew /usr/local/bin/brew; do
+    if [ -x "$brew_bin" ]; then
+      eval "$("$brew_bin" shellenv)"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+if ! ensure_brew_in_path; then
   echo "Homebrew not found. Installing Homebrew..."
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  ensure_brew_in_path
 fi
 
 if ! command -v stow >/dev/null 2>&1; then
@@ -14,3 +31,5 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 "$SCRIPT_DIR/install"
+
+echo "Dotfiles linked. Run ./scripts/install-tools.sh to install toolchains and CLIs."

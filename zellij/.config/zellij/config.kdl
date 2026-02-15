@@ -136,7 +136,7 @@ keybinds clear-defaults=true {
             SwitchToMode "normal"
         }
         bind "w" {
-            Run "nu" "-c" "source ~/dotfiles/nu/zellij.nu; zs" {
+            Run "nu" "-c" "source ~/.config/nushell/zellij.nu; zs" {
                 floating true
                 close_on_exit true
             }

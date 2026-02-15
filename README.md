@@ -15,6 +15,35 @@ cd ~/dotfiles
 - install `stow` if needed
 - run `./install` to create all symlinks
 
+## Tooling bootstrap (macOS + Linux)
+
+Use these scripts to install package managers, runtimes, and cargo CLI tools:
+
+```bash
+cd ~/dotfiles
+./scripts/install-tools.sh
+```
+
+This uses:
+- `Brewfile` for cross-platform Homebrew packages
+- `Brewfile.macos` for macOS-only packages/casks
+- `mise.toml` for language runtimes
+- `cargo-tools.txt` for cargo-installed binaries
+
+PHP is intentionally not managed by `mise` right now because Herd is in use.
+Current `mise` runtimes: Rust, Bun, Python, Node.js, Java, Gradle, and Ruby.
+
+## Tooling audit
+
+Generate a snapshot of what is currently installed:
+
+```bash
+cd ~/dotfiles
+./scripts/audit-tools.sh
+```
+
+By default this writes files to `audit/latest/`.
+
 ## Manual install
 
 If you already have `stow`:

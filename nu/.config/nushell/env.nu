@@ -36,6 +36,5 @@ $env.NU_PLUGIN_DIRS = [
 	($nu.config-path | path dirname | path join 'plugins')
 ]
 
-source ~/dotfiles/nu/profile.nu
-source ~/dotfiles/nu/secrets.nu
-
+source ~/.config/nushell/profile.nu
+source ~/.config/nushell/secrets.nu

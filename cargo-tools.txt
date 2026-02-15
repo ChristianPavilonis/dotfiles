@@ -1,0 +1,42 @@
+# Registry crates
+bacon
+cargo-binstall
+cargo-clean-recursive
+cargo-espflash
+cargo-expand
+cargo-generate
+cargo-llvm-cov
+cargo-machete
+cargo-nextest
+cargo-sort
+cargo-update
+cargo-watch
+create-tauri-app
+cross
+difftastic
+dioxus-cli
+esp-generate
+espflash
+espup
+gobang
+hyperfine
+ldproxy
+nu
+nu_plugin_query
+probe-rs-tools
+sea-orm-cli
+sendme
+sqlx-cli
+starship
+subxt-cli
+tauri-cli
+viceroy
+yazi-cli
+yazi-fm
+zellij
+zesh
+
+# Non-registry installs found in audit (manual handling for now)
+# anyedge-cli (path: /Users/christian/Projects/anyedge/crates/anyedge-cli)
+# subkey (git: https://github.com/paritytech/substrate#b66c051f118898ef78e68e0ccf78b1cd8f00090b)
+# tokei (git: https://github.com/XAMPPRocky/tokei.git#1770db0afdaf2e29179b39b18275b0eaec8dbfb6)

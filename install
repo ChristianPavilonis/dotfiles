@@ -42,4 +42,21 @@ fi
 
 stow -d "$DOTFILES" -t "$HOME" "${PACKAGES[@]:1}"
 
+# Nushell on macOS reads from ~/Library/Application Support/nushell by default.
+nu_default_dir="$HOME/Library/Application Support/nushell"
+mkdir -p "$nu_default_dir"
+
+for nu_file in config.nu env.nu; do
+  target="$nu_default_dir/$nu_file"
+  source_file="$DOTFILES/nu/.config/nushell/$nu_file"
+
+  if [ -L "$target" ]; then
+    rm "$target"
+  elif [ -e "$target" ]; then
+    mv "$target" "$target.bak"
+  fi
+
+  ln -s "$source_file" "$target"
+done
+
 echo "Done. Dotfiles linked with stow."

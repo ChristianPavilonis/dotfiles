@@ -1,0 +1,10 @@
+[tools]
+rust = "1.88.0"
+bun = "1.1.6"
+python = "3.14.2"
+node = "23.9.0"
+java = "temurin-17.0.14+7"
+gradle = "8.12.1"
+ruby = "3.3.0"
+
+# Keeping PHP out of mise for now since Herd manages it.
