@@ -35,7 +35,7 @@ install_vps_mise_tools() {
   mise trust "$config_file" >/dev/null 2>&1 || true
 
   echo "Installing runtimes from $config_file..."
-  MISE_CONFIG_FILE="$config_file" mise install
+  MISE_DEFAULT_CONFIG_FILENAME="mise.vps.toml" mise install
 }
 
 if [ "$STOW_DOTFILES" = "1" ]; then
