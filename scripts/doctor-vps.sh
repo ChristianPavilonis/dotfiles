@@ -3,9 +3,12 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+VPS_USER="${VPS_USER:-christian}"
 VPS_MISE_FILE="${VPS_MISE_FILE:-$ROOT_DIR/mise.vps.toml}"
 TAILSCALE_REQUIRED="${TAILSCALE_REQUIRED:-1}"
 PUBLIC_SSH_ALLOWED="${PUBLIC_SSH_ALLOWED:-0}"
+EXPECT_ROOT_SSH_DISABLED="${EXPECT_ROOT_SSH_DISABLED:-1}"
+EXPECT_PASSWORD_SSH_DISABLED="${EXPECT_PASSWORD_SSH_DISABLED:-1}"
 
 if [ "$(uname -s)" != "Linux" ]; then
   echo "doctor-vps.sh only supports Linux hosts."
@@ -40,6 +43,53 @@ check_cmd() {
   fi
 }
 
+detect_admin_group() {
+  if getent group sudo >/dev/null 2>&1; then
+    echo "sudo"
+    return
+  fi
+
+  if getent group wheel >/dev/null 2>&1; then
+    echo "wheel"
+    return
+  fi
+
+  echo ""
+}
+
+check_admin_user() {
+  local admin_group
+  local user_home
+  local auth_keys_file
+
+  if id "$VPS_USER" >/dev/null 2>&1; then
+    pass "user '$VPS_USER' exists"
+  else
+    fail "user '$VPS_USER' does not exist"
+    return
+  fi
+
+  admin_group="$(detect_admin_group)"
+  if [ -n "$admin_group" ]; then
+    if id -nG "$VPS_USER" | tr ' ' '\n' | grep -Fx "$admin_group" >/dev/null 2>&1; then
+      pass "user '$VPS_USER' is in '$admin_group' group"
+    else
+      fail "user '$VPS_USER' is not in '$admin_group' group"
+    fi
+  else
+    fail "no admin group found (sudo/wheel)"
+  fi
+
+  user_home="$(getent passwd "$VPS_USER" | cut -d: -f6)"
+  auth_keys_file="$user_home/.ssh/authorized_keys"
+
+  if run_root test -s "$auth_keys_file"; then
+    pass "user '$VPS_USER' has authorized SSH keys"
+  else
+    fail "user '$VPS_USER' has no authorized SSH keys at $auth_keys_file"
+  fi
+}
+
 list_vps_mise_tools() {
   local config_file="$1"
 
@@ -60,6 +110,8 @@ PY
 }
 
 echo "Running VPS doctor checks..."
+
+check_admin_user
 
 check_cmd git
 check_cmd stow
@@ -91,19 +143,32 @@ if command -v ufw >/dev/null 2>&1; then
   fi
 fi
 
-if command -v sshd >/dev/null 2>&1; then
-  sshd_settings="$(run_root sshd -T 2>/dev/null || true)"
+sshd_bin="$(command -v sshd || true)"
+if [ -z "$sshd_bin" ] && run_root test -x /usr/sbin/sshd; then
+  sshd_bin="/usr/sbin/sshd"
+fi
 
-  if [[ "$sshd_settings" == *"passwordauthentication no"* ]]; then
-    pass "sshd password auth disabled"
+if [ -n "$sshd_bin" ]; then
+  sshd_settings="$(run_root "$sshd_bin" -T 2>/dev/null || true)"
+
+  if [ "$EXPECT_PASSWORD_SSH_DISABLED" = "1" ]; then
+    if [[ "$sshd_settings" == *"passwordauthentication no"* ]]; then
+      pass "sshd password auth disabled"
+    else
+      fail "sshd password auth not disabled"
+    fi
   else
-    fail "sshd password auth not disabled"
+    pass "password auth lock-down not required"
   fi
 
-  if [[ "$sshd_settings" == *"permitrootlogin no"* ]]; then
-    pass "sshd root login disabled"
+  if [ "$EXPECT_ROOT_SSH_DISABLED" = "1" ]; then
+    if [[ "$sshd_settings" == *"permitrootlogin no"* ]]; then
+      pass "sshd root login disabled"
+    else
+      fail "sshd root login not disabled"
+    fi
   else
-    fail "sshd root login not disabled"
+    pass "root SSH lock-down not required"
   fi
 fi
 

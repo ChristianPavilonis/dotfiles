@@ -67,7 +67,13 @@ TAILSCALE_AUTHKEY=tskey-auth-... ./scripts/bootstrap-vps.sh
 ./scripts/doctor-vps.sh
 ```
 
+Defaults:
+- admin user: `christian`
+- SSH keys: copies `/root/.ssh/authorized_keys` into `christian` on first run
+
 Important flags:
+- `VPS_USER=...` sets the admin username (default `christian`)
+- `VPS_USER_SSH_PUBKEY='ssh-ed25519 ...'` appends a key for the admin user
 - `ALLOW_PUBLIC_SSH=1` keeps port 22 open in UFW (useful for first bootstraps)
 - `SKIP_UFW=1` skips firewall setup
 - `INSTALL_VPS_CARGO_TOOLS=1` installs `cargo-tools.vps.txt`
