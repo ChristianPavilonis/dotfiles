@@ -47,6 +47,20 @@ fi
 
 stow -d "$DOTFILES" -t "$HOME" "${COMMON_PACKAGES[@]}"
 
+if [ "$OS_NAME" = "Linux" ]; then
+  mkdir -p "$HOME/.config/mise"
+  mise_global="$HOME/.config/mise/config.toml"
+  mise_source="$DOTFILES/mise.vps.toml"
+
+  if [ -L "$mise_global" ]; then
+    rm "$mise_global"
+  elif [ -e "$mise_global" ]; then
+    mv "$mise_global" "$mise_global.bak"
+  fi
+
+  ln -s "$mise_source" "$mise_global"
+fi
+
 if [ "$OS_NAME" = "Darwin" ]; then
   # Nushell on macOS reads from ~/Library/Application Support/nushell by default.
   nu_default_dir="$HOME/Library/Application Support/nushell"
