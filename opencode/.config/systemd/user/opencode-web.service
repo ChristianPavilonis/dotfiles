@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=%h/.local/bin/opencode web --port 4096 --hostname 0.0.0.0
+ExecStart=%h/.local/share/mise/installs/opencode/1.2.5/opencode web --port 4096 --hostname 0.0.0.0
 WorkingDirectory=%h
 Restart=on-failure
 RestartSec=5
