@@ -167,44 +167,105 @@ install_base_packages() {
   if command -v apt-get >/dev/null 2>&1; then
     run_root apt-get update
     run_root apt-get install -y \
+      autoconf \
+      bison \
       build-essential \
       ca-certificates \
       curl \
+      gettext \
       git \
       gnupg \
       jq \
+      libcurl4-openssl-dev \
+      libedit-dev \
+      libgd-dev \
+      libicu-dev \
+      libjpeg-dev \
+      libmysqlclient-dev \
+      libonig-dev \
+      libpng-dev \
+      libpq-dev \
+      libreadline-dev \
+      libsqlite3-dev \
+      libssl-dev \
+      libxml2-dev \
+      libzip-dev \
+      openssl \
+      pkg-config \
+      re2c \
       ripgrep \
       stow \
       tmux \
       ufw \
-      unattended-upgrades
+      unattended-upgrades \
+      zlib1g-dev
     run_root systemctl enable --now unattended-upgrades >/dev/null 2>&1 || true
   elif command -v dnf >/dev/null 2>&1; then
     run_root dnf install -y \
+      autoconf \
+      bison \
       ca-certificates \
       curl \
       gcc \
+      gcc-c++ \
+      gettext \
       git \
+      gd-devel \
       jq \
+      libcurl-devel \
+      libedit-devel \
+      libicu-devel \
+      libjpeg-turbo-devel \
+      libpng-devel \
+      libpq-devel \
+      libxml2-devel \
+      libzip-devel \
       make \
+      oniguruma-devel \
+      openssl-devel \
+      pkg-config \
       procps-ng \
+      re2c \
+      readline-devel \
       ripgrep \
+      sqlite-devel \
       stow \
       tmux \
-      ufw
+      ufw \
+      zlib-devel
   elif command -v yum >/dev/null 2>&1; then
     run_root yum install -y \
+      autoconf \
+      bison \
       ca-certificates \
       curl \
       gcc \
+      gcc-c++ \
+      gettext \
       git \
+      gd-devel \
       jq \
+      libcurl-devel \
+      libedit-devel \
+      libicu-devel \
+      libjpeg-turbo-devel \
+      libpng-devel \
+      libpq-devel \
+      libxml2-devel \
+      libzip-devel \
       make \
+      oniguruma-devel \
+      openssl-devel \
+      pkg-config \
       procps-ng \
+      re2c \
+      readline-devel \
       ripgrep \
+      sqlite-devel \
       stow \
       tmux \
-      ufw
+      ufw \
+      zlib-devel
   else
     echo "Unsupported distro package manager."
     echo "Install manually: curl git stow jq ripgrep tmux ufw ca-certificates"
