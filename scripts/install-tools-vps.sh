@@ -55,5 +55,34 @@ if [ "$INSTALL_VPS_CARGO_TOOLS" = "1" ]; then
   fi
 fi
 
+set_login_shell() {
+  local target_shell="${VPS_LOGIN_SHELL:-nu}"
+  local shell_path
+
+  shell_path="$(command -v "$target_shell" 2>/dev/null || true)"
+  if [ -z "$shell_path" ]; then
+    echo "Shell '$target_shell' not found in PATH; skipping login shell change."
+    return
+  fi
+
+  local current_shell
+  current_shell="$(getent passwd "$(whoami)" | cut -d: -f7)"
+  if [ "$current_shell" = "$shell_path" ]; then
+    echo "Login shell already set to $shell_path"
+    return
+  fi
+
+  if ! grep -Fxq "$shell_path" /etc/shells 2>/dev/null; then
+    echo "Adding $shell_path to /etc/shells..."
+    echo "$shell_path" | sudo tee -a /etc/shells >/dev/null
+  fi
+
+  echo "Changing login shell to $shell_path..."
+  sudo chsh -s "$shell_path" "$(whoami)"
+  echo "Login shell set to $shell_path (effective on next login)."
+}
+
+set_login_shell
+
 echo "VPS tool setup complete."
 echo "Next: run ./scripts/doctor-vps.sh"

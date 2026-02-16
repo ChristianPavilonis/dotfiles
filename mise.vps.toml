@@ -3,6 +3,8 @@ rust = "1.93"
 python = "3.14.2"
 node = "23.9.0"
 php = "8.4"
+neovim = "latest"
+opencode = "latest"
 
 # Keep this intentionally small for VPS hosts.
 # Add more runtimes only when the server needs them.

@@ -1,5 +1,7 @@
 # Cross-platform baseline packages (macOS + Linux)
 
+tap "anomalyco/tap"
+
 brew "act"
 brew "bat"
 brew "ccache"
@@ -19,6 +21,7 @@ brew "jq"
 brew "lazygit"
 brew "mise"
 brew "neovim"
+brew "anomalyco/tap/opencode"
 brew "rclone"
 brew "ripgrep"
 brew "stow"
