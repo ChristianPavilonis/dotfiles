@@ -1,0 +1,15 @@
+[Unit]
+Description=OpenCode Web Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/opencode web --port 4096 --hostname 0.0.0.0
+WorkingDirectory=%h
+Restart=on-failure
+RestartSec=5
+EnvironmentFile=%h/.config/opencode/.env
+
+[Install]
+WantedBy=default.target

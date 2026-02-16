@@ -59,6 +59,14 @@ if [ "$OS_NAME" = "Linux" ]; then
   fi
 
   ln -s "$mise_source" "$mise_global"
+
+  # Create opencode server env file stub if it doesn't exist.
+  opencode_env="$HOME/.config/opencode/.env"
+  if [ ! -e "$opencode_env" ]; then
+    printf '# opencode web server credentials\nOPENCODE_SERVER_PASSWORD=changeme\n' > "$opencode_env"
+    chmod 600 "$opencode_env"
+    echo "Created $opencode_env — update the password before starting the service."
+  fi
 fi
 
 if [ "$OS_NAME" = "Darwin" ]; then
