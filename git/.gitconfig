@@ -1,7 +1,7 @@
 [user]
 	email = christianpavilonis@outlook.com
 	name = Christian
-	signingkey = /Users/christian/.ssh/id_rsa.pub
+	signingkey = /home/christian/.ssh/id_ed25519
 [diff]
     external = difft
 [pull]

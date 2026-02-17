@@ -1,0 +1,12 @@
+[Unit]
+Description=Obsidian Vault Git Sync
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/obsidian-vault-sync.sh
+Environment=HOME=%h
+
+[Install]
+WantedBy=default.target
