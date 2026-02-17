@@ -7,6 +7,12 @@
    "plugin": [
     "opencode-anthropic-auth@latest"
   ],
+  "command": {
+    "pr-dashboard": {
+      "template": "Run the PR dashboard script: `bun run ~/.config/opencode/scripts/pr-dashboard.ts`. Report what PRs were found, what was written to the daily note, and any agent sessions spawned. If the user passes arguments, append them to the command (e.g. `--no-agents` or `--dry-run`).",
+      "description": "Fetch PRs to review and PRs needing changes, update daily note"
+    }
+  },
   "keybinds": {
     "agent_cycle": "<leader>p",
     "command_list": "<leader>/",

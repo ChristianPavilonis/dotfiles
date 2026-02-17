@@ -5,11 +5,9 @@ layout {
         }
         children
     }
-    tab name="neovim" {
-        pane command="nvim"
-    }
-    tab name="opencode" {
-        pane command="opencode"
+    tab name="nvim" {
+        pane command="nvim" size="80%"
+        pane command="opencode" size="20%"
     }
     tab name="run" {
         pane
