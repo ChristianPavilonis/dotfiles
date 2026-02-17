@@ -46,7 +46,9 @@ const REPOS: RepoConfig[] = [
 const VAULT_PATH = expandHome("~/Documents/MyObsidianVault");
 const DAILY_DIR = join(VAULT_PATH, "daily");
 const NOTES_DIR = join(VAULT_PATH, "Notes");
-const OPENCODE_URL = "http://localhost:4096";
+const OPENCODE_URL = "http://0.0.0.0:4096";
+const OPENCODE_ENV_FILE = expandHome("~/.config/opencode/.env");
+const OPENCODE_USER = "opencode";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -124,6 +126,29 @@ async function fileExists(path: string): Promise<boolean> {
 
 function log(msg: string): void {
   console.log(`[pr-dashboard] ${msg}`);
+}
+
+async function loadOpenCodePassword(): Promise<string | undefined> {
+  try {
+    const raw = await readFile(OPENCODE_ENV_FILE, "utf-8");
+    for (const line of raw.split("\n")) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("#") || !trimmed) continue;
+      const match = trimmed.match(/^OPENCODE_SERVER_PASSWORD=(.+)$/);
+      if (match) return match[1].replace(/^["']|["']$/g, "");
+    }
+  } catch {
+    // env file not found or unreadable
+  }
+  return process.env.OPENCODE_SERVER_PASSWORD;
+}
+
+function openCodeHeaders(password: string): Record<string, string> {
+  const encoded = btoa(`${OPENCODE_USER}:${password}`);
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Basic ${encoded}`,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -446,9 +471,10 @@ async function createPRNotes(
 // OpenCode agent sessions
 // ---------------------------------------------------------------------------
 
-async function isOpenCodeRunning(): Promise<boolean> {
+async function isOpenCodeRunning(password?: string): Promise<boolean> {
   try {
-    const resp = await fetch(`${OPENCODE_URL}/global/health`);
+    const headers = password ? openCodeHeaders(password) : {};
+    const resp = await fetch(`${OPENCODE_URL}/global/health`, { headers });
     return resp.ok;
   } catch {
     return false;
@@ -458,7 +484,8 @@ async function isOpenCodeRunning(): Promise<boolean> {
 async function spawnReviewSession(
   config: RepoConfig,
   pr: PR,
-  kind: "review" | "changes"
+  kind: "review" | "changes",
+  password?: string
 ): Promise<void> {
   const localPath = config.localPath ? expandHome(config.localPath) : undefined;
   if (!localPath || !(await fileExists(localPath))) {
@@ -470,13 +497,16 @@ async function spawnReviewSession(
 
   const dirParam = encodeURIComponent(localPath);
   const slug = `${config.owner}/${config.repo}`;
+  const headers = password
+    ? openCodeHeaders(password)
+    : { "Content-Type": "application/json" };
 
   // Create session
   const sessionResp = await fetch(
     `${OPENCODE_URL}/session?directory=${dirParam}`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         title:
           kind === "review"
@@ -535,7 +565,7 @@ async function spawnReviewSession(
     `${OPENCODE_URL}/session/${session.id}/prompt_async?directory=${dirParam}`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         parts: [{ type: "text", text: prompt }],
       }),
@@ -554,17 +584,18 @@ async function spawnReviewSession(
 }
 
 async function spawnAgentSessions(allResults: RepoPRs[]): Promise<void> {
-  if (!(await isOpenCodeRunning())) {
+  const password = await loadOpenCodePassword();
+  if (!(await isOpenCodeRunning(password))) {
     log("OpenCode server not reachable — skipping agent sessions");
     return;
   }
 
   for (const result of allResults) {
     for (const pr of result.toReview) {
-      await spawnReviewSession(result.config, pr, "review");
+      await spawnReviewSession(result.config, pr, "review", password);
     }
     for (const pr of result.changesRequested) {
-      await spawnReviewSession(result.config, pr, "changes");
+      await spawnReviewSession(result.config, pr, "changes", password);
     }
   }
 }
