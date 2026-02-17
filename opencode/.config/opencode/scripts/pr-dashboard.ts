@@ -160,9 +160,9 @@ function parseGhPRs(raw: string): PR[] {
 async function fetchRepoPRs(config: RepoConfig): Promise<RepoPRs> {
   const slug = `${config.owner}/${config.repo}`;
 
-  // PRs where I'm a requested reviewer
+  // PRs where I'm a requested reviewer (exclude ones I've already reviewed)
   const toReviewRaw =
-    await $`gh pr list --repo ${slug} --search "review-requested:@me" --json ${GH_PR_FIELDS}`
+    await $`gh pr list --repo ${slug} --search "review-requested:@me -reviewed-by:@me" --json ${GH_PR_FIELDS}`
       .text()
       .catch(() => "[]");
 
@@ -172,11 +172,15 @@ async function fetchRepoPRs(config: RepoConfig): Promise<RepoPRs> {
       .text()
       .catch(() => "[]");
 
-  const toReview = parseGhPRs(toReviewRaw);
+  // Only include PRs updated within the last 24 hours
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const isRecent = (pr: PR) => pr.updatedAt >= cutoff;
+
+  const toReview = parseGhPRs(toReviewRaw).filter(isRecent);
   const myPRs = parseGhPRs(myPRsRaw);
-  const changesRequested = myPRs.filter(
-    (pr) => pr.reviewDecision === "CHANGES_REQUESTED"
-  );
+  const changesRequested = myPRs
+    .filter((pr) => pr.reviewDecision === "CHANGES_REQUESTED")
+    .filter(isRecent);
 
   return { config, toReview, changesRequested };
 }

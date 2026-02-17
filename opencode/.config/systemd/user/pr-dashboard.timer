@@ -1,8 +1,8 @@
 [Unit]
-Description=Run PR Dashboard on weekday mornings
+Description=Run PR Dashboard every morning
 
 [Timer]
-OnCalendar=Mon..Fri *-*-* 08:30:00
+OnCalendar=*-*-* 08:30:00
 Persistent=true
 
 [Install]
