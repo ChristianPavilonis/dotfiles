@@ -47,6 +47,22 @@ fi
 
 stow -d "$DOTFILES" -t "$HOME" "${COMMON_PACKAGES[@]}"
 
+# Link platform-specific git config.
+gitconfig_platform="$HOME/.gitconfig-platform"
+if [ "$OS_NAME" = "Darwin" ]; then
+  gitconfig_source="$DOTFILES/gitconfig-platform.mac"
+else
+  gitconfig_source="$DOTFILES/gitconfig-platform.linux"
+fi
+
+if [ -L "$gitconfig_platform" ]; then
+  rm "$gitconfig_platform"
+elif [ -e "$gitconfig_platform" ]; then
+  mv "$gitconfig_platform" "$gitconfig_platform.bak"
+fi
+
+ln -s "$gitconfig_source" "$gitconfig_platform"
+
 if [ "$OS_NAME" = "Linux" ]; then
   mkdir -p "$HOME/.config/mise"
   mise_global="$HOME/.config/mise/config.toml"

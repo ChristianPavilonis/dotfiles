@@ -46,6 +46,133 @@ def quickpr [] {
 }
 
 
+# --- Git Worktree ---
+
+def "nu-complete git worktree branches" [] {
+  git worktree list --porcelain
+    | lines
+    | parse "branch refs/heads/{value}"
+    | get value
+}
+
+# Add a git worktree and cd into it
+def --env gwa [
+  branch: string@"nu-complete git switch"  # branch (created if it doesn't exist)
+] {
+  let worktree_root = ("~/worktrees" | path expand)
+  let worktree_path = ($worktree_root | path join ($branch | str replace --all "/" "-"))
+  mkdir $worktree_root
+
+  if (do { git rev-parse --verify $branch } | complete).exit_code == 0 {
+    git worktree add $worktree_path $branch
+  } else {
+    git worktree add -b $branch $worktree_path
+  }
+
+  cd $worktree_path
+}
+
+# List git worktrees
+def gwl [] {
+  git worktree list
+}
+
+# Switch to an existing git worktree via fzf
+def --env gws [] {
+  let path = (
+    git worktree list
+    | fzf --height=40%
+    | str trim
+    | split row --regex '\s+'
+    | first
+  )
+  if ($path | is-not-empty) {
+    cd $path
+  }
+}
+
+# Smart prune: remove worktrees whose branches are merged into main/master
+def gwp [] {
+  let main_branch = if (do { git rev-parse --verify main } | complete).exit_code == 0 {
+    "main"
+  } else {
+    "master"
+  }
+
+  let merged = (
+    git branch --merged $main_branch
+    | lines
+    | each { |line| $line | str trim | str replace "* " "" }
+    | where { |b| $b != $main_branch }
+  )
+
+  if ($merged | is-empty) {
+    print "No merged branches found."
+    git worktree prune
+    return
+  }
+
+  let worktrees = (
+    git worktree list --porcelain
+    | split row "\n\n"
+    | where { |block| ($block | str trim) != "" }
+    | each { |block|
+      let lines = ($block | lines)
+      let path = ($lines | where ($it starts-with "worktree ") | first | default "" | str replace "worktree " "")
+      let branch = ($lines | where ($it starts-with "branch ") | first | default "" | str replace "branch refs/heads/" "")
+      { path: $path, branch: $branch }
+    }
+    | where { |wt| $wt.branch != "" and $wt.branch in $merged }
+  )
+
+  if ($worktrees | is-empty) {
+    print "No worktrees with merged branches found."
+    git worktree prune
+    return
+  }
+
+  let selected = (
+    $worktrees
+    | each { |wt| $"($wt.path)\t($wt.branch)" }
+    | str join (char newline)
+    | fzf --multi --height=40% --header="Select merged worktrees to remove (TAB to toggle)"
+    | lines
+    | each { |line|
+      let parts = ($line | split row "\t")
+      { path: ($parts | first), branch: ($parts | last) }
+    }
+  )
+
+  if ($selected | is-empty) {
+    print "Nothing selected."
+    return
+  }
+
+  for wt in $selected {
+    print $"Removing worktree: ($wt.branch) at ($wt.path)"
+    git worktree remove $wt.path
+    print $"Deleting branch: ($wt.branch)"
+    git branch -d $wt.branch
+  }
+
+  git worktree prune
+  print "Done."
+}
+
+# Remove a git worktree by branch name, or the current worktree if no arg
+def --env gwr [
+  branch?: string@"nu-complete git worktree branches"  # branch worktree to remove
+] {
+  if ($branch == null) {
+    let current = (pwd)
+    cd ~
+    git worktree remove $current
+  } else {
+    let worktree_path = ("~/worktrees" | path expand | path join ($branch | str replace --all "/" "-"))
+    git worktree remove $worktree_path
+  }
+}
+
 def keep-the-streak-alive [] {
   # Get the date for the previous day
   mut date = ""

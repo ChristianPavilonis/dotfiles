@@ -1,0 +1,4 @@
+[user]
+	signingkey = ~/.ssh/id_ed25519
+[gpg "ssh"]
+	allowedSignersFile = /home/christian/.ssh/allowed_signers
