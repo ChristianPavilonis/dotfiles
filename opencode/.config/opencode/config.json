@@ -19,9 +19,10 @@
     }
   },
   "keybinds": {
-    "agent_cycle": "<leader>p",
-    "command_list": "<leader>/",
-    "variant_cycle": "<leader>t",
+    "agent_cycle": "tab",
+    "command_list": "ctrl+/",
+    "variant_cycle": "ctrl+v",
+    "input_paste": "none"
   },
   "permission": {
     "external_directory": {
