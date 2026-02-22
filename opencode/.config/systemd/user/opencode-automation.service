@@ -1,0 +1,21 @@
+[Unit]
+Description=OpenCode Automation Backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=XDG_CONFIG_HOME=%h/.config/yesman-opencode
+Environment=XDG_DATA_HOME=%h/.local/share/yesman-opencode
+Environment=XDG_STATE_HOME=%h/.local/state/yesman-opencode
+Environment=XDG_CACHE_HOME=%h/.cache/yesman-opencode
+Environment=OPENCODE_DISABLE_PROJECT_CONFIG=1
+Environment=OPENCODE_SERVER_USERNAME=opencode
+Environment=OPENCODE_CONFIG=%h/dotfiles/yesmand/ops/opencode-config.json
+EnvironmentFile=%h/.config/opencode/.env
+ExecStart=%h/.local/share/mise/installs/opencode/1.2.5/opencode web --port 4097 --hostname 127.0.0.1
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target
