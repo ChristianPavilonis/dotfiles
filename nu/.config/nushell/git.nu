@@ -70,6 +70,11 @@ def --env gwa [
   }
 
   cd $worktree_path
+
+  if (".worktree-setup" | path exists) {
+    print "Running .worktree-setup..."
+    ^"./.worktree-setup"
+  }
 }
 
 # List git worktrees
