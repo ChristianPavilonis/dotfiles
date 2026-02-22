@@ -33,6 +33,12 @@
             "repo": "rigzilla-scraper",
             "localPath": "~/projects/scrapezilla",
             "defaultBranch": "master"
+          },
+          {
+            "owner": "ChristianPavilonis",
+            "repo": "dotfiles",
+            "localPath": "~/dotfiles",
+            "defaultBranch": "master"
           }
         ]
       }
