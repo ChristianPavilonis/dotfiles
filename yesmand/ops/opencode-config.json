@@ -9,7 +9,8 @@
       "~/worktrees/**": "allow",
       "~/projects/**": "allow",
       "~/dotfiles/**": "allow",
-      "~/.cargo/**": "allow"
+      "~/.cargo/**": "allow",
+      "~/.local/share/mise/**": "allow"
     }
   },
   "command": {

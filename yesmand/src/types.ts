@@ -23,6 +23,7 @@ export interface DispatchDecision {
   sessionTitle: string;
   directory: string;
   prompt: string;
+  continueFromDedupeKey?: string;
   metadata?: Record<string, unknown>;
 }
 

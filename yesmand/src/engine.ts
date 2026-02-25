@@ -135,11 +135,45 @@ export class AutomationEngine {
     }
 
     try {
-      const sessionId = await this.openCode.dispatch({
-        directory: decision.directory,
-        sessionTitle: decision.sessionTitle,
-        prompt: decision.prompt,
-      });
+      let sessionId: string | undefined;
+
+      if (decision.continueFromDedupeKey) {
+        const existingSessionId = this.store.getSessionIdByDedupeKey(
+          decision.continueFromDedupeKey
+        );
+
+        if (existingSessionId) {
+          await this.openCode.promptInSession({
+            sessionId: existingSessionId,
+            directory: decision.directory,
+            prompt: decision.prompt,
+          });
+          sessionId = existingSessionId;
+
+          this.logger.info("Continued existing OpenCode session", {
+            plugin: plugin.id,
+            itemId: item.id,
+            phase: decision.phase,
+            sessionId,
+            continueFromDedupeKey: decision.continueFromDedupeKey,
+          });
+        } else {
+          this.logger.warn("Could not find prior session for continuation; creating new session", {
+            plugin: plugin.id,
+            itemId: item.id,
+            phase: decision.phase,
+            continueFromDedupeKey: decision.continueFromDedupeKey,
+          });
+        }
+      }
+
+      if (!sessionId) {
+        sessionId = await this.openCode.dispatch({
+          directory: decision.directory,
+          sessionTitle: decision.sessionTitle,
+          prompt: decision.prompt,
+        });
+      }
 
       this.store.recordDispatch({
         pluginId: plugin.id,

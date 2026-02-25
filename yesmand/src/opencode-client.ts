@@ -13,6 +13,12 @@ export interface OpenCodeDispatchInput {
   prompt: string;
 }
 
+export interface OpenCodePromptInput {
+  sessionId: string;
+  directory: string;
+  prompt: string;
+}
+
 function parseModelSpec(model: string): { providerID: string; modelID: string } {
   const [providerID, ...modelRest] = model.split("/");
   const modelID = modelRest.join("/");
@@ -58,6 +64,28 @@ export class OpenCodeClient {
     };
   }
 
+  private async sendPrompt(input: OpenCodePromptInput): Promise<void> {
+    const dirParam = encodeURIComponent(input.directory);
+    const promptResp = await fetch(
+      `${this.baseUrl}/session/${input.sessionId}/prompt_async?directory=${dirParam}`,
+      {
+        method: "POST",
+        headers: this.headers(),
+        body: JSON.stringify({
+          model: this.model,
+          parts: [{ type: "text", text: input.prompt }],
+        }),
+      }
+    );
+
+    if (!promptResp.ok) {
+      const body = await readBody(promptResp);
+      throw new Error(
+        `Failed to send prompt: ${promptResp.status} ${promptResp.statusText} -- ${body}`
+      );
+    }
+  }
+
   async healthcheck(): Promise<boolean> {
     try {
       const resp = await fetch(`${this.baseUrl}/global/health`, {
@@ -90,25 +118,16 @@ export class OpenCodeClient {
 
     const session = (await sessionResp.json()) as { id: string };
 
-    const promptResp = await fetch(
-      `${this.baseUrl}/session/${session.id}/prompt_async?directory=${dirParam}`,
-      {
-        method: "POST",
-        headers: this.headers(),
-        body: JSON.stringify({
-          model: this.model,
-          parts: [{ type: "text", text: input.prompt }],
-        }),
-      }
-    );
-
-    if (!promptResp.ok) {
-      const body = await readBody(promptResp);
-      throw new Error(
-        `Failed to send prompt: ${promptResp.status} ${promptResp.statusText} -- ${body}`
-      );
-    }
+    await this.sendPrompt({
+      sessionId: session.id,
+      directory: input.directory,
+      prompt: input.prompt,
+    });
 
     return session.id;
+  }
+
+  async promptInSession(input: OpenCodePromptInput): Promise<void> {
+    await this.sendPrompt(input);
   }
 }

@@ -281,16 +281,20 @@ function buildPlanPrompt(
     issueBody || "(no description provided)",
     "",
     "## Instructions",
-    "1. Analyze the issue and explore the codebase.",
-    "2. Produce a concrete implementation plan with ordered steps.",
-    "3. Post that plan as an issue comment with this exact marker on the first line:",
+    "1. Deeply explore the repository before proposing a plan.",
+    "2. Read all relevant implementation files, nearby modules, and tests/docs to understand existing patterns and constraints.",
+    "3. Produce a concrete implementation plan with ordered steps and explicit file/module targets.",
+    "4. Include validation strategy, edge cases, and top risks in the plan.",
+    "5. Post that plan as an issue comment with this exact marker on the first line:",
     `   ${planMarker}`,
-    "4. End the comment with: React with :+1: to this comment to approve implementation.",
-    "5. Do NOT modify code, commit, push, or create a PR yet.",
+    "6. End the comment with: React with :+1: to this comment to approve implementation.",
+    "7. You MUST execute the gh command to post the comment, then stop.",
+    "8. Do NOT modify code, commit, push, or create a PR in this phase.",
     "",
     "## Important",
     `- Use command: gh issue comment ${issueNumber} --repo ${issueSlug} --body \"${planMarker}\\n\\n## Plan for #${issueNumber}\\n...\"`,
-    `- You are on branch ${branchName}, but this phase is planning only.`,
+    "- If your first gh issue comment command fails, retry once with corrected quoting.",
+    `- You are on branch ${branchName}; use this worktree context to investigate the codebase thoroughly before posting the plan.`,
   ].join("\n");
 }
 
@@ -430,6 +434,7 @@ class GithubYesmanPlugin implements AutomationPlugin {
 
     const isWorking = issue.labels.includes(this.cfg.workingLabel);
     const wantsPlan = hasToken(issue.body, this.cfg.planToken);
+    const planDedupeKey = `${item.id}:plan:v1`;
 
     if (!isWorking) {
       await addLabel(issueSlug, issueNumber, this.cfg.workingLabel, ctx.dryRun, ctx.logger);
@@ -490,6 +495,7 @@ class GithubYesmanPlugin implements AutomationPlugin {
         sessionTitle: `Resolve ${item.id}: ${item.title}`,
         directory: worktreePath,
         prompt,
+        continueFromDedupeKey: planDedupeKey,
         metadata: {
           issueSlug,
           issueNumber,
@@ -521,7 +527,7 @@ class GithubYesmanPlugin implements AutomationPlugin {
       return {
         kind: "dispatch",
         phase: "plan",
-        dedupeKey: `${item.id}:plan:v1`,
+        dedupeKey: planDedupeKey,
         sessionTitle: `Plan ${item.id}: ${item.title}`,
         directory: worktreePath,
         prompt,

@@ -14,6 +14,11 @@ There are three runtime pieces:
 3. `opencode-automation.service`
    - Dedicated OpenCode backend on `127.0.0.1:4097` used only by automations.
 
+For PR review automation there is a separate timer/service pair:
+
+- `yesmand-pr-reviews.timer`
+- `yesmand-pr-reviews.service`
+
 `yesmand.service` has `After/Wants=opencode-automation.service` and a pre-start
 health wait, so each run waits until the automation OpenCode endpoint is ready.
 
@@ -82,7 +87,9 @@ If issue body contains `#plan`:
 4. Subsequent polls look for that marker comment.
 5. Implementation only dispatches after a `:+1:` reaction from configured
    approver login (currently `ChristianPavilonis`) on the plan comment.
-6. On implementation dispatch, plugin writes marker comment:
+6. Implementation dispatch continues in the same OpenCode session used for
+   planning when that plan session is available.
+7. On implementation dispatch, plugin writes marker comment:
    - `<!-- yesman-implementation-dispatched:v1 -->`
 
 Implementation dedupe key in this mode includes plan comment id:
@@ -96,6 +103,22 @@ directly with dedupe key:
 
 - `<owner/repo>#<issue>:implementation:v1`
 
+## GitHub PR reviews plugin flow
+
+Plugin file: `yesmand/src/plugins/github-pr-reviews/index.ts`
+
+- Scans configured repos for:
+  - PRs requested from `@me` and not reviewed by `@me`
+  - your PRs with `CHANGES_REQUESTED`
+- Filters to recent updates (`lookbackHours`, default 24).
+- Builds one work item per PR and dispatches one OpenCode session per PR into
+  the internal review repo (`~/projects/stackpop-reviews`).
+- Agent writes markdown files under `reviews/<owner>/<repo>/pr-<number>.md`.
+- Agent is instructed to never comment/review publicly on GitHub.
+- Agent commits and pushes generated review notes to `origin/master`.
+- Dedupe key includes PR identity + source `updatedAt`, so hourly runs do not
+  re-review unchanged PRs.
+
 ### Worktree/branch strategy
 
 - Worktree root: `~/worktrees`
@@ -108,7 +131,8 @@ If worktree already exists, it is reused.
 
 For each dispatch decision, yesmand:
 
-1. Creates an OpenCode session with `directory=<worktreePath>`.
+1. Creates an OpenCode session with `directory=<plugin-defined path>`, or
+   continues in a previously dispatched session when requested by the plugin.
 2. Sends `prompt_async` to that session.
 3. Uses model object shape:
    - `{ providerID: "openai", modelID: "gpt-5.3-codex" }`
@@ -116,12 +140,16 @@ For each dispatch decision, yesmand:
 ## Config and files
 
 - Main yesmand config: `yesmand/config.json`
+- PR reviews config: `yesmand/config.pr-reviews.json`
 - Example config: `yesmand/config.example.json`
+- PR reviews example config: `yesmand/config.pr-reviews.example.json`
 - Automation OpenCode config: `yesmand/ops/opencode-config.json`
 - Unit files (managed under dotfiles/opencode package):
   - `opencode/.config/systemd/user/opencode-automation.service`
   - `opencode/.config/systemd/user/yesmand.service`
   - `opencode/.config/systemd/user/yesmand.timer`
+  - `opencode/.config/systemd/user/yesmand-pr-reviews.service`
+  - `opencode/.config/systemd/user/yesmand-pr-reviews.timer`
 
 ## Ops commands
 

@@ -12,6 +12,8 @@ Environment=XDG_CACHE_HOME=%h/.cache/yesman-opencode
 Environment=OPENCODE_DISABLE_PROJECT_CONFIG=1
 Environment=OPENCODE_SERVER_USERNAME=opencode
 Environment=OPENCODE_CONFIG=%h/dotfiles/yesmand/ops/opencode-config.json
+Environment=PATH=%h/.local/share/mise/installs/gh/2.86.0/gh_2.86.0_linux_amd64/bin:%h/.local/share/mise/shims:%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=GH_CONFIG_DIR=%h/.config/gh
 EnvironmentFile=%h/.config/opencode/.env
 ExecStart=%h/.local/share/mise/installs/opencode/1.2.5/opencode web --port 4097 --hostname 127.0.0.1
 Restart=on-failure

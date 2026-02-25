@@ -16,11 +16,18 @@ backend while keeping your personal OpenCode environment clean.
 - Plugin SDK and dynamic plugin loading.
 - OpenCode API client for session + `prompt_async` dispatch.
 - SQLite dispatch dedupe store.
-- GitHub plugin implementing:
+- GitHub issue plugin implementing:
   - trigger token in issue body (`@yesman`)
   - optional planning gate token (`#plan`)
   - owner-only approval via `:+1:` reaction
   - `agent-working` lock label and `agent-pr-created` done label
+- GitHub PR reviews plugin implementing:
+  - fetch review queue from configured repos
+  - dispatch one session per PR
+  - dedupe by PR `updatedAt` to avoid repeat reviews on unchanged PRs
+  - generate internal review markdown in a local repo
+  - no public PR comments/reviews
+  - commit and push review notes to `master`
 
 Detailed runtime behavior is documented in:
 
@@ -59,7 +66,11 @@ The core only understands generic dispatch decisions (`dispatch`, `wait`,
 
    `bun run src/index.ts --once --dry-run --config ./config.json`
 
-5. Run daemon loop:
+5. Dry-run PR reviews profile:
+
+   `bun run src/index.ts --once --dry-run --config ./config.pr-reviews.json`
+
+6. Run daemon loop:
 
    `bun run src/index.ts --config ./config.json`
 
@@ -86,3 +97,5 @@ Example unit files are included under:
 - `yesmand/ops/systemd/opencode-automation.service`
 - `yesmand/ops/systemd/yesmand.service`
 - `yesmand/ops/systemd/yesmand.timer`
+- `yesmand/ops/systemd/yesmand-pr-reviews.service`
+- `yesmand/ops/systemd/yesmand-pr-reviews.timer`

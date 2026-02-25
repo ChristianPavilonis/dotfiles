@@ -42,6 +42,13 @@ export class DispatchStore {
     return Boolean(row);
   }
 
+  getSessionIdByDedupeKey(dedupeKey: string): string | undefined {
+    const row = this.db
+      .query("SELECT session_id FROM dispatches WHERE dedupe_key = ? LIMIT 1")
+      .get(dedupeKey) as { session_id: string } | null;
+    return row?.session_id;
+  }
+
   recordDispatch(record: DispatchRecord): void {
     this.db
       .query(
