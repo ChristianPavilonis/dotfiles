@@ -4,7 +4,6 @@
   "autoshare": false,
   "autoupdate": true,
   "layout": "stretch",
-  "model": "openai/gpt-5.3-codex",
    "plugin": [
     "opencode-anthropic-auth@latest"
   ],

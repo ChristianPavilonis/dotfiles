@@ -178,6 +178,59 @@ def --env gwr [
   }
 }
 
+# Completions for open PR numbers
+def "nu-complete gh pr list" [] {
+  gh pr list --json number,title --limit 30
+    | from json
+    | each { |pr| { value: ($pr.number | into string), description: $pr.title } }
+}
+
+# Checkout a GitHub PR as a git worktree
+def --env gwpr [
+  pr?: string@"nu-complete gh pr list"  # PR number (interactive picker if omitted)
+] {
+  let pr_number = if ($pr == null) {
+    let selected = (
+      gh pr list --limit 30 --json number,title,headRefName
+        | from json
+        | each { |pr| $"($pr.number)\t($pr.title) \(($pr.headRefName)\)" }
+        | str join (char newline)
+        | fzf --height=40% --header="Select a PR to checkout as worktree"
+    )
+    if ($selected | str trim | is-empty) {
+      print "No PR selected."
+      return
+    }
+    $selected | str trim | split row "\t" | first
+  } else {
+    $pr
+  }
+
+  let worktree_root = ("~/worktrees" | path expand)
+  let pr_info = (gh pr view $pr_number --json headRefName,number | from json)
+  let branch = $pr_info.headRefName
+  let worktree_path = ($worktree_root | path join ($branch | str replace --all "/" "-"))
+
+  mkdir $worktree_root
+
+  # Always fetch latest PR changes
+  ^git fetch origin $"pull/($pr_info.number)/head:($branch)" --force
+
+  if ($worktree_path | path exists) {
+    print $"Worktree already exists at ($worktree_path), re-fetched and switching..."
+    cd $worktree_path
+    return
+  }
+
+  git worktree add $worktree_path $branch
+  cd $worktree_path
+
+  if (".worktree-setup" | path exists) {
+    print "Running .worktree-setup..."
+    ^"./.worktree-setup"
+  }
+}
+
 def keep-the-streak-alive [] {
   # Get the date for the previous day
   mut date = ""
