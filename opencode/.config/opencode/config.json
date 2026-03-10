@@ -15,13 +15,11 @@
     "yesmand-once": {
       "template": "Run one yesmand issue cycle: `bun run ~/dotfiles/yesmand/src/index.ts --once --config ~/dotfiles/yesmand/config.json`. Report what candidates were found, what was dispatched, and any OpenCode session IDs created. If the user passes arguments, append them to this command (e.g. `--dry-run` or `--debug`).",
       "description": "Run one yesmand issue-dispatch cycle"
+    },
+    "rebase": {
+      "template": "Rebase the current branch onto the upstream default branch. Steps: 1) Run `git fetch origin`. 2) Determine the default branch by checking if `origin/main` exists (`git rev-parse --verify origin/main`), falling back to `origin/master`. 3) Run `git rebase origin/<default-branch>`. 4) If there are merge conflicts, examine each conflicted file, resolve the conflicts intelligently by keeping the intent of both changes where possible, then `git add` the resolved files and run `git rebase --continue`. Repeat until the rebase completes. If the user passes arguments, use them (e.g. `--abort` to cancel an in-progress rebase). 5) when done force push with lease",
+      "description": "Rebase current branch onto origin main/master, resolving conflicts"
     }
-  },
-  "keybinds": {
-    "agent_cycle": "tab",
-    "command_list": "ctrl+/",
-    "variant_cycle": "ctrl+v",
-    "input_paste": "none"
   },
   "permission": {
     "external_directory": {

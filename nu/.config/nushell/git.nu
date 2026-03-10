@@ -104,12 +104,27 @@ def gwp [] {
     "master"
   }
 
-  let merged = (
+  # Detect branches merged via squash/rebase by querying GitHub for merged PRs
+  let gh_merged = (
+    do { gh pr list --state merged --json headRefName --limit 200 } | complete
+    | if $in.exit_code == 0 {
+        $in.stdout | from json | get headRefName
+      } else {
+        print "Warning: gh command failed, falling back to git-only detection"
+        []
+      }
+  )
+
+  # Detect branches that are true-merged (ancestors of main)
+  let git_merged = (
     git branch --merged $main_branch
     | lines
     | each { |line| $line | str trim | str replace "* " "" }
     | where { |b| $b != $main_branch }
   )
+
+  # Union both sources and deduplicate
+  let merged = ($gh_merged | append $git_merged | uniq | where { |b| $b != $main_branch })
 
   if ($merged | is-empty) {
     print "No merged branches found."
@@ -213,15 +228,15 @@ def --env gwpr [
 
   mkdir $worktree_root
 
-  # Always fetch latest PR changes
-  ^git fetch origin $"pull/($pr_info.number)/head:($branch)" --force
-
   if ($worktree_path | path exists) {
-    print $"Worktree already exists at ($worktree_path), re-fetched and switching..."
+    print $"Worktree already exists at ($worktree_path), pulling latest and switching..."
     cd $worktree_path
+    ^git pull --force origin $"pull/($pr_info.number)/head"
     return
   }
 
+  # Fetch PR into a local branch and create worktree
+  ^git fetch origin $"pull/($pr_info.number)/head:($branch)" --force
   git worktree add $worktree_path $branch
   cd $worktree_path
 

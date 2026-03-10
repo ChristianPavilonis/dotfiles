@@ -183,6 +183,7 @@ def ff [] {
 }
 
 source ./git.nu
+source ./opencode.nu
 source ./php.nu
 source ./rust.nu
 source ./zoxide.nu
