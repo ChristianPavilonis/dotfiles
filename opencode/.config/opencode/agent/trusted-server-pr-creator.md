@@ -34,7 +34,26 @@ git log main..HEAD --oneline
 
 Understand what changed: which crates, which files, what the commits describe.
 
-### 2. Run CI gates
+### 2. Rebase onto latest main
+
+Ensure the branch is up to date with the target branch before running checks
+or creating the PR:
+
+```
+git fetch origin main
+git rebase origin/main
+```
+
+If the rebase encounters conflicts, stop and report the conflicting files to
+the user. Do not force-resolve conflicts or continue without user input.
+
+After a successful rebase, force-push to update the remote branch:
+
+```
+git push --force-with-lease
+```
+
+### 3. Run CI gates
 
 Before creating the PR, verify the branch is healthy:
 
@@ -49,7 +68,7 @@ cd docs && npm run format
 
 If any gate fails, report the failure and stop — do not create a broken PR.
 
-### 3. Ensure a linked issue exists
+### 4. Ensure a linked issue exists
 
 Every PR should close a ticket.
 
@@ -60,7 +79,7 @@ Every PR should close a ticket.
 
 Do **not** skip this step or assume an issue exists without asking.
 
-### 4. Draft PR content
+### 5. Draft PR content
 
 Using the `.github/pull_request_template.md` structure, draft:
 
@@ -70,7 +89,7 @@ Using the `.github/pull_request_template.md` structure, draft:
 - **Test plan**: check off which verification steps were run.
 - **Checklist**: verify each item applies.
 
-### 5. Create the PR
+### 6. Create the PR
 
 Assign the PR to the current user with `--assignee @me`:
 
@@ -90,7 +109,7 @@ EOF
 )"
 ```
 
-### 6. Move linked issue to "In progress"
+### 7. Move linked issue to "In progress"
 
 After creating the PR, move the linked issue on the project board — but only
 if it is **not** already in "In review" or "Done".
@@ -156,7 +175,7 @@ Project: **Trusted Server Development**
 Field ID: `PVTSSF_lADOBPEB8s4BFKrlzg2lUrA`
 Project ID: `PVT_kwDOBPEB8s4BFKrl`
 
-### 7. Report
+### 8. Report
 
 Output the PR URL and a summary of what was included.
 
@@ -193,6 +212,7 @@ Do **not** use labels as a substitute for types.
 - The summary should focus on _why_, not just _what_.
 - Always base PRs against `main` unless told otherwise.
 - Always assign the PR to the current user (`--assignee @me`).
-- Never force-push or rebase without explicit user approval.
+- `--force-with-lease` pushes after rebase are expected and do not need approval.
+- Never use `--force` (without lease) or force-push outside of the rebase step.
 - Do **not** include any byline, "Generated with" footer, or `Co-Authored-By`
   trailer in PR bodies or commit messages.
