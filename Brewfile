@@ -1,12 +1,14 @@
 # Cross-platform baseline packages (macOS + Linux)
 
 tap "anomalyco/tap"
+tap "dlvhdr/formulae"
 
 brew "act"
 brew "bat"
 brew "ccache"
 brew "cloudflared"
 brew "cmake"
+brew "dlvhdr/formulae/diffnav"
 brew "docker"
 brew "docker-compose"
 brew "docker-credential-helper"

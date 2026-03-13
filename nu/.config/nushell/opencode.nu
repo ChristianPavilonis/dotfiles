@@ -6,6 +6,6 @@ def ocrc [] {
 }
 
 # Launch opencode to review the current branch's PR
-def octspr [] {
-  opencode --model "openai/gpt-5.3-codex" --agent plan --prompt "@trusted-server-pr-reviewer Review the current branch's PR. (also take in account any existing reviews)"
+def ocpr [] {
+  opencode --model "openai/gpt-5.3-codex" --agent plan --prompt "@pr-reviewer Review the current branch's PR."
 }

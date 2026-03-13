@@ -3,7 +3,8 @@
 	name = Christian
 	# signingkey set via platform-specific includes below
 [diff]
-    external = difft
+    diffFilter = delta --color-only
+
 [pull]
 	ff = true
 	rebase = false
