@@ -1,0 +1,11 @@
+[Unit]
+Description=Run yesman OpenAI keepalive every 6 hours
+
+[Timer]
+OnCalendar=*-*-* 00,06,12,18:00:00
+RandomizedDelaySec=10m
+Persistent=true
+Unit=yesman-openai-keepalive.service
+
+[Install]
+WantedBy=timers.target

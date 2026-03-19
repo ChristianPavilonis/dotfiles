@@ -1,47 +1,16 @@
 {
-  "pollIntervalMinutes": 5,
+  "dryRun": false,
   "databasePath": "./data/yesmand.db",
+  "monitor": {
+    "enabled": true,
+    "pollSeconds": 30,
+    "stalledAfterMinutes": 10,
+    "timeoutAfterMinutes": 60
+  },
   "opencode": {
     "url": "http://127.0.0.1:4097",
     "username": "opencode",
     "passwordEnv": "OPENCODE_SERVER_PASSWORD",
     "model": "openai/gpt-5.3-codex"
-  },
-  "plugins": [
-    {
-      "id": "github-yesman",
-      "module": "./src/plugins/github/index.ts",
-      "enabled": true,
-      "config": {
-        "triggerToken": "@yesman",
-        "planToken": "#plan",
-        "workingLabel": "agent-working",
-        "doneLabel": "agent-pr-created",
-        "planMarker": "<!-- yesman-plan:v1 -->",
-        "implementationDispatchMarker": "<!-- yesman-implementation-dispatched:v1 -->",
-        "approverLogin": "ChristianPavilonis",
-        "worktreeRoot": "~/worktrees",
-        "repos": [
-          {
-            "owner": "ChristianPavilonis",
-            "repo": "rigzilla",
-            "localPath": "~/projects/rigzilla",
-            "defaultBranch": "master"
-          },
-          {
-            "owner": "ChristianPavilonis",
-            "repo": "rigzilla-scraper",
-            "localPath": "~/projects/scrapezilla",
-            "defaultBranch": "master"
-          },
-          {
-            "owner": "ChristianPavilonis",
-            "repo": "dotfiles",
-            "localPath": "~/dotfiles",
-            "defaultBranch": "master"
-          }
-        ]
-      }
-    }
-  ]
+  }
 }

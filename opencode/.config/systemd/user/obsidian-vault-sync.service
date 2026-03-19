@@ -1,12 +1,16 @@
 [Unit]
-Description=Obsidian Vault Git Sync
+Description=Obsidian Vault continuous sync
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-Type=oneshot
-ExecStart=%h/.local/bin/obsidian-vault-sync.sh
+Type=simple
+WorkingDirectory=%h/Documents/MyObsidianVault
+ExecStart=/home/christian/dotfiles/scripts/obsidian-vault-sync-loop.sh
+Restart=always
+RestartSec=10
 Environment=HOME=%h
+Environment=PATH=%h/.local/share/mise/shims:%h/.bun/bin:/usr/local/bin:/usr/bin:/bin
 
 [Install]
 WantedBy=default.target

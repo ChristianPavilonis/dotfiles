@@ -7,15 +7,18 @@ backend while keeping your personal OpenCode environment clean.
 
 - Keep automation config separate from daily interactive OpenCode usage.
 - Keep the core provider-agnostic (no GitHub-specific logic in core).
-- Load integrations through plugin modules configured by users.
-- Support polling-driven workflows (`@yesman`, `#plan`, approval gates, etc).
+- Keep personal plugin behavior and config in plugin code.
+- Let each plugin define its own schedule and cadence.
 
 ## Current MVP
 
-- Polling engine (default every 5 minutes).
-- Plugin SDK and dynamic plugin loading.
+- Long-running daemon process (no systemd timer dependency).
+- Plugin scheduler with per-plugin intervals, startup behavior, and jitter.
+- Plugin SDK and in-repo plugin registry.
 - OpenCode API client for session + `prompt_async` dispatch.
 - SQLite dispatch dedupe store.
+- Dispatch attempt tracking with terminal outcome states.
+- API-based session monitor for stuck/incomplete automation sessions.
 - GitHub issue plugin implementing:
   - trigger token in issue body (`@yesman`)
   - optional planning gate token (`#plan`)
@@ -37,10 +40,11 @@ Detailed runtime behavior is documented in:
 
 Each plugin module must export:
 
-- `createPlugin(config, ctx)`
+- `createPlugin(ctx)`
 
 And return an object implementing:
 
+- `schedule` (`everyMinutes`, optional `runOnStartup`, optional `jitterSeconds`)
 - `discoverCandidates(ctx)`
 - `evaluateCandidate(item, ctx)`
 - optional `onDispatchSuccess(...)`
@@ -66,13 +70,19 @@ The core only understands generic dispatch decisions (`dispatch`, `wait`,
 
    `bun run src/index.ts --once --dry-run --config ./config.json`
 
-5. Dry-run PR reviews profile:
-
-   `bun run src/index.ts --once --dry-run --config ./config.pr-reviews.json`
-
-6. Run daemon loop:
+5. Run daemon loop:
 
    `bun run src/index.ts --config ./config.json`
+
+## Plugin Configuration
+
+Plugin configuration is defined in each plugin module:
+
+- `yesmand/src/plugins/github/index.ts`
+- `yesmand/src/plugins/github-pr-reviews/index.ts`
+
+Optional environment overrides are supported for scheduling and a few key values
+such as approver login and review repo path.
 
 ## Isolating Automation OpenCode
 
@@ -96,6 +106,3 @@ Example unit files are included under:
 
 - `yesmand/ops/systemd/opencode-automation.service`
 - `yesmand/ops/systemd/yesmand.service`
-- `yesmand/ops/systemd/yesmand.timer`
-- `yesmand/ops/systemd/yesmand-pr-reviews.service`
-- `yesmand/ops/systemd/yesmand-pr-reviews.timer`
