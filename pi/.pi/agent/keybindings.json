@@ -1,0 +1,7 @@
+{
+  "app.model.select": ["ctrl+l"],
+  "app.tools.expand": ["ctrl+o"],
+  "app.thinking.toggle": ["ctrl+t"],
+  "app.message.followUp": ["alt+enter"],
+  "app.message.dequeue": ["alt+up"]
+}
