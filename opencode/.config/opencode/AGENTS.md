@@ -1,9 +1,7 @@
 
 ## General rules
 
-- Do not ask about backwards compatability, 90% of the time it is not an issue, I will bring it up first
 - Don't perform destructive git operations unless otherwise instructed (ie. commit, push, pull, etc.)
-
 
 ## Obsidian Vault
 

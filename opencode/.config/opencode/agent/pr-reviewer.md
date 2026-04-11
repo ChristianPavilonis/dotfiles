@@ -211,95 +211,15 @@ Generate a structured plan to address the findings:
 - Estimate relative effort (small / medium / large)
 
 **Option B: Leave a review on the PR**
-- Ask the user which findings to include (they may exclude, adjust severity,
-  or edit descriptions)
-- Wait for explicit confirmation before submitting
-- Submit as a formal GitHub PR review
+Tell the user they can invoke `@pr-review-submitter` with the findings to
+post the review to GitHub. The submitter will handle selecting which findings
+to include and the GitHub API submission.
 
-### 8. Submit GitHub PR review (Option B only)
-
-Only proceed here after explicit user approval of the findings to include.
-
-#### Determine the review verdict
-
-- Any P0 or P1 findings included → `REQUEST_CHANGES`
-- Only P2 or below → `COMMENT`
-- No findings → `APPROVE`
-
-#### Build inline comments
-
-For each finding that maps to a specific line:
-
-```json
-{
-  "path": "src/example.rs",
-  "line": 42,
-  "side": "RIGHT",
-  "body": "🔧 **Title**: Description...\n\n**Suggestion**:\n```rust\n// suggested code\n```"
-}
-```
-
-#### Build the review body
-
-Include cross-cutting findings and a summary in the review body:
-
-```markdown
-## Summary
-
-<1-2 sentence overview>
-
-## Findings
-
-### 🔧 Blockers (P0)
-- **Title**: description (file:line)
-
-### 🔧 High (P1)
-- **Title**: description (file:line)
-
-### 🤔 Medium (P2)
-- **Title**: description
-
-### ⛏ Low (P3)
-- **Title**: description
-
-## CI Status
-- <check>: PASS/FAIL
-```
-
-#### Submit
-
-Handle known GitHub API issues:
-
-1. **"User can only have one pending review"** — Delete the existing pending
-   review first:
-   ```sh
-   gh api repos/{owner}/{repo}/pulls/<number>/reviews \
-     --jq '.[] | select(.state == "PENDING") | .id'
-   gh api repos/{owner}/{repo}/pulls/<number>/reviews/<review_id> -X DELETE
-   ```
-
-2. **"Position could not be resolved"** — Use `line` + `side: "RIGHT"` instead
-   of the `position` field.
-
-3. **>30 inline comments** — Consolidate lower-severity findings into the
-   review body instead.
-
-Submit the review:
-
-```sh
-gh api repos/{owner}/{repo}/pulls/<number>/reviews -X POST \
-  -f event="<APPROVE|COMMENT|REQUEST_CHANGES>" \
-  -f body="<review body>" \
-  --input comments.json
-```
-
-### 9. Report
+### 8. Report
 
 Output:
 
 - Total findings by severity (e.g., "2 P0, 3 P1, 5 P2, 2 P3")
-- Whether a fix plan was created or a review was submitted
-- The review URL (if submitted)
 - CI status summary
 
 ## Rules
@@ -307,7 +227,6 @@ Output:
 - Read every changed file completely before delegating to sub-agents.
 - Always read CLAUDE.md and CONTRIBUTING.md if they exist — project conventions
   are critical for accurate reviews.
-- Never submit a review without explicit user approval of the findings.
 - Don't nitpick style that formatters handle — focus on substance.
 - Don't flag things that are correct but unfamiliar — verify before flagging.
 - Cross-reference findings: if an issue appears in multiple places, group them.
