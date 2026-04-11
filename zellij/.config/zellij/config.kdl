@@ -184,7 +184,6 @@ keybinds clear-defaults=true {
         bind "Alt l" { MoveFocusOrTab "right"; }
         bind "Alt n" { NewPane; }
         bind "Alt o" { MoveTab "right"; }
-        bind "Alt p" { TogglePaneInGroup; }
         bind "Alt Shift p" { ToggleGroupMarking; }
     }
     shared_except "locked" "move" {
@@ -664,6 +663,8 @@ show_startup_tips false
 // Whether to enable mouse hover effects and pane grouping functionality
 // default is true
 // advanced_mouse_actions false
+
+mouse_hover_effects false
  
 // The ip address the web server should listen on when it starts
 // Default: "127.0.0.1"

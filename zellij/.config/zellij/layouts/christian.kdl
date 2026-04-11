@@ -5,6 +5,43 @@ layout {
         }
         children
     }
+    new_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        pane
+    }
+    swap_tiled_layout name="vertical" {
+        tab max_panes=5 {
+            pane size=1 borderless=true {
+                plugin location="zellij:tab-bar"
+            }
+            pane split_direction="vertical" {
+                pane
+                pane { children; }
+            }
+        }
+    }
+    swap_tiled_layout name="horizontal" {
+        tab max_panes=4 {
+            pane size=1 borderless=true {
+                plugin location="zellij:tab-bar"
+            }
+            pane
+            pane
+        }
+    }
+    swap_tiled_layout name="stacked" {
+        tab min_panes=5 {
+            pane size=1 borderless=true {
+                plugin location="zellij:tab-bar"
+            }
+            pane split_direction="vertical" {
+                pane
+                pane stacked=true { children; }
+            }
+        }
+    }
     tab name="nvim" {
         pane command="nvim" size="80%"
         pane command="opencode" size="20%"
