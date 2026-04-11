@@ -9,6 +9,7 @@ import type {
   EvaluationResult,
   PluginContext,
   PluginFactory,
+  PluginSchedule,
   WorkItem,
 } from "../../types";
 
@@ -47,6 +48,9 @@ const repoSchema = z.object({
 });
 
 const configSchema = z.object({
+  scheduleEveryMinutes: z.number().int().min(1).default(60),
+  runOnStartup: z.boolean().default(true),
+  scheduleJitterSeconds: z.number().int().min(0).default(30),
   reviewRepoPath: z.string().default("~/projects/stackpop-reviews"),
   lookbackHours: z.number().int().min(1).default(24),
   repos: z.array(repoSchema).min(1),
@@ -79,6 +83,63 @@ const workItemMetadataSchema = z.object({
 
 type GithubPRReviewsConfig = z.infer<typeof configSchema>;
 type WorkItemMetadata = z.infer<typeof workItemMetadataSchema>;
+
+const DEFAULT_CONFIG: GithubPRReviewsConfig = {
+  scheduleEveryMinutes: 60,
+  runOnStartup: true,
+  scheduleJitterSeconds: 30,
+  reviewRepoPath: "~/projects/stackpop-reviews",
+  lookbackHours: 24,
+  repos: [
+    {
+      owner: "IABTechLab",
+      repo: "trusted-server",
+    },
+    {
+      owner: "stackpop",
+      repo: "mocktioneer",
+    },
+    {
+      owner: "stackpop",
+      repo: "edgezero",
+    },
+  ],
+};
+
+function readIntEnv(name: string): number | undefined {
+  const value = process.env[name];
+  if (!value || !value.trim()) return undefined;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function readBoolEnv(name: string): boolean | undefined {
+  const value = process.env[name];
+  if (!value || !value.trim()) return undefined;
+
+  const normalized = value.toLowerCase();
+  if (["1", "true", "yes", "on"].includes(normalized)) return true;
+  if (["0", "false", "no", "off"].includes(normalized)) return false;
+
+  return undefined;
+}
+
+function resolveConfigFromEnv(): GithubPRReviewsConfig {
+  return configSchema.parse({
+    ...DEFAULT_CONFIG,
+    scheduleEveryMinutes:
+      readIntEnv("YESMAND_PR_REVIEWS_EVERY_MINUTES") ?? DEFAULT_CONFIG.scheduleEveryMinutes,
+    runOnStartup:
+      readBoolEnv("YESMAND_PR_REVIEWS_RUN_ON_STARTUP") ?? DEFAULT_CONFIG.runOnStartup,
+    scheduleJitterSeconds:
+      readIntEnv("YESMAND_PR_REVIEWS_SCHEDULE_JITTER_SECONDS") ??
+      DEFAULT_CONFIG.scheduleJitterSeconds,
+    reviewRepoPath:
+      process.env.YESMAND_PR_REVIEWS_REVIEW_REPO_PATH ?? DEFAULT_CONFIG.reviewRepoPath,
+    lookbackHours:
+      readIntEnv("YESMAND_PR_REVIEWS_LOOKBACK_HOURS") ?? DEFAULT_CONFIG.lookbackHours,
+  });
+}
 
 const GH_PR_FIELDS =
   "number,title,url,body,additions,deletions,changedFiles,labels,reviewDecision,updatedAt,author,baseRefName,headRefName";
@@ -245,10 +306,16 @@ async function fetchReviewQueue(
 
 class GithubPRReviewsPlugin implements AutomationPlugin {
   readonly id = "github-pr-reviews";
+  readonly schedule: PluginSchedule;
   private readonly cfg: GithubPRReviewsConfig;
 
   constructor(config: GithubPRReviewsConfig) {
     this.cfg = config;
+    this.schedule = {
+      everyMinutes: config.scheduleEveryMinutes,
+      runOnStartup: config.runOnStartup,
+      jitterSeconds: config.scheduleJitterSeconds,
+    };
   }
 
   async discoverCandidates(ctx: PluginContext): Promise<WorkItem[]> {
@@ -322,7 +389,6 @@ class GithubPRReviewsPlugin implements AutomationPlugin {
   }
 }
 
-export const createPlugin: PluginFactory = async (config) => {
-  const parsed = configSchema.parse(config);
-  return new GithubPRReviewsPlugin(parsed);
+export const createPlugin: PluginFactory = async () => {
+  return new GithubPRReviewsPlugin(resolveConfigFromEnv());
 };

@@ -1,0 +1,20 @@
+[Unit]
+Description=Yesman OpenAI OAuth keepalive
+After=network-online.target opencode-automation.service
+Wants=network-online.target opencode-automation.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/dotfiles/yesmand
+Environment=XDG_CONFIG_HOME=%h/.config/yesman-opencode
+Environment=XDG_DATA_HOME=%h/.local/share/yesman-opencode
+Environment=XDG_STATE_HOME=%h/.local/state/yesman-opencode
+Environment=XDG_CACHE_HOME=%h/.cache/yesman-opencode
+Environment=OPENCODE_DISABLE_PROJECT_CONFIG=1
+Environment=OPENCODE_CONFIG=%h/dotfiles/yesmand/ops/opencode-config.json
+Environment=PATH=%h/.local/share/mise/installs/gh/2.86.0/gh_2.86.0_linux_amd64/bin:%h/.local/share/mise/shims:%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=GH_CONFIG_DIR=%h/.config/gh
+ExecStart=/bin/sh -lc 'exec %h/.local/share/mise/installs/opencode/1.2.5/opencode run --model openai/gpt-5-codex --format default --dir %h/dotfiles/yesmand "Reply with exactly: keepalive-ok"'
+
+[Install]
+WantedBy=default.target

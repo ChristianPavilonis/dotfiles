@@ -19,6 +19,51 @@ export interface OpenCodePromptInput {
   prompt: string;
 }
 
+export interface OpenCodeSession {
+  id: string;
+  slug?: string;
+  projectID?: string;
+  directory?: string;
+  title?: string;
+  version?: string;
+  summary?: string;
+  time?: {
+    created?: number;
+    updated?: number;
+  };
+}
+
+export interface OpenCodeMessagePart {
+  type?: string;
+  tool?: string;
+  text?: string;
+  state?: {
+    status?: string;
+    input?: Record<string, unknown>;
+    output?: unknown;
+    time?: {
+      start?: number;
+      end?: number;
+    };
+  };
+}
+
+export interface OpenCodeMessageInfo {
+  id?: string;
+  role?: string;
+  finish?: string;
+  time?: {
+    created?: number;
+    completed?: number;
+  };
+  tokens?: Record<string, unknown>;
+}
+
+export interface OpenCodeMessage {
+  info?: OpenCodeMessageInfo;
+  parts?: OpenCodeMessagePart[];
+}
+
 function parseModelSpec(model: string): { providerID: string; modelID: string } {
   const [providerID, ...modelRest] = model.split("/");
   const modelID = modelRest.join("/");
@@ -62,6 +107,19 @@ export class OpenCodeClient {
       "Content-Type": "application/json",
       Authorization: this.authHeader,
     };
+  }
+
+  private async getJson<T>(path: string): Promise<T> {
+    const resp = await fetch(`${this.baseUrl}${path}`, {
+      headers: this.headers(),
+    });
+
+    if (!resp.ok) {
+      const body = await readBody(resp);
+      throw new Error(`OpenCode API ${path} failed: ${resp.status} ${resp.statusText} -- ${body}`);
+    }
+
+    return (await resp.json()) as T;
   }
 
   private async sendPrompt(input: OpenCodePromptInput): Promise<void> {
@@ -129,5 +187,13 @@ export class OpenCodeClient {
 
   async promptInSession(input: OpenCodePromptInput): Promise<void> {
     await this.sendPrompt(input);
+  }
+
+  async getSession(sessionId: string): Promise<OpenCodeSession> {
+    return this.getJson<OpenCodeSession>(`/session/${sessionId}`);
+  }
+
+  async getSessionMessages(sessionId: string): Promise<OpenCodeMessage[]> {
+    return this.getJson<OpenCodeMessage[]>(`/session/${sessionId}/message`);
   }
 }

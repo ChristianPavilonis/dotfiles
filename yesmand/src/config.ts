@@ -1,18 +1,18 @@
 import { dirname, isAbsolute, resolve } from "node:path";
 import { z } from "zod";
-import type { AppConfig, PluginDefinition } from "./types";
-
-const pluginSchema = z.object({
-  id: z.string().min(1),
-  module: z.string().min(1),
-  enabled: z.boolean().default(true),
-  config: z.unknown().optional().default({}),
-});
+import type { AppConfig } from "./types";
 
 const configSchema = z.object({
-  pollIntervalMinutes: z.number().int().min(1).default(5),
   dryRun: z.boolean().default(false),
   databasePath: z.string().default("./data/yesmand.db"),
+  monitor: z
+    .object({
+      enabled: z.boolean().default(true),
+      pollSeconds: z.number().int().min(5).max(300).default(30),
+      stalledAfterMinutes: z.number().int().min(1).max(720).default(10),
+      timeoutAfterMinutes: z.number().int().min(1).max(1440).default(60),
+    })
+    .default({}),
   opencode: z.object({
     url: z.string().url(),
     username: z.string().min(1).default("opencode"),
@@ -20,7 +20,6 @@ const configSchema = z.object({
     passwordEnv: z.string().optional(),
     model: z.string().min(3),
   }),
-  plugins: z.array(pluginSchema).default([]),
 });
 
 function resolvePassword(source: {
@@ -36,24 +35,6 @@ function resolvePassword(source: {
   return "";
 }
 
-function resolvePluginDefinitions(
-  rawPlugins: Array<z.infer<typeof pluginSchema>>,
-  configDir: string
-): PluginDefinition[] {
-  return rawPlugins.map((plugin) => {
-    const modulePath = isAbsolute(plugin.module)
-      ? plugin.module
-      : resolve(configDir, plugin.module);
-
-    return {
-      id: plugin.id,
-      modulePath,
-      config: plugin.config,
-      enabled: plugin.enabled,
-    };
-  });
-}
-
 export async function loadConfig(configPath: string): Promise<AppConfig> {
   const file = Bun.file(configPath);
   const exists = await file.exists();
@@ -66,21 +47,24 @@ export async function loadConfig(configPath: string): Promise<AppConfig> {
   const parsed = configSchema.parse(parsedJson);
   const configDir = dirname(configPath);
 
-  const plugins = resolvePluginDefinitions(parsed.plugins, configDir);
   const databasePath = isAbsolute(parsed.databasePath)
     ? parsed.databasePath
     : resolve(configDir, parsed.databasePath);
 
   return {
-    pollIntervalMinutes: parsed.pollIntervalMinutes,
     dryRun: parsed.dryRun,
     databasePath,
+    monitor: {
+      enabled: parsed.monitor.enabled,
+      pollSeconds: parsed.monitor.pollSeconds,
+      stalledAfterMinutes: parsed.monitor.stalledAfterMinutes,
+      timeoutAfterMinutes: parsed.monitor.timeoutAfterMinutes,
+    },
     opencode: {
       url: parsed.opencode.url,
       username: parsed.opencode.username,
       password: resolvePassword(parsed.opencode),
       model: parsed.opencode.model,
     },
-    plugins,
   };
 }

@@ -9,6 +9,7 @@ import type {
   EvaluationResult,
   PluginContext,
   PluginFactory,
+  PluginSchedule,
   WorkItem,
 } from "../../types";
 
@@ -49,6 +50,9 @@ const repoSchema = z.object({
 });
 
 const configSchema = z.object({
+  scheduleEveryMinutes: z.number().int().min(1).default(5),
+  runOnStartup: z.boolean().default(true),
+  scheduleJitterSeconds: z.number().int().min(0).default(15),
   triggerToken: z.string().default("@yesman"),
   planToken: z.string().default("#plan"),
   workingLabel: z.string().default("agent-working"),
@@ -72,6 +76,73 @@ const metadataSchema = z.object({
 type WorkItemMetadata = z.infer<typeof metadataSchema>;
 
 type GithubPluginConfig = z.infer<typeof configSchema>;
+
+const DEFAULT_CONFIG: GithubPluginConfig = {
+  scheduleEveryMinutes: 5,
+  runOnStartup: true,
+  scheduleJitterSeconds: 15,
+  triggerToken: "@yesman",
+  planToken: "#plan",
+  workingLabel: "agent-working",
+  doneLabel: "agent-pr-created",
+  planMarker: "<!-- yesman-plan:v1 -->",
+  implementationDispatchMarker: "<!-- yesman-implementation-dispatched:v1 -->",
+  approverLogin: "ChristianPavilonis",
+  worktreeRoot: "~/worktrees",
+  repos: [
+    {
+      owner: "ChristianPavilonis",
+      repo: "rigzilla",
+      localPath: "~/projects/rigzilla",
+      defaultBranch: "master",
+    },
+    {
+      owner: "ChristianPavilonis",
+      repo: "rigzilla-scraper",
+      localPath: "~/projects/scrapezilla",
+      defaultBranch: "master",
+    },
+    {
+      owner: "ChristianPavilonis",
+      repo: "dotfiles",
+      localPath: "~/dotfiles",
+      defaultBranch: "master",
+    },
+  ],
+};
+
+function readIntEnv(name: string): number | undefined {
+  const value = process.env[name];
+  if (!value || !value.trim()) return undefined;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function readBoolEnv(name: string): boolean | undefined {
+  const value = process.env[name];
+  if (!value || !value.trim()) return undefined;
+
+  const normalized = value.toLowerCase();
+  if (["1", "true", "yes", "on"].includes(normalized)) return true;
+  if (["0", "false", "no", "off"].includes(normalized)) return false;
+
+  return undefined;
+}
+
+function resolveConfigFromEnv(): GithubPluginConfig {
+  return configSchema.parse({
+    ...DEFAULT_CONFIG,
+    scheduleEveryMinutes:
+      readIntEnv("YESMAND_GITHUB_EVERY_MINUTES") ?? DEFAULT_CONFIG.scheduleEveryMinutes,
+    runOnStartup: readBoolEnv("YESMAND_GITHUB_RUN_ON_STARTUP") ?? DEFAULT_CONFIG.runOnStartup,
+    scheduleJitterSeconds:
+      readIntEnv("YESMAND_GITHUB_SCHEDULE_JITTER_SECONDS") ??
+      DEFAULT_CONFIG.scheduleJitterSeconds,
+    approverLogin:
+      process.env.YESMAND_GITHUB_APPROVER_LOGIN ?? DEFAULT_CONFIG.approverLogin,
+    worktreeRoot: process.env.YESMAND_GITHUB_WORKTREE_ROOT ?? DEFAULT_CONFIG.worktreeRoot,
+  });
+}
 
 function expandHome(input: string): string {
   return input.startsWith("~/") ? join(homedir(), input.slice(2)) : input;
@@ -355,11 +426,17 @@ function buildImplementationPrompt(
 
 class GithubYesmanPlugin implements AutomationPlugin {
   readonly id = "github-yesman";
+  readonly schedule: PluginSchedule;
   private readonly cfg: GithubPluginConfig;
   private readonly labelsEnsured = new Set<string>();
 
   constructor(config: GithubPluginConfig) {
     this.cfg = config;
+    this.schedule = {
+      everyMinutes: config.scheduleEveryMinutes,
+      runOnStartup: config.runOnStartup,
+      jitterSeconds: config.scheduleJitterSeconds,
+    };
   }
 
   async discoverCandidates(ctx: PluginContext): Promise<WorkItem[]> {
@@ -580,7 +657,6 @@ class GithubYesmanPlugin implements AutomationPlugin {
   }
 }
 
-export const createPlugin: PluginFactory = async (config) => {
-  const parsed = configSchema.parse(config);
-  return new GithubYesmanPlugin(parsed);
+export const createPlugin: PluginFactory = async () => {
+  return new GithubYesmanPlugin(resolveConfigFromEnv());
 };

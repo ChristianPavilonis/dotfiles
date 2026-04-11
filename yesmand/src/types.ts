@@ -1,5 +1,14 @@
 export type DispatchPhase = "plan" | "implementation";
 
+export type DispatchAttemptStatus =
+  | "dispatch_started"
+  | "dispatch_sent"
+  | "running"
+  | "completed"
+  | "failed"
+  | "stalled"
+  | "timed_out";
+
 export interface Logger {
   info(message: string, details?: Record<string, unknown>): void;
   warn(message: string, details?: Record<string, unknown>): void;
@@ -54,8 +63,15 @@ export interface PluginContext {
   now: Date;
 }
 
+export interface PluginSchedule {
+  everyMinutes: number;
+  runOnStartup?: boolean;
+  jitterSeconds?: number;
+}
+
 export interface AutomationPlugin {
   id: string;
+  schedule: PluginSchedule;
   discoverCandidates(ctx: PluginContext): Promise<WorkItem[]>;
   evaluateCandidate(item: WorkItem, ctx: PluginContext): Promise<EvaluationResult>;
   onDispatchSuccess?(
@@ -77,26 +93,22 @@ export interface PluginFactoryContext {
 }
 
 export type PluginFactory = (
-  config: unknown,
   ctx: PluginFactoryContext
 ) => Promise<AutomationPlugin> | AutomationPlugin;
 
-export interface PluginDefinition {
-  id: string;
-  modulePath: string;
-  config: unknown;
-  enabled: boolean;
-}
-
 export interface AppConfig {
-  pollIntervalMinutes: number;
   dryRun: boolean;
   databasePath: string;
+  monitor: {
+    enabled: boolean;
+    pollSeconds: number;
+    stalledAfterMinutes: number;
+    timeoutAfterMinutes: number;
+  };
   opencode: {
     url: string;
     username: string;
     password: string;
     model: string;
   };
-  plugins: PluginDefinition[];
 }

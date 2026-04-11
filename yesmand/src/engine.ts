@@ -31,6 +31,13 @@ export class AutomationEngine {
     this.dryRun = options.dryRun;
   }
 
+  private async isBackendAvailable(): Promise<boolean> {
+    if (this.dryRun) return true;
+
+    const healthy = await this.openCode.healthcheck();
+    return healthy;
+  }
+
   async runCycle(): Promise<void> {
     const ctx: PluginContext = {
       dryRun: this.dryRun,
@@ -43,26 +50,41 @@ export class AutomationEngine {
       dryRun: this.dryRun,
     });
 
-    if (!this.dryRun) {
-      const healthy = await this.openCode.healthcheck();
-      if (!healthy) {
-        this.logger.warn("OpenCode unavailable. Skipping this cycle.");
-        return;
-      }
+    if (!(await this.isBackendAvailable())) {
+      this.logger.warn("OpenCode unavailable. Skipping this cycle.");
+      return;
     }
 
     for (const plugin of this.plugins) {
-      try {
-        await this.runPlugin(plugin, ctx);
-      } catch (error) {
-        this.logger.error("Plugin run failed", {
-          plugin: plugin.id,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
+      await this.runPluginCycle(plugin, ctx);
     }
 
     this.logger.info("Poll cycle complete");
+  }
+
+  async runPluginCycle(plugin: AutomationPlugin, ctx?: PluginContext): Promise<void> {
+    if (!(await this.isBackendAvailable())) {
+      this.logger.warn("Skipping plugin because OpenCode is unavailable", {
+        plugin: plugin.id,
+      });
+      return;
+    }
+
+    const runCtx: PluginContext =
+      ctx ?? {
+        dryRun: this.dryRun,
+        logger: this.logger,
+        now: new Date(),
+      };
+
+    try {
+      await this.runPlugin(plugin, runCtx);
+    } catch (error) {
+      this.logger.error("Plugin run failed", {
+        plugin: plugin.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
   private async runPlugin(plugin: AutomationPlugin, ctx: PluginContext): Promise<void> {
@@ -134,21 +156,36 @@ export class AutomationEngine {
       return;
     }
 
-    try {
-      let sessionId: string | undefined;
+    const attempt = this.store.startDispatchAttempt({
+      pluginId: plugin.id,
+      itemId: item.id,
+      phase: decision.phase,
+      dedupeKey: decision.dedupeKey,
+    });
 
+    this.logger.info("Dispatch attempt started", {
+      plugin: plugin.id,
+      itemId: item.id,
+      phase: decision.phase,
+      dedupeKey: decision.dedupeKey,
+      attempt,
+    });
+
+    let sessionId: string | undefined;
+
+    try {
       if (decision.continueFromDedupeKey) {
         const existingSessionId = this.store.getSessionIdByDedupeKey(
           decision.continueFromDedupeKey
         );
 
         if (existingSessionId) {
+          sessionId = existingSessionId;
           await this.openCode.promptInSession({
             sessionId: existingSessionId,
             directory: decision.directory,
             prompt: decision.prompt,
           });
-          sessionId = existingSessionId;
 
           this.logger.info("Continued existing OpenCode session", {
             plugin: plugin.id,
@@ -184,11 +221,21 @@ export class AutomationEngine {
         model: this.openCode.modelId,
       });
 
+      this.store.updateDispatchAttemptStatus({
+        dedupeKey: decision.dedupeKey,
+        attempt,
+        status: "dispatch_sent",
+        sessionId,
+        reason: null,
+      });
+
       this.logger.info("Dispatched OpenCode session", {
         plugin: plugin.id,
         itemId: item.id,
         phase: decision.phase,
         sessionId,
+        dedupeKey: decision.dedupeKey,
+        attempt,
       });
 
       if (plugin.onDispatchSuccess) {
@@ -197,10 +244,22 @@ export class AutomationEngine {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
 
+      this.store.updateDispatchAttemptStatus({
+        dedupeKey: decision.dedupeKey,
+        attempt,
+        status: "failed",
+        sessionId: sessionId ?? null,
+        reason: message,
+        endAttempt: true,
+      });
+
       this.logger.error("Dispatch failed", {
         plugin: plugin.id,
         itemId: item.id,
         phase: decision.phase,
+        dedupeKey: decision.dedupeKey,
+        attempt,
+        sessionId,
         error: message,
       });
 
