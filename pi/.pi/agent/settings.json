@@ -2,9 +2,10 @@
   "lastChangelogVersion": "0.66.1",
   "theme": "fallout-terminal",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.4",
+  "defaultModel": "gpt-5.4-mini",
   "packages": [
     "npm:@ifi/pi-plan"
   ],
-  "defaultThinkingLevel": "medium"
+  "defaultThinkingLevel": "medium",
+  "editorPaddingX": 1
 }
