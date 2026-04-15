@@ -1,11 +1,14 @@
 {
-  "lastChangelogVersion": "0.66.1",
+  "lastChangelogVersion": "0.67.2",
   "theme": "fallout-terminal",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.4-mini",
+  "defaultModel": "gpt-5.4",
   "packages": [
-    "npm:@ifi/pi-plan"
+    "npm:@ifi/pi-plan",
+    "npm:pi-web-access",
+    "npm:pi-subagents"
   ],
   "defaultThinkingLevel": "medium",
-  "editorPaddingX": 1
+  "editorPaddingX": 1,
+  "quietStartup": true
 }

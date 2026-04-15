@@ -17,7 +17,7 @@ alert = '#7fbf5a'
 [directory]
 style = 'bold fg:green'
 read_only_style = 'fg:greenDim'
-format = '[SYS://$path]($style)[$read_only]($read_only_style) '
+format = '[$path]($style)[$read_only]($read_only_style) '
 truncation_length = 3
 truncation_symbol = '…/'
 home_symbol = '~'

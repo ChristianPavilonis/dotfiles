@@ -5,7 +5,12 @@ type ZellijTarget = {
 	successMessage: (id: string | undefined) => string;
 };
 
-const REVIEW_TEMPLATE = "/zreview-worktree";
+const REVIEW_TEMPLATE = "/review";
+
+function buildReviewPrompt(args: string): string {
+	const trimmed = args.trim();
+	return trimmed.length > 0 ? `${REVIEW_TEMPLATE} ${trimmed}` : REVIEW_TEMPLATE;
+}
 
 function notify(ctx: ExtensionCommandContext, message: string, level: "info" | "warning" | "error" = "info") {
 	if (ctx.hasUI) ctx.ui.notify(message, level);
@@ -85,9 +90,29 @@ export default function zellijExtension(pi: ExtensionAPI) {
 		},
 	});
 
-	pi.registerCommand("zreview", {
-		description: "Open a fresh Pi review session in a new Zellij pane",
+	pi.registerCommand("nvim", {
+		description: "Open nvim in a stacked Zellij pane",
 		handler: async (_args, ctx) => {
+			await execZellij(pi, ctx, {
+				args: ["action", "new-pane", "--stacked", "--cwd", ctx.cwd, "--", "nvim"],
+				successMessage: (id) => `Opened stacked nvim pane${id ? ` ${id}` : ""}`,
+			});
+		},
+	});
+
+	pi.registerCommand("gd", {
+		description: "Open git diff",
+		handler: async (_args, ctx) => {
+			await execZellij(pi, ctx, {
+				args: ["action", "new-pane", "--stacked", "--cwd", ctx.cwd, "--", "nu", "-l", "-c",  "gd"],
+				successMessage: (id) => `Opened stacked nvim pane${id ? ` ${id}` : ""}`,
+			});
+		},
+	});
+
+	pi.registerCommand("zreview", {
+		description: "Open a fresh Pi review session in a new Zellij pane, optionally with review arguments",
+		handler: async (args, ctx) => {
 			if (!ensureInsideZellij(ctx)) return;
 
 			const repoRoot = await findRepoRoot(pi);
@@ -95,6 +120,8 @@ export default function zellijExtension(pi: ExtensionAPI) {
 				notify(ctx, "zreview requires a git repository", "error");
 				return;
 			}
+
+			const reviewPrompt = buildReviewPrompt(args);
 
 			await execZellij(pi, ctx, {
 				args: [
@@ -108,9 +135,10 @@ export default function zellijExtension(pi: ExtensionAPI) {
 					"review",
 					"--",
 					"pi",
-					REVIEW_TEMPLATE,
+					reviewPrompt,
 				],
-				successMessage: (id) => `Opened review pane${id ? ` ${id}` : ""}`,
+				successMessage: (id) =>
+					`Opened review pane${id ? ` ${id}` : ""}${args.trim().length > 0 ? ` for: ${args.trim()}` : ""}`,
 			});
 		},
 	});
