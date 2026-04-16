@@ -4,7 +4,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 const EXT_DIR = path.dirname(fs.realpathSync(__filename));
-const SOUND_PATH = path.resolve(EXT_DIR, "../../../../fo-sound.mp3");
+const SOUND_PATH = path.resolve(EXT_DIR, "../../../../sounds/done-sound.mp3");
+const START_SOUND_PATH = path.resolve(EXT_DIR, "../../../../sounds/im-going-to-help-you.m4a");
 const MIN_INTERVAL_MS = 1200;
 
 let lastPlayAt = 0;
@@ -18,13 +19,13 @@ function canPlayNow(): boolean {
 	return Date.now() - lastPlayAt >= MIN_INTERVAL_MS;
 }
 
-function playSound(): void {
+function playSound(path): void {
 	if (!isMac()) return;
-	if (!fs.existsSync(SOUND_PATH)) return;
+	if (!fs.existsSync(path)) return;
 	if (!canPlayNow()) return;
 
 	lastPlayAt = Date.now();
-	execFile("afplay", [SOUND_PATH], () => {
+	execFile("afplay", [path], () => {
 		// Ignore playback errors.
 	});
 }
@@ -37,11 +38,9 @@ export default function (pi: ExtensionAPI) {
 		ctx.ui.notify(`fo-sound extension: missing sound file at ${SOUND_PATH}`, "warning");
 	});
 
-	pi.on("turn_end", async () => {
-		playSound();
-	});
+	playSound(START_SOUND_PATH);
 
 	pi.on("agent_end", async () => {
-		playSound();
+		playSound(SOUND_PATH);
 	});
 }

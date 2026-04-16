@@ -7,6 +7,10 @@ type ZellijTarget = {
 
 const REVIEW_TEMPLATE = "/review";
 
+function getDefaultShell(): string {
+	return process.env.SHELL || "sh";
+}
+
 function buildReviewPrompt(args: string): string {
 	const trimmed = args.trim();
 	return trimmed.length > 0 ? `${REVIEW_TEMPLATE} ${trimmed}` : REVIEW_TEMPLATE;
@@ -54,7 +58,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 		description: "Open a new Zellij tab in the current directory",
 		handler: async (_args, ctx) => {
 			await execZellij(pi, ctx, {
-				args: ["action", "new-tab", "--cwd", ctx.cwd],
+				args: ["action", "new-tab", "--cwd", ctx.cwd, "--", getDefaultShell()],
 				successMessage: (id) => `Opened new tab${id ? ` ${id}` : ""}`,
 			});
 		},

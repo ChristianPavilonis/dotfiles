@@ -6,7 +6,8 @@
   "packages": [
     "npm:@ifi/pi-plan",
     "npm:pi-web-access",
-    "npm:pi-subagents"
+    "npm:pi-subagents",
+    "npm:@codexstar/pi-listen"
   ],
   "defaultThinkingLevel": "medium",
   "editorPaddingX": 1,
