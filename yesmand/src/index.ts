@@ -86,8 +86,20 @@ function getJitterMs(plugin: AutomationPlugin): number {
   return Math.floor(Math.random() * (maxJitterMs + 1));
 }
 
+function getIntervalMs(plugin: AutomationPlugin): number {
+  if (Number.isFinite(plugin.schedule.everySeconds) && (plugin.schedule.everySeconds as number) >= 1) {
+    return Number(plugin.schedule.everySeconds) * 1000;
+  }
+
+  if (Number.isFinite(plugin.schedule.everyMinutes) && (plugin.schedule.everyMinutes as number) >= 1) {
+    return Number(plugin.schedule.everyMinutes) * 60 * 1000;
+  }
+
+  throw new Error(`Plugin '${plugin.id}' has invalid schedule; expected everySeconds or everyMinutes`);
+}
+
 function computeNextRunAtMs(plugin: AutomationPlugin, nowMs: number): number {
-  const intervalMs = plugin.schedule.everyMinutes * 60 * 1000;
+  const intervalMs = getIntervalMs(plugin);
   return nowMs + intervalMs + getJitterMs(plugin);
 }
 
@@ -156,6 +168,7 @@ async function runDaemon(
     schedules: states.map((state) => ({
       plugin: state.plugin.id,
       everyMinutes: state.plugin.schedule.everyMinutes,
+      everySeconds: state.plugin.schedule.everySeconds,
       runOnStartup: state.plugin.schedule.runOnStartup ?? true,
       jitterSeconds: state.plugin.schedule.jitterSeconds ?? 0,
       firstRunAt: toIso(state.nextRunAtMs),
@@ -256,6 +269,7 @@ async function run(): Promise<void> {
             logger,
             store,
             openCode,
+            plugins,
             stalledAfterMinutes: appConfig.monitor.stalledAfterMinutes,
             timeoutAfterMinutes: appConfig.monitor.timeoutAfterMinutes,
           }),

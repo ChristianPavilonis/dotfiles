@@ -2,6 +2,7 @@ import type {
   AutomationPlugin,
   DispatchDecision,
   Logger,
+  PluginStateStore,
   PluginContext,
   WorkItem,
 } from "./types";
@@ -31,6 +32,39 @@ export class AutomationEngine {
     this.dryRun = options.dryRun;
   }
 
+  private createPluginState(pluginId: string): PluginStateStore {
+    return {
+      get: (key: string) => this.store.getPluginState(pluginId, key),
+      set: (key: string, value: string) => {
+        this.store.setPluginState(pluginId, key, value);
+      },
+      delete: (key: string) => {
+        this.store.deletePluginState(pluginId, key);
+      },
+      getJson: <T>(key: string): T | undefined => {
+        const raw = this.store.getPluginState(pluginId, key);
+        if (!raw) return undefined;
+        try {
+          return JSON.parse(raw) as T;
+        } catch {
+          return undefined;
+        }
+      },
+      setJson: (key: string, value: unknown) => {
+        this.store.setPluginState(pluginId, key, JSON.stringify(value));
+      },
+    };
+  }
+
+  private createPluginContext(pluginId: string, now = new Date()): PluginContext {
+    return {
+      dryRun: this.dryRun,
+      logger: this.logger,
+      now,
+      state: this.createPluginState(pluginId),
+    };
+  }
+
   private async isBackendAvailable(): Promise<boolean> {
     if (this.dryRun) return true;
 
@@ -39,12 +73,6 @@ export class AutomationEngine {
   }
 
   async runCycle(): Promise<void> {
-    const ctx: PluginContext = {
-      dryRun: this.dryRun,
-      logger: this.logger,
-      now: new Date(),
-    };
-
     this.logger.info("Starting poll cycle", {
       pluginCount: this.plugins.length,
       dryRun: this.dryRun,
@@ -56,6 +84,7 @@ export class AutomationEngine {
     }
 
     for (const plugin of this.plugins) {
+      const ctx = this.createPluginContext(plugin.id);
       await this.runPluginCycle(plugin, ctx);
     }
 
@@ -71,11 +100,7 @@ export class AutomationEngine {
     }
 
     const runCtx: PluginContext =
-      ctx ?? {
-        dryRun: this.dryRun,
-        logger: this.logger,
-        now: new Date(),
-      };
+      ctx ?? this.createPluginContext(plugin.id);
 
     try {
       await this.runPlugin(plugin, runCtx);
@@ -219,6 +244,7 @@ export class AutomationEngine {
         dedupeKey: decision.dedupeKey,
         sessionId,
         model: this.openCode.modelId,
+        metadata: decision.metadata,
       });
 
       this.store.updateDispatchAttemptStatus({

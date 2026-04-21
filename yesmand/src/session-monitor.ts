@@ -1,11 +1,19 @@
 import { OpenCodeClient } from "./opencode-client";
 import { DispatchStore, type ActiveDispatchAttempt } from "./store";
-import type { DispatchAttemptStatus, Logger } from "./types";
+import type {
+  AutomationPlugin,
+  DispatchAttemptStatus,
+  DispatchTerminalEvent,
+  Logger,
+  PluginContext,
+  PluginStateStore,
+} from "./types";
 
 interface SessionMonitorOptions {
   logger: Logger;
   store: DispatchStore;
   openCode: OpenCodeClient;
+  plugins: AutomationPlugin[];
   stalledAfterMinutes: number;
   timeoutAfterMinutes: number;
 }
@@ -34,10 +42,33 @@ function isTerminalStatus(status: DispatchAttemptStatus): boolean {
   return status === "completed" || status === "failed" || status === "stalled" || status === "timed_out";
 }
 
+function extractLatestAssistantText(
+  messages: Awaited<ReturnType<OpenCodeClient["getSessionMessages"]>>
+): string | null {
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const message = messages[i];
+    if (message.info?.role && message.info.role !== "assistant") {
+      continue;
+    }
+
+    const text = (message.parts ?? [])
+      .filter((part) => part.type === "text" && typeof part.text === "string")
+      .map((part) => (part.text ?? "").trim())
+      .filter((part) => part.length > 0)
+      .join("\n\n")
+      .trim();
+
+    if (text) return text;
+  }
+
+  return null;
+}
+
 export class SessionMonitor {
   private readonly logger: Logger;
   private readonly store: DispatchStore;
   private readonly openCode: OpenCodeClient;
+  private readonly plugins: Map<string, AutomationPlugin>;
   private readonly stalledAfterMs: number;
   private readonly timeoutAfterMs: number;
 
@@ -45,8 +76,42 @@ export class SessionMonitor {
     this.logger = options.logger;
     this.store = options.store;
     this.openCode = options.openCode;
+    this.plugins = new Map(options.plugins.map((plugin) => [plugin.id, plugin]));
     this.stalledAfterMs = options.stalledAfterMinutes * 60 * 1000;
     this.timeoutAfterMs = options.timeoutAfterMinutes * 60 * 1000;
+  }
+
+  private createPluginState(pluginId: string): PluginStateStore {
+    return {
+      get: (key: string) => this.store.getPluginState(pluginId, key),
+      set: (key: string, value: string) => {
+        this.store.setPluginState(pluginId, key, value);
+      },
+      delete: (key: string) => {
+        this.store.deletePluginState(pluginId, key);
+      },
+      getJson: <T>(key: string): T | undefined => {
+        const raw = this.store.getPluginState(pluginId, key);
+        if (!raw) return undefined;
+        try {
+          return JSON.parse(raw) as T;
+        } catch {
+          return undefined;
+        }
+      },
+      setJson: (key: string, value: unknown) => {
+        this.store.setPluginState(pluginId, key, JSON.stringify(value));
+      },
+    };
+  }
+
+  private createPluginContext(pluginId: string): PluginContext {
+    return {
+      dryRun: false,
+      logger: this.logger,
+      now: new Date(),
+      state: this.createPluginState(pluginId),
+    };
   }
 
   async tick(): Promise<void> {
@@ -68,7 +133,7 @@ export class SessionMonitor {
     const ageMs = Math.max(0, nowMs - startedAtMs);
 
     if (ageMs >= this.timeoutAfterMs) {
-      this.applyStatusIfChanged(attempt, {
+      const timeoutAssessment: StatusAssessment = {
         status: "timed_out",
         reason: `Attempt exceeded timeout window (${Math.round(this.timeoutAfterMs / 60000)}m)`,
         endAttempt: true,
@@ -76,13 +141,18 @@ export class SessionMonitor {
         lastTool: attempt.lastTool,
         lastToolStatus: attempt.lastToolStatus,
         sessionId: attempt.sessionId,
-      });
+      };
+
+      const changed = this.applyStatusIfChanged(attempt, timeoutAssessment);
+      if (changed && isTerminalStatus(timeoutAssessment.status)) {
+        await this.notifyPluginTerminalStatus(attempt, timeoutAssessment, null);
+      }
       return;
     }
 
     if (!attempt.sessionId) {
       if (ageMs >= this.stalledAfterMs) {
-        this.applyStatusIfChanged(attempt, {
+        const missingSessionAssessment: StatusAssessment = {
           status: "failed",
           reason: "Dispatch attempt missing session ID after stall threshold",
           endAttempt: true,
@@ -90,7 +160,12 @@ export class SessionMonitor {
           lastTool: attempt.lastTool,
           lastToolStatus: attempt.lastToolStatus,
           sessionId: null,
-        });
+        };
+
+        const changed = this.applyStatusIfChanged(attempt, missingSessionAssessment);
+        if (changed && isTerminalStatus(missingSessionAssessment.status)) {
+          await this.notifyPluginTerminalStatus(attempt, missingSessionAssessment, null);
+        }
       }
       return;
     }
@@ -100,6 +175,8 @@ export class SessionMonitor {
         this.openCode.getSession(attempt.sessionId),
         this.openCode.getSessionMessages(attempt.sessionId),
       ]);
+
+      const responseText = extractLatestAssistantText(messages);
 
       const lastMessage = messages.at(-1);
       const info = lastMessage?.info;
@@ -145,7 +222,10 @@ export class SessionMonitor {
         assessment.endAttempt = true;
       }
 
-      this.applyStatusIfChanged(attempt, assessment);
+      const changed = this.applyStatusIfChanged(attempt, assessment);
+      if (changed && isTerminalStatus(assessment.status)) {
+        await this.notifyPluginTerminalStatus(attempt, assessment, responseText);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.warn("Session monitor API probe failed", {
@@ -156,7 +236,7 @@ export class SessionMonitor {
       });
 
       if (ageMs >= this.stalledAfterMs) {
-        this.applyStatusIfChanged(attempt, {
+        const fallbackAssessment: StatusAssessment = {
           status: "failed",
           reason: `Session API probe failed after stall threshold: ${message}`,
           endAttempt: true,
@@ -164,12 +244,53 @@ export class SessionMonitor {
           lastTool: attempt.lastTool,
           lastToolStatus: attempt.lastToolStatus,
           sessionId: attempt.sessionId,
-        });
+        };
+
+        const changed = this.applyStatusIfChanged(attempt, fallbackAssessment);
+        if (changed && isTerminalStatus(fallbackAssessment.status)) {
+          await this.notifyPluginTerminalStatus(attempt, fallbackAssessment, null);
+        }
       }
     }
   }
 
-  private applyStatusIfChanged(attempt: ActiveDispatchAttempt, next: StatusAssessment): void {
+  private async notifyPluginTerminalStatus(
+    attempt: ActiveDispatchAttempt,
+    assessment: StatusAssessment,
+    responseText: string | null
+  ): Promise<void> {
+    const plugin = this.plugins.get(attempt.pluginId);
+    if (!plugin?.onDispatchTerminal) return;
+
+    const dispatch = this.store.getDispatchByDedupeKey(attempt.dedupeKey);
+
+    const event: DispatchTerminalEvent = {
+      pluginId: attempt.pluginId,
+      itemId: attempt.itemId,
+      phase: attempt.phase,
+      dedupeKey: attempt.dedupeKey,
+      attempt: attempt.attempt,
+      status: assessment.status,
+      reason: assessment.reason,
+      sessionId: assessment.sessionId,
+      metadata: dispatch?.metadata,
+      responseText,
+    };
+
+    try {
+      await plugin.onDispatchTerminal(event, this.createPluginContext(attempt.pluginId));
+    } catch (error) {
+      this.logger.error("Plugin terminal callback failed", {
+        plugin: attempt.pluginId,
+        dedupeKey: attempt.dedupeKey,
+        attempt: attempt.attempt,
+        status: assessment.status,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  private applyStatusIfChanged(attempt: ActiveDispatchAttempt, next: StatusAssessment): boolean {
     const changed =
       attempt.status !== next.status ||
       attempt.reason !== next.reason ||
@@ -178,7 +299,7 @@ export class SessionMonitor {
       attempt.lastToolStatus !== next.lastToolStatus ||
       attempt.sessionId !== next.sessionId;
 
-    if (!changed) return;
+    if (!changed) return false;
 
     this.store.updateDispatchAttemptStatus({
       dedupeKey: attempt.dedupeKey,
@@ -209,14 +330,15 @@ export class SessionMonitor {
 
     if (next.status === "completed") {
       this.logger.info("Dispatch attempt completed", detail);
-      return;
+      return true;
     }
 
     if (next.status === "failed" || next.status === "stalled" || next.status === "timed_out") {
       this.logger.warn("Dispatch attempt reached terminal non-success state", detail);
-      return;
+      return true;
     }
 
     this.logger.info("Dispatch attempt status updated", detail);
+    return true;
   }
 }

@@ -41,7 +41,7 @@ This keeps automation commands/settings out of your personal
 
 Scheduling is plugin-owned.
 
-- Every plugin provides `schedule.everyMinutes`.
+- Every plugin provides either `schedule.everySeconds` or `schedule.everyMinutes`.
 - Plugins can opt out of immediate startup run with `runOnStartup: false`.
 - Plugins can add random jitter with `jitterSeconds`.
 - Scheduler runs plugins in independent single-flight mode (no overlapping runs
@@ -55,6 +55,7 @@ Plugin config now lives in plugin source:
 
 - `yesmand/src/plugins/github/index.ts`
 - `yesmand/src/plugins/github-pr-reviews/index.ts`
+- `yesmand/src/plugins/telegram/index.ts`
 
 ## Core behavior (provider-agnostic)
 
@@ -67,6 +68,9 @@ For each plugin run, the core engine does this:
    - `skip`
    - `done`
 3. For `dispatch`, send prompt to OpenCode and persist a dedupe record.
+
+Plugins also have plugin-scoped persistent key/value state through `ctx.state`
+backed by SQLite (`plugin_state` table).
 
 Deduping is stored in SQLite (`yesmand/data/yesmand.db`) in table `dispatches`
 with a unique `dedupe_key`.
@@ -81,6 +85,10 @@ Dispatch execution lifecycle is also tracked in `dispatch_attempts`, including:
 yesmand polls OpenCode API session/message endpoints on a fixed interval and
 updates attempt status based on latest message finish state and tool-part
 progress.
+
+When an attempt transitions into a terminal state (`completed`, `failed`,
+`stalled`, `timed_out`), yesmand can call plugin `onDispatchTerminal(...)`
+hooks with dispatch metadata and final assistant text (when available).
 
 ## GitHub plugin flow
 
@@ -142,6 +150,19 @@ Plugin file: `yesmand/src/plugins/github-pr-reviews/index.ts`
 - Dedupe key includes PR identity + source `updatedAt`, so subsequent runs do
   not re-review unchanged PRs.
 
+## Telegram demo plugin flow
+
+Plugin file: `yesmand/src/plugins/telegram/index.ts`
+
+- Polls Telegram Bot API `getUpdates` using plugin-state cursor
+  (`telegram:last_update_id`).
+- Handles commands directly:
+  - `/start`, `/help`: usage text
+  - `/reset`: clears per-chat continuation state
+- Dispatches one OpenCode session request for each non-command text message.
+- Uses terminal callback to send final response back to Telegram chat.
+- Supports fast cadence with `YESMAND_TELEGRAM_EVERY_SECONDS`.
+
 ## OpenCode dispatch details
 
 For each dispatch decision, yesmand:
@@ -160,6 +181,7 @@ For each dispatch decision, yesmand:
 - Plugin config/code:
   - `yesmand/src/plugins/github/index.ts`
   - `yesmand/src/plugins/github-pr-reviews/index.ts`
+  - `yesmand/src/plugins/telegram/index.ts`
 - Automation OpenCode config: `yesmand/ops/opencode-config.json`
 - Monitor config keys (in `config.json`):
   - `monitor.enabled`
