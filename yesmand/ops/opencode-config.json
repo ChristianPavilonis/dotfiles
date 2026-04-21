@@ -4,6 +4,8 @@
   "autoupdate": true,
   "layout": "stretch",
   "model": "openai/gpt-5.3-codex",
+  "plugin": [
+  ],
   "permission": {
     "external_directory": {
       "~/worktrees/**": "allow",

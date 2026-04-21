@@ -5,7 +5,7 @@ set -euo pipefail
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OS_NAME="$(uname -s)"
 
-COMMON_PACKAGES=(git kitty nu nvim opencode starship zellij)
+COMMON_PACKAGES=(git kitty nu nvim opencode pi starship zellij)
 MACOS_PACKAGES=(aerospace)
 
 if ! command -v stow >/dev/null 2>&1; then

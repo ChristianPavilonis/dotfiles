@@ -145,6 +145,52 @@ def killop [port] {
   lsofi $port | each { |entry| kill ($entry.PID | into int) }
 }
 
+def fkill [--force(-f)] {
+  if (which fzf | is-empty) {
+    print "fzf is not installed"
+    return
+  }
+
+  let pick = (
+    do {
+      ^ps -Ao pid=,state=,%cpu=,%mem=,etime=,comm=
+      | fzf --multi --height 80% --layout=reverse --border --header 'Type to filter by process name. TAB mark/unmark, ENTER kill selected' --bind 'tab:toggle+down,shift-tab:toggle+up' --preview 'ps -p {1} -o command=' --preview-window 'down,3,wrap'
+    } | complete
+  )
+
+  if $pick.exit_code != 0 {
+    print "No processes selected"
+    return
+  }
+
+  let selected = ($pick.stdout | str trim)
+  if ($selected | is-empty) {
+    print "No processes selected"
+    return
+  }
+
+  let pids = (
+    $selected
+    | lines
+    | parse --regex '^\s*(?<pid>\d+)\s+'
+    | get pid
+    | each { |pid| $pid | into int }
+  )
+
+  if (($pids | length) == 0) {
+    print "No valid PIDs found"
+    return
+  }
+
+  if $force {
+    ^kill -KILL ...$pids
+    print $"Sent SIGKILL to (($pids | length)) processes: (($pids | str join ', '))"
+  } else {
+    ^kill -TERM ...$pids
+    print $"Sent SIGTERM to (($pids | length)) processes: (($pids | str join ', '))"
+  }
+}
+
 def --env y [...args] {
   let tmp = (mktemp)
   yazi ...$args --cwd-file $tmp

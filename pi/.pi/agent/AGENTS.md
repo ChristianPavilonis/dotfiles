@@ -1,7 +1,5 @@
 
-## General rules
 
-- Don't perform destructive git operations unless otherwise instructed (ie. commit, push, pull, etc.)
 
 ## Obsidian Vault
 

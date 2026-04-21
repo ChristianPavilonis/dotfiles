@@ -1,13 +1,25 @@
 return {
   -- current theme
   {
-    'rebelot/kanagawa.nvim',
+    "shawilly/fallout.nvim",
+    lazy = false,
     priority = 1000,
-    config = function() 
-      vim.cmd.colorscheme 'kanagawa'
-      vim.api.nvim_set_hl(0, 'NvimTreeIndentMarker', {fg = "#5D5C8A"})
-    end
+    opts = {},
+    config = function(_, opts)
+      require("fallout").setup(opts)
+      vim.cmd.colorscheme("fallout")
+    end,
   },
+
+  -- {
+  --   'rebelot/kanagawa.nvim',
+  --   priority = 1000,
+  --   config = function()
+  --     vim.cmd.colorscheme 'kanagawa'
+  --     vim.api.nvim_set_hl(0, 'NvimTreeIndentMarker', {fg = "#5D5C8A"})
+  --   end
+  -- },
+
 
   {
     -- Set lualine as statusline

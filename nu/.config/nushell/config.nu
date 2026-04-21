@@ -4,164 +4,164 @@
 # https://www.nushell.sh/book/coloring_and_theming.html
 let dark_theme = {
     # color for nushell primitives
-    separator: white
+    separator: green
     leading_trailing_space_bg: { attr: n } # no fg, no bg, attr none effectively turns this off
     header: green_bold
-    empty: blue
+    empty: green
     # Closures can be used to choose colors for specific values.
     # The value (in this case, a bool) is piped into the closure.
-    bool: { if $in { 'light_cyan' } else { 'light_gray' } }
-    int: white
+    bool: { if $in { 'green_bold' } else { 'green' } }
+    int: green
     filesize: {|e|
       if $e == 0b {
-	'white'
+	'green'
       } else if $e < 1mb {
-	'cyan'
-      } else { 'blue' }
+	'green'
+      } else { 'green' }
     }
-    duration: white
+    duration: green
     date: { (date now) - $in |
       if $in < 1hr {
-	'#e61919'
+	'#9cff57'
       } else if $in < 6hr {
-	'#e68019'
+	'#73c95a'
       } else if $in < 1day {
-	'#e5e619'
+	'#73c95a'
       } else if $in < 3day {
-	'#80e619'
+	'#73c95a'
       } else if $in < 1wk {
-	'#19e619'
+	'#9cff57'
       } else if $in < 6wk {
-	'#19e5e6'
+	'#73c95a'
       } else if $in < 52wk {
-	'#197fe6'
-      } else { 'light_gray' }
+	'#73c95a'
+      } else { 'green' }
     }
-    range: white
-    float: white
-    string: white
-    nothing: white
-    binary: white
-    cellpath: white
+    range: green
+    float: green
+    string: green
+    nothing: green
+    binary: green
+    cellpath: green
     row_index: green_bold
-    record: white
-    list: white
-    block: white
-    hints: dark_gray
+    record: green
+    list: green
+    block: green
+    hints: green
 
-    shape_and: purple_bold
-    shape_binary: purple_bold
-    shape_block: blue_bold
-    shape_bool: light_cyan
+    shape_and: green_bold
+    shape_binary: green_bold
+    shape_block: green_bold
+    shape_bool: green_bold
     shape_custom: green
-    shape_datetime: cyan_bold
-    shape_directory: cyan
-    shape_external: cyan
+    shape_datetime: green_bold
+    shape_directory: green
+    shape_external: green
     shape_externalarg: green_bold
-    shape_filepath: cyan
-    shape_flag: blue_bold
-    shape_float: purple_bold
+    shape_filepath: green
+    shape_flag: green_bold
+    shape_float: green_bold
     # shapes are used to change the cli syntax highlighting
-    shape_garbage: { fg: "#FFFFFF" bg: "#FF0000" attr: b}
-    shape_globpattern: cyan_bold
-    shape_int: purple_bold
-    shape_internalcall: cyan_bold
-    shape_list: cyan_bold
-    shape_literal: blue
+    shape_garbage: { fg: "#9cff57" bg: "#4a7a3f" attr: b}
+    shape_globpattern: green_bold
+    shape_int: green_bold
+    shape_internalcall: green_bold
+    shape_list: green_bold
+    shape_literal: green
     shape_matching_brackets: { attr: u }
-    shape_nothing: light_cyan
-    shape_operator: yellow
-    shape_or: purple_bold
-    shape_pipe: purple_bold
-    shape_range: yellow_bold
-    shape_record: cyan_bold
-    shape_redirection: purple_bold
+    shape_nothing: green_bold
+    shape_operator: green
+    shape_or: green_bold
+    shape_pipe: green_bold
+    shape_range: green_bold
+    shape_record: green_bold
+    shape_redirection: green_bold
     shape_signature: green_bold
     shape_string: green
-    shape_string_interpolation: cyan_bold
-    shape_table: blue_bold
-    shape_variable: purple
+    shape_string_interpolation: green_bold
+    shape_table: green_bold
+    shape_variable: green
 }
 
 let light_theme = {
     # color for nushell primitives
-    separator: dark_gray
+    separator: green
     leading_trailing_space_bg: { attr: n } # no fg, no bg, attr none effectively turns this off
     header: green_bold
-    empty: blue
+    empty: green
     # Closures can be used to choose colors for specific values.
     # The value (in this case, a bool) is piped into the closure.
-    bool: { if $in { 'dark_cyan' } else { 'dark_gray' } }
-    int: dark_gray
+    bool: { if $in { 'green_bold' } else { 'green' } }
+    int: green
     filesize: {|e|
       if $e == 0b {
-	'dark_gray'
+	'green'
       } else if $e < 1mb {
-	'cyan_bold'
-      } else { 'blue_bold' }
+	'green_bold'
+      } else { 'green_bold' }
     }
-    duration: dark_gray
+    duration: green
   date: { (date now) - $in |
     if $in < 1hr {
-      'red3b'
+      'green_bold'
     } else if $in < 6hr {
-      'orange3'
+      'green'
     } else if $in < 1day {
-      'yellow3b'
+      'green_bold'
     } else if $in < 3day {
-      'chartreuse2b'
+      'green_bold'
     } else if $in < 1wk {
-      'green3b'
+      'green_bold'
     } else if $in < 6wk {
-      'darkturquoise'
+      'green'
     } else if $in < 52wk {
-      'deepskyblue3b'
-    } else { 'dark_gray' }
+      'green_bold'
+    } else { 'green' }
   }
-    range: dark_gray
-    float: dark_gray
-    string: dark_gray
-    nothing: dark_gray
-    binary: dark_gray
-    cellpath: dark_gray
+    range: green
+    float: green
+    string: green
+    nothing: green
+    binary: green
+    cellpath: green
     row_index: green_bold
-    record: white
-    list: white
-    block: white
-    hints: dark_gray
+    record: green
+    list: green
+    block: green
+    hints: green
 
-    shape_and: purple_bold
-    shape_binary: purple_bold
-    shape_block: blue_bold
-    shape_bool: light_cyan
+    shape_and: green_bold
+    shape_binary: green_bold
+    shape_block: green_bold
+    shape_bool: green_bold
     shape_custom: green
-    shape_datetime: cyan_bold
-    shape_directory: cyan
-    shape_external: cyan
+    shape_datetime: green_bold
+    shape_directory: green
+    shape_external: green
     shape_externalarg: green_bold
-    shape_filepath: cyan
-    shape_flag: blue_bold
-    shape_float: purple_bold
+    shape_filepath: green
+    shape_flag: green_bold
+    shape_float: green_bold
     # shapes are used to change the cli syntax highlighting
-    shape_garbage: { fg: "#FFFFFF" bg: "#FF0000" attr: b}
-    shape_globpattern: cyan_bold
-    shape_int: purple_bold
-    shape_internalcall: cyan_bold
-    shape_list: cyan_bold
-    shape_literal: blue
+    shape_garbage: { fg: "#9cff57" bg: "#4a7a3f" attr: b}
+    shape_globpattern: green_bold
+    shape_int: green_bold
+    shape_internalcall: green_bold
+    shape_list: green_bold
+    shape_literal: green
     shape_matching_brackets: { attr: u }
-    shape_nothing: light_cyan
-    shape_operator: yellow
-    shape_or: purple_bold
-    shape_pipe: purple_bold
-    shape_range: yellow_bold
-    shape_record: cyan_bold
-    shape_redirection: purple_bold
+    shape_nothing: green_bold
+    shape_operator: green
+    shape_or: green_bold
+    shape_pipe: green_bold
+    shape_range: green_bold
+    shape_record: green_bold
+    shape_redirection: green_bold
     shape_signature: green_bold
     shape_string: green
-    shape_string_interpolation: cyan_bold
-    shape_table: blue_bold
-    shape_variable: purple
+    shape_string_interpolation: green_bold
+    shape_table: green_bold
+    shape_variable: green
 }
 
 # External completer example
@@ -173,7 +173,7 @@ let light_theme = {
 # The default config record. This is where much of your global configuration is setup.
 $env.config = {
   ls: {
-    use_ls_colors: true # use the LS_COLORS environment variable to colorize output
+    use_ls_colors: false # use the LS_COLORS environment variable to colorize output
     clickable_links: true # enable or disable clickable links. Your terminal has to support links.
   }
   rm: {
@@ -193,29 +193,29 @@ $env.config = {
     help_banner: true
     exit_esc: true
 
-    command_bar_text: '#C4C9C6'
-    # command_bar: {fg: '#C4C9C6' bg: '#223311' }
+    command_bar_text: '#9cff57'
+    # command_bar: {fg: '#9cff57' bg: '#223311' }
 
-    status_bar_background: {fg: '#1D1F21' bg: '#C4C9C6' }
-    # status_bar_text: {fg: '#C4C9C6' bg: '#223311' }
+    status_bar_background: {fg: '#0b120c' bg: '#9cff57' }
+    # status_bar_text: {fg: '#9cff57' bg: '#223311' }
 
-    highlight: {bg: 'yellow' fg: 'black' }
+    highlight: {bg: '#4a7a3f' fg: '#9cff57' }
 
     status: {
-      # warn: {bg: 'yellow', fg: 'blue'}
-      # error: {bg: 'yellow', fg: 'blue'}
-      # info: {bg: 'yellow', fg: 'blue'}
+      # warn: {bg: 'green', fg: 'green'}
+      # error: {bg: 'green', fg: 'green'}
+      # info: {bg: 'green', fg: 'green'}
     }
 
     try: {
       # border_color: 'red'
-      # highlighted_color: 'blue'
+      # highlighted_color: 'green'
 
       # reactive: false
     }
 
     table: {
-      split_line: '#404040'
+      split_line: '#4a7a3f'
 
       cursor: true
 
@@ -227,9 +227,9 @@ $env.config = {
       show_head: true
       show_index: true
 
-      # selected_cell: {fg: 'white', bg: '#777777'}
-      # selected_row: {fg: 'yellow', bg: '#C1C2A3'}
-      # selected_column: blue
+      # selected_cell: {fg: 'green', bg: '#4a7a3f'}
+      # selected_row: {fg: 'green', bg: '#4a7a3f'}
+      # selected_column: green
 
       # padding_column_right: 2
       # padding_column_left: 2
@@ -239,9 +239,9 @@ $env.config = {
     }
 
     config: {
-      cursor_color: {bg: 'yellow' fg: 'black' }
+      cursor_color: {bg: '#4a7a3f' fg: '#9cff57' }
 
-      # border_color: white
+      # border_color: green
       # list_color: green
     }
   }
@@ -306,7 +306,7 @@ $env.config = {
 	style: {
 	    text: green
 	    selected_text: green_reverse
-	    description_text: yellow
+	    description_text: green_bold
 	}
       }
       {
@@ -320,7 +320,7 @@ $env.config = {
 	style: {
 	    text: green
 	    selected_text: green_reverse
-	    description_text: yellow
+	    description_text: green_bold
 	}
       }
       {
@@ -338,7 +338,7 @@ $env.config = {
 	style: {
 	    text: green
 	    selected_text: green_reverse
-	    description_text: yellow
+	    description_text: green_bold
 	}
       }
       # Example of extra menus created using a nushell source
@@ -357,7 +357,7 @@ $env.config = {
 	style: {
 	    text: green
 	    selected_text: green_reverse
-	    description_text: yellow
+	    description_text: green_bold
 	}
 	source: { |buffer, position|
 	    $nu.scope.commands
@@ -376,7 +376,7 @@ $env.config = {
 	style: {
 	    text: green
 	    selected_text: green_reverse
-	    description_text: yellow
+	    description_text: green_bold
 	}
 	source: { |buffer, position|
 	    $nu.scope.vars
@@ -400,7 +400,7 @@ $env.config = {
 	style: {
 	    text: green
 	    selected_text: green_reverse
-	    description_text: yellow
+	    description_text: green_bold
 	}
 	source: { |buffer, position|
 	    $nu.scope.commands

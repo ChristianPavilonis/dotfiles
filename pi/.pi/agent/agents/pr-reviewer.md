@@ -1,14 +1,7 @@
 ---
 name: pr-reviewer
 description: Reviews pull requests by delegating to specialized sub-agents for code quality, refactoring opportunities, and documentation accuracy. Presents unified findings and offers to create a fix plan or leave a GitHub review.
-mode: subagent
-permission:
-  bash:
-    "*": deny
-    "gh pr*": allow
-    "gh api*": allow
-    "gh repo*": allow
-    "git *": allow
+tools: read, grep, find, ls, bash
 ---
 
 # PR Reviewer

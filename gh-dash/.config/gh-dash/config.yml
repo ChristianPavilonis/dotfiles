@@ -88,7 +88,7 @@ keybindings:
           command: zellij run -- nu -l -e "gwpr {{.PrNumber}}; ocrc"
         - key: "R"
           name: "Worktree + review PR"
-          command: zellij run -- nu -l -e "gwpr {{.PrNumber}}; octspr"
+          command: zellij run -- nu -l -e "gwpr {{.PrNumber}}; ocpr"
 repoPaths: {}
 theme:
     ui:

@@ -1,0 +1,82 @@
+{
+  "$schema": "https://raw.githubusercontent.com/badlogic/pi-mono/main/packages/coding-agent/src/modes/interactive/theme/theme-schema.json",
+  "name": "fallout-terminal",
+  "vars": {
+    "bg": "#0b120c",
+    "panel": "#101a12",
+    "green": "#9cff57",
+    "greenSoft": "#73c95a",
+    "greenDim": "#4a7a3f",
+    "greenPale": "#c7ffb0",
+    "amber": "#d6c96b",
+    "red": "#ff6b6b",
+    "blue": "#7fd7ff",
+    "purple": "#c48dff",
+    "cyan": "#9cff57",
+    "gray": "#4f6651"
+  },
+  "colors": {
+    "accent": "green",
+    "border": "greenDim",
+    "borderAccent": "green",
+    "borderMuted": "gray",
+    "success": "green",
+    "error": "red",
+    "warning": "amber",
+    "muted": "greenDim",
+    "dim": "gray",
+    "text": "",
+    "thinkingText": "greenSoft",
+
+    "selectedBg": "#162018",
+    "userMessageBg": "#0f1710",
+    "userMessageText": "greenPale",
+    "customMessageBg": "#0f1710",
+    "customMessageText": "greenPale",
+    "customMessageLabel": "green",
+    "toolPendingBg": "#111b13",
+    "toolSuccessBg": "#102014",
+    "toolErrorBg": "#201110",
+    "toolTitle": "green",
+    "toolOutput": "greenPale",
+
+    "mdHeading": "greenPale",
+    "mdLink": "cyan",
+    "mdLinkUrl": "greenDim",
+    "mdCode": "cyan",
+    "mdCodeBlock": "greenPale",
+    "mdCodeBlockBorder": "greenDim",
+    "mdQuote": "greenSoft",
+    "mdQuoteBorder": "greenDim",
+    "mdHr": "greenDim",
+    "mdListBullet": "green",
+
+    "toolDiffAdded": "#5fff87",
+    "toolDiffRemoved": "#ff8787",
+    "toolDiffContext": "greenDim",
+
+    "syntaxComment": "greenDim",
+    "syntaxKeyword": "green",
+    "syntaxFunction": "blue",
+    "syntaxVariable": "greenPale",
+    "syntaxString": "#a7ff7d",
+    "syntaxNumber": "amber",
+    "syntaxType": "cyan",
+    "syntaxOperator": "green",
+    "syntaxPunctuation": "greenSoft",
+
+    "thinkingOff": "greenDim",
+    "thinkingMinimal": "greenSoft",
+    "thinkingLow": "green",
+    "thinkingMedium": "cyan",
+    "thinkingHigh": "purple",
+    "thinkingXhigh": "red",
+
+    "bashMode": "amber"
+  },
+  "export": {
+    "pageBg": "#081009",
+    "cardBg": "#101a12",
+    "infoBg": "#1a241c"
+  }
+}

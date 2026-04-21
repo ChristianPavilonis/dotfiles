@@ -113,6 +113,7 @@ cd ~/dotfiles
 - `nu` -> `~/.config/nushell`
 - `nvim` -> `~/.config/nvim`
 - `opencode` -> `~/.config/opencode/*`
+- `pi` -> `~/.pi/*`
 - `starship` -> `~/.config/starship.toml`
 - `zellij` -> `~/.config/zellij`
 
@@ -134,3 +135,18 @@ stow -D -t ~ <package>
 1. Create a package folder in this repo.
 2. Mirror the target path under that package (for example `foo/.config/foo/config.toml`).
 3. Run `stow -R -t ~ foo`.
+
+## Pi customizations
+
+The `pi/` package is linked into `~/.pi` and is laid out for Pi's global config:
+
+- `pi/.pi/agent/settings.json` — global Pi settings
+- `pi/.pi/agent/keybindings.json` — custom Pi shortcuts
+- `pi/.pi/agent/extensions/` — TypeScript extensions
+- `pi/.pi/agent/prompts/` — Markdown prompt templates
+- `pi/.pi/agent/skills/` — skills with `SKILL.md`
+- `pi/.pi/agent/themes/` — theme JSON files
+
+Runtime state like `~/.pi/agent/auth.json` and `~/.pi/agent/sessions/` stays local and is not tracked in git.
+
+See `pi/README.md` for a quick guide to what belongs in each folder.

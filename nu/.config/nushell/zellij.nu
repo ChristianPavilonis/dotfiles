@@ -50,11 +50,11 @@ def zellij-sessionizer-list [] {
                 | each { |line|
                     let name = $line | split row " " | first
                     let status = if ($line | str contains "(current)") {
-                        $" (ansi green)\(current\)(ansi reset)"
+                        $" (ansi green_bold)\(current\)(ansi reset)"
                     } else if ($line | str contains "(EXITED") {
-                        $" (ansi red)\(exited\)(ansi reset)"
+                        $" (ansi green)\(exited\)(ansi reset)"
                     } else {
-                        $" (ansi yellow)\(active\)(ansi reset)"
+                        $" (ansi green)\(active\)(ansi reset)"
                     }
                     { name: $name, status: $status }
                 }
