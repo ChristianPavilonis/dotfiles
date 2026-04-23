@@ -82,13 +82,13 @@ keybindings:
     prs:
         - key: "w"
           name: "Open in worktree"
-          command: zellij run -- nu -l -e "gwpr {{.PrNumber}}"
+          command: zellij run -d right -- nu -l -e "gwpr {{.PrNumber}}"
         - key: "W"
           name: "Worktree + fix review comments"
-          command: zellij run -- nu -l -e "gwpr {{.PrNumber}}; ocrc"
+          command: zellij run -d right -- nu -l -e "gwpr {{.PrNumber}}; picrc"
         - key: "R"
           name: "Worktree + review PR"
-          command: zellij run -- nu -l -e "gwpr {{.PrNumber}}; ocpr"
+          command: zellij run -d right -- nu -l -e "gwpr {{.PrNumber}}; pipr"
 repoPaths: {}
 theme:
     ui:

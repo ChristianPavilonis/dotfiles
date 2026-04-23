@@ -17,6 +17,12 @@ const PRESETS: ModelPreset[] = [
   },
   {
     key: "2",
+    label: "GPT-5.3 Codex Spark",
+    provider: "openai-codex",
+    modelId: "gpt-5.3-codex-spark",
+  },
+  {
+    key: "3",
     label: "GPT-5.4 Mini",
     provider: "openai-codex",
     modelId: "gpt-5.4-mini",

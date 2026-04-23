@@ -1,5 +1,5 @@
 ---
-name: pr-review-submitter
+name: submit-gh-pr-review
 description: Submits a PR review to GitHub with inline file comments. The user provides findings from a pr-reviewer run, selects which to include, and confirms before submission.
 mode: subagent
 permission:

@@ -81,17 +81,6 @@ Return findings as a structured list. Each finding must follow this format:
 - **Suggestion**: <specific documentation to add or update, with text if applicable>
 ```
 
-For well-documented code, return praise items:
-
-```
-### <Title>
-
-- **Type**: PRAISE
-- **File**: <filepath>
-- **Line**: <line number or range>
-- **Description**: <what's well-documented about this>
-```
-
 ## Severity Guide
 
 | Severity | Criteria |

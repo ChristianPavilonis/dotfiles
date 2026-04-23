@@ -81,17 +81,6 @@ Return findings as a structured list. Each finding must follow this format:
 - **Suggestion**: <specific refactoring approach, with code examples where helpful>
 ```
 
-For particularly well-structured code, return praise items:
-
-```
-### <Title>
-
-- **Type**: PRAISE
-- **File**: <filepath>
-- **Line**: <line number or range>
-- **Description**: <what's well-designed about this>
-```
-
 ## Severity Guide
 
 | Severity | Criteria |

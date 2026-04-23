@@ -17,7 +17,23 @@ def gb [] {
 }
 
 def gd [] {
-  git diff | diffnav
+  let tracked_diff = (git diff)
+  let untracked_files = (
+    ^git ls-files --others --exclude-standard
+    | lines
+    | where { |file| $file | is-not-empty }
+  )
+  let untracked_diff = (
+    $untracked_files
+    | each { |file|
+        do { ^git diff --no-index -- /dev/null $file } | complete | get stdout
+      }
+    | str join ""
+  )
+
+  [$tracked_diff, $untracked_diff]
+    | str join ""
+    | diffnav
 }
 
 # copy current branch name
@@ -203,6 +219,22 @@ def "nu-complete gh pr list" [] {
     | each { |pr| { value: ($pr.number | into string), description: $pr.title } }
 }
 
+# Return the path of the worktree currently checking out a branch, if any.
+def git-worktree-path-for-branch [branch: string] {
+  let lines = (^git worktree list --porcelain | lines)
+  mut current_path = null
+
+  for line in $lines {
+    if ($line | str starts-with "worktree ") {
+      $current_path = ($line | str replace "worktree " "")
+    } else if ($line == $"branch refs/heads/($branch)") {
+      return $current_path
+    }
+  }
+
+  null
+}
+
 # Checkout a GitHub PR as a git worktree
 def --env gwpr [
   pr?: string@"nu-complete gh pr list"  # PR number (interactive picker if omitted)
@@ -228,20 +260,29 @@ def --env gwpr [
   let pr_info = (gh pr view $pr_number --json headRefName,number | from json)
   let branch = $pr_info.headRefName
   let worktree_path = ($worktree_root | path join ($branch | str replace --all "/" "-"))
+  let existing_worktree = (git-worktree-path-for-branch $branch)
 
   mkdir $worktree_root
 
+  if ($existing_worktree != null) {
+    print $"Branch ($branch) is already checked out at ($existing_worktree), updating and switching..."
+    cd $existing_worktree
+    ^git pull --force origin $"pull/($pr_info.number)/head"
+    return
+  }
+
   if ($worktree_path | path exists) {
-    print $"Worktree already exists at ($worktree_path), pulling latest and switching..."
+    print $"Worktree path already exists at ($worktree_path), switching there..."
     cd $worktree_path
     ^git pull --force origin $"pull/($pr_info.number)/head"
     return
   }
 
-  # Fetch PR into a local branch and create worktree
-  ^git fetch origin $"pull/($pr_info.number)/head:($branch)" --force
-  git worktree add $worktree_path $branch
+  # Fetch the PR head without updating a local branch ref first, then create the worktree from FETCH_HEAD.
+  ^git fetch origin $"pull/($pr_info.number)/head" --force
+  git worktree add --detach $worktree_path FETCH_HEAD
   cd $worktree_path
+  ^git checkout -B $branch
 
   if (".worktree-setup" | path exists) {
     print "Running .worktree-setup..."

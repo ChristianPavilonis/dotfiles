@@ -1,7 +1,6 @@
 ---
 name: pr-review-quality
 description: Sub-agent for PR reviews. Analyzes code changes for bugs, security vulnerabilities, correctness issues, performance problems, and error handling deficiencies.
-tools: read, grep, find, ls, bash
 ---
 
 # Code Quality Reviewer
@@ -53,7 +52,7 @@ and project conventions) and return structured findings.
 
 ## Project Conventions
 
-If project conventions are provided (from CLAUDE.md, CONTRIBUTING.md), enforce
+If project conventions are provided, enforce
 them strictly. These take priority over general best practices because they
 represent the team's agreed-upon standards.
 
@@ -85,17 +84,6 @@ Return findings as a structured list. Each finding must follow this format:
 - **Line**: <line number or range>
 - **Description**: <what's wrong and why it matters>
 - **Suggestion**: <how to fix it, with code example if applicable>
-```
-
-For particularly good code or design decisions, return praise items:
-
-```
-### <Title>
-
-- **Type**: PRAISE
-- **File**: <filepath>
-- **Line**: <line number or range>
-- **Description**: <what's good about this and why>
 ```
 
 ## Severity Guide

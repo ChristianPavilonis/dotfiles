@@ -12,3 +12,6 @@ Put TypeScript extensions here, for example:
 Typical files:
 - `my-extension.ts`
 - `my-extension/index.ts`
+
+Current local extensions include:
+- `daily-work-log.ts` — appends one JSONL record per non-extension user input to `~/.pi/agent/logs/YYYY-MM-DD.jsonl`
