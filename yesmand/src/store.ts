@@ -10,6 +10,17 @@ interface DispatchRecord {
   dedupeKey: string;
   sessionId: string;
   model: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface DispatchLookupRecord {
+  pluginId: string;
+  itemId: string;
+  phase: string;
+  dedupeKey: string;
+  sessionId: string;
+  model: string;
+  metadata?: Record<string, unknown>;
 }
 
 interface DispatchAttemptStartRecord {
@@ -51,6 +62,23 @@ export interface ActiveDispatchAttempt {
   lastToolStatus: string | null;
 }
 
+interface DispatchTableColumn {
+  name: string;
+}
+
+function parseMetadata(value: string | null): Record<string, unknown> | undefined {
+  if (!value) return undefined;
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return undefined;
+    }
+    return parsed as Record<string, unknown>;
+  } catch {
+    return undefined;
+  }
+}
+
 export class DispatchStore {
   private readonly db: Database;
 
@@ -70,6 +98,7 @@ export class DispatchStore {
         dedupe_key TEXT NOT NULL UNIQUE,
         session_id TEXT NOT NULL,
         model TEXT NOT NULL,
+        metadata_json TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -98,7 +127,23 @@ export class DispatchStore {
 
       CREATE INDEX IF NOT EXISTS idx_dispatch_attempts_active
       ON dispatch_attempts(ended_at, updated_at);
+
+      CREATE TABLE IF NOT EXISTS plugin_state (
+        plugin_id TEXT NOT NULL,
+        state_key TEXT NOT NULL,
+        state_value TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (plugin_id, state_key)
+      );
     `);
+
+    const dispatchColumns = this.db
+      .query("PRAGMA table_info(dispatches)")
+      .all() as DispatchTableColumn[];
+    if (!dispatchColumns.some((column) => column.name === "metadata_json")) {
+      this.db.exec("ALTER TABLE dispatches ADD COLUMN metadata_json TEXT");
+    }
   }
 
   private nextAttemptNumber(dedupeKey: string): number {
@@ -145,7 +190,7 @@ export class DispatchStore {
 
   updateDispatchAttemptStatus(input: DispatchAttemptStatusUpdate): void {
     const updates: string[] = ["status = ?", "updated_at = ?"];
-    const values: unknown[] = [input.status, new Date().toISOString()];
+    const values: Array<string | number | null> = [input.status, new Date().toISOString()];
 
     if (input.sessionId !== undefined) {
       updates.push("session_id = ?");
@@ -267,7 +312,88 @@ export class DispatchStore {
     return row?.session_id;
   }
 
+  getDispatchByDedupeKey(dedupeKey: string): DispatchLookupRecord | undefined {
+    const row = this.db
+      .query(
+        `
+          SELECT
+            plugin_id,
+            item_id,
+            phase,
+            dedupe_key,
+            session_id,
+            model,
+            metadata_json
+          FROM dispatches
+          WHERE dedupe_key = ?
+          LIMIT 1
+        `
+      )
+      .get(dedupeKey) as
+      | {
+          plugin_id: string;
+          item_id: string;
+          phase: string;
+          dedupe_key: string;
+          session_id: string;
+          model: string;
+          metadata_json: string | null;
+        }
+      | null;
+
+    if (!row) return undefined;
+
+    return {
+      pluginId: row.plugin_id,
+      itemId: row.item_id,
+      phase: row.phase,
+      dedupeKey: row.dedupe_key,
+      sessionId: row.session_id,
+      model: row.model,
+      metadata: parseMetadata(row.metadata_json),
+    };
+  }
+
+  getPluginState(pluginId: string, key: string): string | undefined {
+    const row = this.db
+      .query(
+        "SELECT state_value FROM plugin_state WHERE plugin_id = ? AND state_key = ? LIMIT 1"
+      )
+      .get(pluginId, key) as { state_value: string } | null;
+
+    return row?.state_value;
+  }
+
+  setPluginState(pluginId: string, key: string, value: string): void {
+    const now = new Date().toISOString();
+
+    this.db
+      .query(
+        `
+          INSERT INTO plugin_state (
+            plugin_id,
+            state_key,
+            state_value,
+            updated_at
+          ) VALUES (?, ?, ?, ?)
+          ON CONFLICT(plugin_id, state_key)
+          DO UPDATE SET
+            state_value = excluded.state_value,
+            updated_at = excluded.updated_at
+        `
+      )
+      .run(pluginId, key, value, now);
+  }
+
+  deletePluginState(pluginId: string, key: string): void {
+    this.db
+      .query("DELETE FROM plugin_state WHERE plugin_id = ? AND state_key = ?")
+      .run(pluginId, key);
+  }
+
   recordDispatch(record: DispatchRecord): void {
+    const metadataJson = record.metadata ? JSON.stringify(record.metadata) : null;
+
     this.db
       .query(
         `
@@ -277,8 +403,9 @@ export class DispatchStore {
             phase,
             dedupe_key,
             session_id,
-            model
-          ) VALUES (?, ?, ?, ?, ?, ?)
+            model,
+            metadata_json
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
         `
       )
       .run(
@@ -287,7 +414,8 @@ export class DispatchStore {
         record.phase,
         record.dedupeKey,
         record.sessionId,
-        record.model
+        record.model,
+        metadataJson
       );
   }
 

@@ -11,6 +11,7 @@
       "~/worktrees/**": "allow",
       "~/projects/**": "allow",
       "~/dotfiles/**": "allow",
+      "~/Documents/MyObsidianVault/**": "allow",
       "~/.cargo/**": "allow",
       "~/.local/share/mise/**": "allow"
     }

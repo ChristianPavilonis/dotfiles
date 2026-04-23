@@ -17,8 +17,10 @@ backend while keeping your personal OpenCode environment clean.
 - Plugin SDK and in-repo plugin registry.
 - OpenCode API client for session + `prompt_async` dispatch.
 - SQLite dispatch dedupe store.
+- Plugin-owned persistent state store in SQLite.
 - Dispatch attempt tracking with terminal outcome states.
 - API-based session monitor for stuck/incomplete automation sessions.
+- Terminal dispatch callbacks for plugin post-processing (for example, reply delivery).
 - GitHub issue plugin implementing:
   - trigger token in issue body (`@yesman`)
   - optional planning gate token (`#plan`)
@@ -31,6 +33,12 @@ backend while keeping your personal OpenCode environment clean.
   - generate internal review markdown in a local repo
   - no public PR comments/reviews
   - commit and push review notes to `master`
+- Telegram demo plugin implementing:
+  - polling `getUpdates`
+  - `/start`, `/help`, `/reset`
+  - one dispatch per inbound text message
+  - reply delivery via terminal callback
+  - optional near-real-time cadence via seconds-level schedule
 
 Detailed runtime behavior is documented in:
 
@@ -44,11 +52,16 @@ Each plugin module must export:
 
 And return an object implementing:
 
-- `schedule` (`everyMinutes`, optional `runOnStartup`, optional `jitterSeconds`)
+- `schedule` (`everySeconds` or `everyMinutes`, optional `runOnStartup`, optional `jitterSeconds`)
 - `discoverCandidates(ctx)`
 - `evaluateCandidate(item, ctx)`
 - optional `onDispatchSuccess(...)`
 - optional `onDispatchFailure(...)`
+- optional `onDispatchTerminal(...)`
+
+`PluginContext` includes plugin-scoped persistent state (`ctx.state`) backed by
+SQLite. This is useful for cursors, per-channel session mapping, and other
+plugin-local runtime data.
 
 The core only understands generic dispatch decisions (`dispatch`, `wait`,
 `skip`, `done`). Provider logic stays in the plugin.
@@ -80,9 +93,26 @@ Plugin configuration is defined in each plugin module:
 
 - `yesmand/src/plugins/github/index.ts`
 - `yesmand/src/plugins/github-pr-reviews/index.ts`
+- `yesmand/src/plugins/telegram/index.ts`
 
 Optional environment overrides are supported for scheduling and a few key values
 such as approver login and review repo path.
+
+Telegram demo plugin env vars:
+
+- `YESMAND_TELEGRAM_BOT_TOKEN` (required to enable Telegram plugin)
+- `YESMAND_TELEGRAM_EVERY_SECONDS` (default `30`)
+- `YESMAND_TELEGRAM_ALLOWED_CHAT_IDS` (comma-separated chat IDs; empty = allow all)
+- `YESMAND_TELEGRAM_WORKING_DIRECTORY` (default `~/dotfiles`)
+- `YESMAND_TELEGRAM_MAX_RESPONSE_CHARS` (default `3500`)
+
+Quick demo run:
+
+```bash
+export YESMAND_TELEGRAM_BOT_TOKEN="<bot-token>"
+export YESMAND_TELEGRAM_EVERY_SECONDS=5
+bun run src/index.ts --config ./config.json
+```
 
 ## Isolating Automation OpenCode
 

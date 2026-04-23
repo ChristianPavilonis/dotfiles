@@ -9,6 +9,14 @@ export type DispatchAttemptStatus =
   | "stalled"
   | "timed_out";
 
+export interface PluginStateStore {
+  get(key: string): string | undefined;
+  set(key: string, value: string): void;
+  delete(key: string): void;
+  getJson<T>(key: string): T | undefined;
+  setJson(key: string, value: unknown): void;
+}
+
 export interface Logger {
   info(message: string, details?: Record<string, unknown>): void;
   warn(message: string, details?: Record<string, unknown>): void;
@@ -61,12 +69,27 @@ export interface PluginContext {
   dryRun: boolean;
   logger: Logger;
   now: Date;
+  state: PluginStateStore;
 }
 
 export interface PluginSchedule {
-  everyMinutes: number;
+  everyMinutes?: number;
+  everySeconds?: number;
   runOnStartup?: boolean;
   jitterSeconds?: number;
+}
+
+export interface DispatchTerminalEvent {
+  pluginId: string;
+  itemId: string;
+  phase: string;
+  dedupeKey: string;
+  attempt: number;
+  status: DispatchAttemptStatus;
+  reason: string | null;
+  sessionId: string | null;
+  metadata?: Record<string, unknown>;
+  responseText: string | null;
 }
 
 export interface AutomationPlugin {
@@ -86,6 +109,7 @@ export interface AutomationPlugin {
     error: string,
     ctx: PluginContext
   ): Promise<void>;
+  onDispatchTerminal?(event: DispatchTerminalEvent, ctx: PluginContext): Promise<void>;
 }
 
 export interface PluginFactoryContext {
