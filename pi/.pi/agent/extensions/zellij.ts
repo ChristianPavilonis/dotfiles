@@ -1,4 +1,9 @@
-import type { ExtensionAPI, ExtensionCommandContext } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+
+type NotifyContext = {
+	hasUI?: boolean;
+	ui?: { notify: (message: string, level: "info" | "warning" | "error") => void };
+};
 
 type ZellijTarget = {
 	args: string[];
@@ -11,18 +16,39 @@ function getDefaultShell(): string {
 	return process.env.SHELL || "sh";
 }
 
+function nu(script: string, options: { login?: boolean } = {}): string[] {
+	const login = options.login ?? true;
+	return ["nu", ...(login ? ["-l"] : []), "-c", script];
+}
+
+function nuString(value: string): string {
+	return JSON.stringify(value);
+}
+
 function buildReviewPrompt(args: string): string {
 	const trimmed = args.trim();
 	return trimmed.length > 0 ? `${REVIEW_TEMPLATE} ${trimmed}` : REVIEW_TEMPLATE;
 }
 
-function notify(ctx: ExtensionCommandContext, message: string, level: "info" | "warning" | "error" = "info") {
-	if (ctx.hasUI) ctx.ui.notify(message, level);
+function buildCommand(command: string | undefined, useNu: boolean | undefined): string[] {
+	if (!command || command.trim().length === 0) return [getDefaultShell()];
+	return useNu ?? true ? nu(command) : ["sh", "-lc", command];
+}
+
+function buildNewTabArgs(options: { cwd: string; name?: string; command?: string[] }): string[] {
+	const args = ["action", "new-tab", "--cwd", options.cwd];
+	if (options.name && options.name.trim().length > 0) args.push("--name", options.name.trim());
+	args.push("--", ...(options.command ?? [getDefaultShell()]));
+	return args;
+}
+
+function notify(ctx: NotifyContext, message: string, level: "info" | "warning" | "error" = "info") {
+	if (ctx.hasUI && ctx.ui) ctx.ui.notify(message, level);
 	else if (level === "error") console.error(message);
 	else console.log(message);
 }
 
-function ensureInsideZellij(ctx: ExtensionCommandContext): boolean {
+function ensureInsideZellij(ctx: NotifyContext): boolean {
 	if (process.env.ZELLIJ !== undefined) return true;
 	notify(ctx, "Not running inside a Zellij session", "error");
 	return false;
@@ -30,20 +56,21 @@ function ensureInsideZellij(ctx: ExtensionCommandContext): boolean {
 
 async function execZellij(
 	pi: ExtensionAPI,
-	ctx: ExtensionCommandContext,
+	ctx: NotifyContext,
 	target: ZellijTarget,
-): Promise<void> {
-	if (!ensureInsideZellij(ctx)) return;
+): Promise<string | undefined> {
+	if (!ensureInsideZellij(ctx)) return undefined;
 
 	const result = await pi.exec("zellij", target.args, { timeout: 5000 });
 	if (result.code !== 0) {
 		const details = (result.stderr || result.stdout || "zellij command failed").trim();
 		notify(ctx, details, "error");
-		return;
+		return undefined;
 	}
 
 	const id = result.stdout.trim() || undefined;
 	notify(ctx, target.successMessage(id), "info");
+	return id;
 }
 
 async function findRepoRoot(pi: ExtensionAPI): Promise<string | null> {
@@ -53,12 +80,111 @@ async function findRepoRoot(pi: ExtensionAPI): Promise<string | null> {
 	return root.length > 0 ? root : null;
 }
 
+const ZELLIJ_NEW_TAB_PARAMS = {
+	type: "object",
+	additionalProperties: false,
+	properties: {
+		cwd: { type: "string", description: "Working directory for the new tab. Defaults to the current Pi cwd." },
+		name: { type: "string", description: "Optional Zellij tab name." },
+		command: { type: "string", description: "Optional command to run in the new tab. Defaults to the user's shell." },
+		useNu: { type: "boolean", description: "Run command through `nu -l -c`. Defaults to true when command is provided." },
+	},
+} as const;
+
+const ZELLIJ_SPAWN_PI_TAB_PARAMS = {
+	type: "object",
+	additionalProperties: false,
+	required: ["prompt"],
+	properties: {
+		prompt: { type: "string", description: "Prompt to send to the spawned Pi instance." },
+		cwd: { type: "string", description: "Working directory for the new Pi tab. Defaults to the current Pi cwd." },
+		name: { type: "string", description: "Optional Zellij tab name. Defaults to `pi`." },
+	},
+} as const;
+
 export default function zellijExtension(pi: ExtensionAPI) {
+	pi.registerTool({
+		name: "zellij_new_tab",
+		label: "Zellij New Tab",
+		description: "Open a new Zellij tab, optionally running a command.",
+		parameters: ZELLIJ_NEW_TAB_PARAMS,
+		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
+			if (!ensureInsideZellij(ctx)) {
+				return {
+					content: [{ type: "text", text: "Not running inside a Zellij session." }],
+					details: { ok: false, reason: "not_in_zellij" },
+				};
+			}
+
+			const cwd = params.cwd?.trim() || ctx.cwd;
+			const command = buildCommand(params.command, params.useNu);
+			const zellijArgs = buildNewTabArgs({ cwd, name: params.name, command });
+			const result = await pi.exec("zellij", zellijArgs, { timeout: 5000, signal });
+
+			if (result.code !== 0) {
+				const details = (result.stderr || result.stdout || "zellij command failed").trim();
+				return {
+					content: [{ type: "text", text: details }],
+					details: { ok: false, cwd, name: params.name, command, stderr: result.stderr, stdout: result.stdout },
+				};
+			}
+
+			const id = result.stdout.trim() || undefined;
+			return {
+				content: [{ type: "text", text: `Opened new Zellij tab${id ? ` ${id}` : ""}.` }],
+				details: { ok: true, id, cwd, name: params.name, command },
+			};
+		},
+	});
+
+	pi.registerTool({
+		name: "zellij_spawn_pi_tab",
+		label: "Zellij Spawn Pi Tab",
+		description: "Open a new Zellij tab running a fresh Pi instance with the provided prompt.",
+		parameters: ZELLIJ_SPAWN_PI_TAB_PARAMS,
+		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
+			if (!ensureInsideZellij(ctx)) {
+				return {
+					content: [{ type: "text", text: "Not running inside a Zellij session." }],
+					details: { ok: false, reason: "not_in_zellij" },
+				};
+			}
+
+			const prompt = params.prompt.trim();
+			if (prompt.length === 0) {
+				return {
+					content: [{ type: "text", text: "Prompt cannot be empty." }],
+					details: { ok: false, reason: "empty_prompt" },
+				};
+			}
+
+			const cwd = params.cwd?.trim() || ctx.cwd;
+			const name = params.name?.trim() || "pi";
+			const command = nu(`pi ${nuString(prompt)}`);
+			const zellijArgs = buildNewTabArgs({ cwd, name, command });
+			const result = await pi.exec("zellij", zellijArgs, { timeout: 5000, signal });
+
+			if (result.code !== 0) {
+				const details = (result.stderr || result.stdout || "zellij command failed").trim();
+				return {
+					content: [{ type: "text", text: details }],
+					details: { ok: false, cwd, name, prompt, stderr: result.stderr, stdout: result.stdout },
+				};
+			}
+
+			const id = result.stdout.trim() || undefined;
+			return {
+				content: [{ type: "text", text: `Opened Pi Zellij tab${id ? ` ${id}` : ""}.` }],
+				details: { ok: true, id, cwd, name, prompt },
+			};
+		},
+	});
+
 	pi.registerCommand("zt", {
 		description: "Open a new Zellij tab in the current directory",
 		handler: async (_args, ctx) => {
 			await execZellij(pi, ctx, {
-				args: ["action", "new-tab", "--cwd", ctx.cwd, "--", getDefaultShell()],
+				args: buildNewTabArgs({ cwd: ctx.cwd }),
 				successMessage: (id) => `Opened new tab${id ? ` ${id}` : ""}`,
 			});
 		},
@@ -108,8 +234,8 @@ export default function zellijExtension(pi: ExtensionAPI) {
 		description: "Open git diff",
 		handler: async (_args, ctx) => {
 			await execZellij(pi, ctx, {
-				args: ["action", "new-pane", "--stacked", "--cwd", ctx.cwd, "--", "nu", "-l", "-c",  "gd"],
-				successMessage: (id) => `Opened stacked nvim pane${id ? ` ${id}` : ""}`,
+				args: ["action", "new-pane", "--stacked", "--cwd", ctx.cwd, "--", ...nu("gd")],
+				successMessage: (id) => `Opened stacked git diff pane${id ? ` ${id}` : ""}`,
 			});
 		},
 	});
@@ -138,10 +264,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 					"--name",
 					"review",
 					"--",
-					"nu",
-					"-l",
-					"-c",
-					`pi ${reviewPrompt}`,
+					...nu(`pi ${nuString(reviewPrompt)}`),
 				],
 				successMessage: (id) =>
 					`Opened review pane${id ? ` ${id}` : ""}${args.trim().length > 0 ? ` for: ${args.trim()}` : ""}`,
