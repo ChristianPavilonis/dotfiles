@@ -6,5 +6,6 @@ Examples:
 - `review.md` -> `/review`
 - `plan.md` -> `/plan`
 - `refactor.md` -> `/refactor`
+- `work-report.md` -> `/work-report`
 
 Use templates for prompts I repeat often or want standardized across projects.

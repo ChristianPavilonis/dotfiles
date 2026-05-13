@@ -1,7 +1,10 @@
 ---
 name: pr-review-refactor
 description: Sub-agent for PR reviews. Identifies code duplication, simplification opportunities, unnecessary abstractions, pattern inconsistencies, and consolidation opportunities in changed files.
-tools: read, grep, find, ls, bash
+tools: read, bash
+systemPromptMode: replace
+inheritProjectContext: true
+inheritSkills: false
 ---
 
 # Refactoring Reviewer
@@ -89,6 +92,22 @@ Return findings as a structured list. Each finding must follow this format:
 | P1 | Should fix: significant duplication (>20 lines), abstractions that actively make the code harder to understand |
 | P2 | Recommended: moderate duplication, missed simplification opportunities, minor pattern inconsistencies |
 | P3 | Nice to have: small consolidation opportunities, slightly verbose code, minor structural preferences |
+
+## Completion / Exit Rules
+
+- When your review is complete, return one final response and stop.
+- Do not wait for user confirmation.
+- Do not keep polling GitHub, CI, or git after producing findings.
+- Do not start background processes.
+- Do not run interactive commands.
+- Do not ask follow-up questions unless the task is impossible without the answer.
+- If there are no findings, output exactly:
+
+```text
+No findings.
+```
+
+Then stop.
 
 ## Rules
 

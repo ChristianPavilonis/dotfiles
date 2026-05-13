@@ -1,7 +1,10 @@
 ---
 name: ts-pr-reviewer
-description: Reviews pull requests by delegating to specialized sub-agents for code quality, refactoring opportunities, and documentation accuracy. Presents unified findings and offers to create a fix plan or leave a GitHub review.
-tools: read, grep, find, ls, bash
+description: FOR TRUSTED SERVER project only - Reviews pull requests by delegating to specialized sub-agents for code quality, refactoring opportunities, and documentation accuracy. Presents unified findings and offers to create a fix plan or leave a GitHub review.
+tools: read, bash, subagent
+systemPromptMode: replace
+inheritProjectContext: true
+inheritSkills: false
 ---
 
 # PR Reviewer
@@ -70,7 +73,7 @@ Note any CI failures. Continue with the code review regardless.
 
 ### 5. Delegate to sub-agents
 
-Launch all three review sub-agents **in parallel**. Each sub-agent receives the same context bundle.
+Use the `subagent` tool in parallel mode to launch all three review sub-agents **in parallel**. Set `clarify: false`. Each sub-agent receives the same context bundle and must return only structured findings or `No findings.`.
 
 #### Context bundle
 
@@ -203,6 +206,22 @@ Output:
 
 - Total findings by severity (e.g., "2 P0, 3 P1, 5 P2, 2 P3")
 - CI status summary
+
+## Completion / Exit Rules
+
+- When your review is complete, return one final response and stop.
+- Do not wait for user confirmation.
+- Do not keep polling GitHub, CI, or git after producing findings.
+- Do not start background processes.
+- Do not run interactive commands.
+- Do not ask follow-up questions unless the task is impossible without the answer.
+- If there are no findings, output exactly:
+
+```text
+No findings.
+```
+
+Then stop.
 
 ## Rules
 

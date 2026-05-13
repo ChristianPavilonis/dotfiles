@@ -138,8 +138,10 @@ export default function zellijExtension(pi: ExtensionAPI) {
 					"--name",
 					"review",
 					"--",
-					"pi",
-					reviewPrompt,
+					"nu",
+					"-l",
+					"-c",
+					`pi ${reviewPrompt}`,
 				],
 				successMessage: (id) =>
 					`Opened review pane${id ? ` ${id}` : ""}${args.trim().length > 0 ? ` for: ${args.trim()}` : ""}`,

@@ -162,6 +162,13 @@ keybinds clear-defaults=true {
             }
             SwitchToMode "normal"
         }
+
+        bind ";" {
+            Run "zellij" "pipe" "--plugin" "https://github.com/mostafaqanbaryan/zellij-switch/releases/download/0.2.1/zellij-switch.wasm" "--" "--session yesman" {
+                close_on_exit true
+            }
+            SwitchToMode "normal"
+        }
     }
     shared_except "locked" {
         bind "Alt left" { MoveFocusOrTab "left"; }

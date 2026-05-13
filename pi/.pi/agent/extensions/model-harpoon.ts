@@ -11,9 +11,9 @@ type ModelPreset = {
 const PRESETS: ModelPreset[] = [
   {
     key: "1",
-    label: "GPT-5.4",
+    label: "GPT-5.5",
     provider: "openai-codex",
-    modelId: "gpt-5.4",
+    modelId: "gpt-5.5",
   },
   {
     key: "2",

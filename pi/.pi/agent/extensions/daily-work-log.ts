@@ -1,11 +1,14 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { appendFile, mkdir } from "node:fs/promises";
+import { appendFile, mkdir, realpath } from "node:fs/promises";
+import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 import {
 	DEFAULT_LOG_DIR,
+	createAgentEndRecord,
 	createInputRecord,
+	createSessionStartRecord,
 	getLogFilePath,
 } from "./daily-work-log-utils.mjs";
 
@@ -14,36 +17,73 @@ const LOG_DIR = process.env.PI_DAILY_WORK_LOG_DIR || DEFAULT_LOG_DIR;
 const STATUS_KEY = "daily-work-log";
 const GIT_BRANCH_CACHE_TTL_MS = 5_000;
 
-type GitBranchCacheEntry = {
+type GitMetadataCacheEntry = {
 	branch: string | null;
+	repo: string | null;
 	expiresAt: number;
 };
 
 let appendQueue = Promise.resolve();
 let warnedWriteFailure = false;
-const gitBranchCache = new Map<string, GitBranchCacheEntry>();
+let currentAgentStartAtMs: number | null = null;
+const gitMetadataCache = new Map<string, GitMetadataCacheEntry>();
 
-async function getGitBranch(cwd: string): Promise<string | null> {
-	const cached = gitBranchCache.get(cwd);
-	if (cached && cached.expiresAt > Date.now()) return cached.branch;
+async function resolveGitRepo(cwd: string, gitCommonDir: string): Promise<string | null> {
+	const absoluteGitCommonDir = path.isAbsolute(gitCommonDir)
+		? gitCommonDir
+		: path.resolve(cwd, gitCommonDir);
+	const resolvedGitCommonDir = await realpath(absoluteGitCommonDir).catch(() => absoluteGitCommonDir);
+
+	if (path.basename(resolvedGitCommonDir) === ".git") {
+		return path.dirname(resolvedGitCommonDir);
+	}
+
+	return resolvedGitCommonDir || null;
+}
+
+async function getGitMetadata(cwd: string): Promise<{ branch: string | null; repo: string | null }> {
+	const cached = gitMetadataCache.get(cwd);
+	if (cached && cached.expiresAt > Date.now()) {
+		return { branch: cached.branch, repo: cached.repo };
+	}
 
 	try {
-		const { stdout } = await execFileAsync("git", ["-C", cwd, "branch", "--show-current"], {
-			encoding: "utf8",
-		});
-		const branch = stdout.trim() || null;
-		gitBranchCache.set(cwd, {
+		const { stdout } = await execFileAsync(
+			"git",
+			["-C", cwd, "rev-parse", "--abbrev-ref", "HEAD", "--git-common-dir"],
+			{ encoding: "utf8" },
+		);
+		const [branchLine, gitCommonDirLine] = stdout.trim().split(/\r?\n/, 2);
+		const branch = branchLine && branchLine !== "HEAD" ? branchLine : null;
+		const repo = gitCommonDirLine ? await resolveGitRepo(cwd, gitCommonDirLine) : null;
+		gitMetadataCache.set(cwd, {
 			branch,
+			repo,
 			expiresAt: Date.now() + GIT_BRANCH_CACHE_TTL_MS,
 		});
-		return branch;
+		return { branch, repo };
 	} catch {
-		gitBranchCache.set(cwd, {
+		gitMetadataCache.set(cwd, {
 			branch: null,
+			repo: null,
 			expiresAt: Date.now() + GIT_BRANCH_CACHE_TTL_MS,
 		});
-		return null;
+		return { branch: null, repo: null };
 	}
+}
+
+async function buildLogContext(ctx: any, now = new Date()) {
+	const { branch: gitBranch, repo: gitRepo } = await getGitMetadata(ctx.cwd);
+	return {
+		now,
+		filePath: getLogFilePath(LOG_DIR, now),
+		cwd: ctx.cwd,
+		sessionFile: ctx.sessionManager.getSessionFile(),
+		sessionId: ctx.sessionManager.getSessionId(),
+		sessionName: ctx.sessionManager.getSessionName(),
+		gitBranch,
+		gitRepo,
+	};
 }
 
 function queueAppend(filePath: string, line: string, ctx: any): void {
@@ -62,7 +102,16 @@ function queueAppend(filePath: string, line: string, ctx: any): void {
 }
 
 export default function (pi: ExtensionAPI) {
-	pi.on("session_start", async (_event, ctx) => {
+	pi.on("session_start", async (event, ctx) => {
+		const logContext = await buildLogContext(ctx);
+		const record = createSessionStartRecord({
+			...logContext,
+			reason: event.reason,
+			previousSessionFile: event.previousSessionFile,
+		});
+		queueAppend(logContext.filePath, `${JSON.stringify(record)}\n`, ctx);
+
+		currentAgentStartAtMs = null;
 		if (!ctx.hasUI) return;
 		ctx.ui.setStatus(STATUS_KEY, `work log → ${getLogFilePath(LOG_DIR)}`);
 	});
@@ -80,22 +129,33 @@ export default function (pi: ExtensionAPI) {
 			return { action: "continue" };
 		}
 
-		const now = new Date();
-		const gitBranch = await getGitBranch(ctx.cwd);
-		const filePath = getLogFilePath(LOG_DIR, now);
+		const logContext = await buildLogContext(ctx);
 		const record = createInputRecord({
-			now,
-			cwd: ctx.cwd,
+			...logContext,
 			text: event.text,
 			source: event.source,
 			images: event.images,
-			sessionFile: ctx.sessionManager.getSessionFile(),
-			sessionId: ctx.sessionManager.getSessionId(),
-			sessionName: ctx.sessionManager.getSessionName(),
-			gitBranch,
 		});
 
-		queueAppend(filePath, `${JSON.stringify(record)}\n`, ctx);
+		queueAppend(logContext.filePath, `${JSON.stringify(record)}\n`, ctx);
 		return { action: "continue" };
+	});
+
+	pi.on("agent_start", async () => {
+		currentAgentStartAtMs = Date.now();
+	});
+
+	pi.on("agent_end", async (event, ctx) => {
+		const now = new Date();
+		const logContext = await buildLogContext(ctx, now);
+		const durationMs = currentAgentStartAtMs === null ? null : Math.max(0, now.getTime() - currentAgentStartAtMs);
+		currentAgentStartAtMs = null;
+		const record = createAgentEndRecord({
+			...logContext,
+			durationMs,
+			messageCount: Array.isArray(event.messages) ? event.messages.length : null,
+		});
+
+		queueAppend(logContext.filePath, `${JSON.stringify(record)}\n`, ctx);
 	});
 }

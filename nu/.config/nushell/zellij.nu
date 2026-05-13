@@ -85,6 +85,11 @@ def zs [] {
     } else {
         $ZELLIJ_SWITCH_PLUGIN
     }
+    let layout = if ($env | get -o ZELLIJ_SESSIONIZER_LAYOUT | is-not-empty) {
+        $env.ZELLIJ_SESSIONIZER_LAYOUT
+    } else {
+        "blank"
+    }
 
     # Helper scripts live alongside this file (bash needed for fzf execute/reload)
     let action_script = $"($SCRIPT_DIR)/zellij-session-action.sh"
@@ -113,8 +118,8 @@ def zs [] {
     let session_name = $selected_dir | path basename
 
     if ($env | get -o ZELLIJ | is-not-empty) {
-        zellij pipe --plugin $switch_plugin -- $"--session ($session_name) --cwd ($selected_dir)"
+        zellij pipe --plugin $switch_plugin -- $"--session ($session_name) --cwd ($selected_dir) --layout ($layout)"
     } else {
-        zellij attach $session_name --create options --default-cwd $selected_dir
+        zellij attach $session_name --create options --default-cwd $selected_dir --default-layout $layout
     }
 }
