@@ -10,6 +10,12 @@ const VAULT_DIR = process.env.PI_NOTE_VAULT_DIR || path.join(os.homedir(), "Docu
 const LOG_DIR = process.env.PI_NOTE_LOG_DIR || path.join(os.homedir(), ".pi", "agent", "note-jobs");
 const OBSIDIAN_MARKDOWN_SKILL = path.join(os.homedir(), ".pi", "agent", "skills", "obsidian-markdown", "SKILL.md");
 
+const NOTE_MODEL_SMALL = process.env.PI_NOTE_MODEL_SMALL || "openai-codex/gpt-5.3-codex-spark";
+const NOTE_MODEL_LARGE = process.env.PI_NOTE_MODEL_LARGE || "openai-codex/gpt-5.4-mini";
+const NOTE_MODEL_SMALL_CONTEXT_WINDOW = Number(process.env.PI_NOTE_MODEL_SMALL_CONTEXT_WINDOW || 128_000);
+const NOTE_MODEL_LARGE_CONTEXT_WINDOW = Number(process.env.PI_NOTE_MODEL_LARGE_CONTEXT_WINDOW || 272_000);
+const NOTE_MODEL_CONTEXT_RESERVE = Number(process.env.PI_NOTE_MODEL_CONTEXT_RESERVE || 16_384);
+
 const PROJECTS = ["rigzilla", "trusted-server", "scrapezilla", "tauritutorials", "ideas"] as const;
 
 function formatLocalDateTime(date: Date): string {
@@ -19,6 +25,39 @@ function formatLocalDateTime(date: Date): string {
 
 function safeJobId(date = new Date()): string {
 	return date.toISOString().replace(/[:.]/g, "-");
+}
+
+function chooseNoteModel(ctx: any): { model: string; tokens: number | null; reason: string; warning?: string } {
+	const usage = ctx.getContextUsage?.();
+	const tokens = typeof usage?.tokens === "number" ? usage.tokens : null;
+	const smallLimit = NOTE_MODEL_SMALL_CONTEXT_WINDOW - NOTE_MODEL_CONTEXT_RESERVE;
+	const largeLimit = NOTE_MODEL_LARGE_CONTEXT_WINDOW - NOTE_MODEL_CONTEXT_RESERVE;
+
+	if (tokens === null) {
+		return {
+			model: NOTE_MODEL_LARGE,
+			tokens,
+			reason: "context usage unknown; using larger cheap model",
+		};
+	}
+
+	if (tokens <= smallLimit) {
+		return {
+			model: NOTE_MODEL_SMALL,
+			tokens,
+			reason: `estimated context ${tokens.toLocaleString()} fits ${NOTE_MODEL_SMALL}`,
+		};
+	}
+
+	return {
+		model: NOTE_MODEL_LARGE,
+		tokens,
+		reason: `estimated context ${tokens.toLocaleString()} exceeds ${NOTE_MODEL_SMALL} safe limit (${smallLimit.toLocaleString()})`,
+		warning:
+			tokens > largeLimit
+				? `estimated context ${tokens.toLocaleString()} may exceed ${NOTE_MODEL_LARGE} safe limit (${largeLimit.toLocaleString()})`
+				: undefined,
+	};
 }
 
 function buildNotePrompt(args: string, now = new Date()): string {
@@ -92,11 +131,18 @@ export default function (pi: ExtensionAPI) {
 			log.write(`# /note job ${jobId}\n`);
 			log.write(`# session: ${sessionFile}\n`);
 			log.write(`# cwd: ${ctx.cwd}\n`);
-			log.write(`# request: ${request}\n\n`);
+			const noteModel = chooseNoteModel(ctx);
+			log.write(`# request: ${request}\n`);
+			log.write(`# model: ${noteModel.model}\n`);
+			log.write(`# model reason: ${noteModel.reason}\n`);
+			if (noteModel.warning) log.write(`# warning: ${noteModel.warning}\n`);
+			log.write("\n");
 
 			const child = spawn(
 				PI_BIN,
 				[
+					"--model",
+					noteModel.model,
 					"--fork",
 					sessionFile,
 					"--no-extensions",
@@ -127,7 +173,8 @@ export default function (pi: ExtensionAPI) {
 			};
 			pi.appendEntry("note-job", job);
 
-			notify(ctx, `note agent started: ${jobId}`, "info");
+			const modelNotice = noteModel.warning ? `${noteModel.model} (${noteModel.warning})` : noteModel.model;
+			notify(ctx, `note agent started: ${jobId} using ${modelNotice}`, noteModel.warning ? "warning" : "info");
 			try {
 				ctx.ui.setStatus(STATUS_KEY, `note → ${jobId}`);
 			} catch {
