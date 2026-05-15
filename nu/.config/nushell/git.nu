@@ -74,10 +74,12 @@ def "nu-complete git worktree branches" [] {
     | get value
 }
 
-# Add a git worktree and cd into it
+# Add a git worktree and cd into it by default
 def --env gwa [
   branch: string@"nu-complete git switch"  # branch (created if it doesn't exist)
+  --no-switch(-n)                          # create the worktree without changing directory
 ] {
+  let original_dir = $env.PWD
   let worktree_root = ("~/worktrees" | path expand)
   let worktree_path = ($worktree_root | path join ($branch | str replace --all "/" "-"))
   mkdir $worktree_root
@@ -93,6 +95,11 @@ def --env gwa [
   if (".worktree-setup" | path exists) {
     print "Running .worktree-setup..."
     ^"./.worktree-setup"
+  }
+
+  if $no_switch {
+    cd $original_dir
+    print $"Created worktree at ($worktree_path)"
   }
 }
 

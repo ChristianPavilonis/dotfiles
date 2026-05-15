@@ -240,6 +240,29 @@ export default function zellijExtension(pi: ExtensionAPI) {
 		},
 	});
 
+	pi.registerCommand("zfork", {
+		description: "Open a fork of the current Pi session in a new Zellij tab, optionally with an initial prompt",
+		handler: async (args, ctx) => {
+			if (!ensureInsideZellij(ctx)) return;
+
+			const sessionFile = ctx.sessionManager.getSessionFile();
+			if (!sessionFile) {
+				notify(ctx, "Cannot /zfork: current session is not persisted.", "error");
+				return;
+			}
+
+			const prompt = args.trim();
+			const command = prompt.length > 0
+				? nu(`pi --fork ${nuString(sessionFile)} ${nuString(prompt)}`)
+				: nu(`pi --fork ${nuString(sessionFile)}`);
+
+			await execZellij(pi, ctx, {
+				args: buildNewTabArgs({ cwd: ctx.cwd, name: "pi-fork", command }),
+				successMessage: (id) => `Opened forked Pi tab${id ? ` ${id}` : ""}`,
+			});
+		},
+	});
+
 	pi.registerCommand("zreview", {
 		description: "Open a fresh Pi review session in a new Zellij pane, optionally with review arguments",
 		handler: async (args, ctx) => {

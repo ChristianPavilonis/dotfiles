@@ -9,7 +9,8 @@ Use this skill for the user's preferred flow: use their Nushell git-worktree hel
 
 Helpers:
 
-- `gwa` — create/add an ad hoc worktree/branch workflow
+- `gwa` — create/add an ad hoc worktree/branch workflow, switching into it by default
+  - Use `gwa <branch> --no-switch` or `gwa <branch> -n` to create the worktree without staying in that directory
 - `gws` — select/switch to an existing worktree workflow
 - `gwpr` — create/open a PR worktree workflow
 
