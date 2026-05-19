@@ -6,7 +6,7 @@
 You have permission to read and edit files in the obsidian vault, this is for you to jot 
 ideas down and things that the user wants to think about later.
 
-While using the obsidian vault remember to use the json-canvas, obsidian-bases, obsidian-markdown skills.
+While using the obsidian vault remember to use the json-canvas, obsidian-bases, obsidian-markdown, and obsidian-note-types skills.
 
 Vault location: ~/Documents/MyObsidianVault/
 
@@ -26,11 +26,16 @@ When creating notes, **always set the `project` frontmatter** to one of the slug
 
 ### Note types
 
-Each project base has views filtered by `type`:
+Project notes use a semantic `type` field. Use the `obsidian-note-types` skill when choosing or creating note types.
 
-- `note` — General notes, research, documentation
-- `scratch` — Quick scratchpad, rough drafts
-- `todo` — Task lists and action items
+- `project` — Project home/index notes, durable project overviews, MOCs
+- `task` — Concrete action items with outcome/checklist; replaces new uses of `todo`
+- `issue` — Bugs, blockers, risks, production problems, unresolved concerns
+- `plan` — Proposed implementation steps, project plans, migration plans, handoff plans
+- `reference` — Durable facts: APIs, architecture, commands, schemas, source-backed explanations
+- `log` — Work/session summaries, progress updates, daily/project activity records
+- `scratch` — Messy temporary thinking, rough drafts, parking-lot notes
+- `note` — General durable notes that do not fit a more specific type
 
 ### Daily notes
 this is where you can place notes from what's being worked on today.

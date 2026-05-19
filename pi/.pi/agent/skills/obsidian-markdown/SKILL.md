@@ -630,14 +630,21 @@ tags: []
 |-------|----------|-------------|
 | `created at` | Yes | Use `YYYY-MM-DD HH:mm` format with the current date/time |
 | `project` | Yes | Must be one of the known project slugs (see AGENTS.md for the list) |
-| `type` | Yes | One of: `note`, `scratch`, `todo` |
+| `type` | Yes | One of: `project`, `task`, `issue`, `plan`, `reference`, `log`, `scratch`, `note` |
 | `tags` | Yes | YAML list of tags, can be empty `[]` |
 
 ### Type Descriptions
 
-- `note` — General notes, documentation, research, ideas
-- `scratch` — Quick scratchpad content, rough drafts, temporary thinking
-- `todo` — Task lists and action items
+Use the `obsidian-note-types` skill for the full classification rules.
+
+- `project` — Project home/index notes, durable project overviews, MOCs
+- `task` — Concrete action items with outcome/checklist; replaces new uses of `todo`
+- `issue` — Bugs, blockers, risks, production problems, unresolved concerns
+- `plan` — Proposed implementation steps, project plans, migration plans, handoff plans
+- `reference` — Durable facts: APIs, architecture, commands, schemas, source-backed explanations
+- `log` — Work/session summaries, progress updates, daily/project activity records
+- `scratch` — Messy temporary thinking, rough drafts, parking-lot notes
+- `note` — General durable notes that do not fit a more specific type
 
 ### Note Structure
 

@@ -9,6 +9,7 @@ const PI_BIN = process.env.PI_NOTE_PI_BIN || "pi";
 const VAULT_DIR = process.env.PI_NOTE_VAULT_DIR || path.join(os.homedir(), "Documents", "MyObsidianVault");
 const LOG_DIR = process.env.PI_NOTE_LOG_DIR || path.join(os.homedir(), ".pi", "agent", "note-jobs");
 const OBSIDIAN_MARKDOWN_SKILL = path.join(os.homedir(), ".pi", "agent", "skills", "obsidian-markdown", "SKILL.md");
+const OBSIDIAN_NOTE_TYPES_SKILL = path.join(os.homedir(), ".pi", "agent", "skills", "obsidian-note-types", "SKILL.md");
 
 const NOTE_MODEL_SMALL = process.env.PI_NOTE_MODEL_SMALL || "openai-codex/gpt-5.3-codex-spark";
 const NOTE_MODEL_LARGE = process.env.PI_NOTE_MODEL_LARGE || "openai-codex/gpt-5.4-mini";
@@ -87,11 +88,13 @@ Obsidian note rules:
 created at: ${createdAt}
 project: ideas
 type: note
+status: current
 tags: []
 ---
 - The project field must be exactly one of: ${PROJECTS.join(", ")}.
 - If the project is unclear, use project: ideas.
-- Type must be one of: note, scratch, todo.
+- Type must be one of: project, task, issue, plan, reference, log, scratch, note.
+- Use the most specific semantic type and an appropriate lowercase status.
 - If this is a daily/work-log style request, write/update a daily note for ${today} under a Daily notes folder if present; otherwise create it sensibly in the vault.
 - Otherwise create/update a note under Notes/ when possible.
 - Include a "#### Links" section at the bottom of created notes.
@@ -148,6 +151,8 @@ export default function (pi: ExtensionAPI) {
 					"--no-extensions",
 					"--skill",
 					OBSIDIAN_MARKDOWN_SKILL,
+					"--skill",
+					OBSIDIAN_NOTE_TYPES_SKILL,
 					"--tools",
 					"read,write,edit,find,grep,ls",
 					"-p",
