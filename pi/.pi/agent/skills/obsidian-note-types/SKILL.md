@@ -1,6 +1,6 @@
 ---
 name: obsidian-note-types
-description: Classify and create Obsidian project notes using Christian's semantic note types: project, task, issue, plan, reference, log, scratch, and note. Use when writing or updating notes in the Obsidian vault for project tracking, knowledge capture, or AI-agent work logs.
+description: Classify and create Obsidian project notes using Christian's semantic note types  project, task, issue, plan, reference, log, scratch, and note. Use when writing or updating notes in the Obsidian vault for project tracking, knowledge capture, or AI-agent work logs.
 ---
 
 # Obsidian Note Types
@@ -28,6 +28,7 @@ tags: []
 - `scrapezilla`
 - `tauritutorials`
 - `ideas`
+- `yesman`
 
 If unclear, use `project: ideas`.
 

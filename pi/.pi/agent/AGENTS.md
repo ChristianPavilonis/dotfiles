@@ -21,6 +21,7 @@ The vault uses Obsidian Bases to organize notes by project. Each project has its
 | Scrapezilla | `scrapezilla` | `Bases/Scrapezilla.base` |
 | Tauri Tutorials | `tauritutorials` | `Bases/Tauri Tutorials.base` |
 | Ideas | `ideas` | `Bases/Ideas.base` |
+| YesMan | `yesman` | `Bases/YesMan.base` |
 
 When creating notes, **always set the `project` frontmatter** to one of the slugs above so the note appears in the correct base. See the obsidian-markdown skill for the full template.
 

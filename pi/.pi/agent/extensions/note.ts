@@ -17,7 +17,7 @@ const NOTE_MODEL_SMALL_CONTEXT_WINDOW = Number(process.env.PI_NOTE_MODEL_SMALL_C
 const NOTE_MODEL_LARGE_CONTEXT_WINDOW = Number(process.env.PI_NOTE_MODEL_LARGE_CONTEXT_WINDOW || 272_000);
 const NOTE_MODEL_CONTEXT_RESERVE = Number(process.env.PI_NOTE_MODEL_CONTEXT_RESERVE || 16_384);
 
-const PROJECTS = ["rigzilla", "trusted-server", "scrapezilla", "tauritutorials", "ideas"] as const;
+const PROJECTS = ["rigzilla", "trusted-server", "scrapezilla", "tauritutorials", "ideas", "yesman"] as const;
 
 function formatLocalDateTime(date: Date): string {
 	const pad = (value: number) => String(value).padStart(2, "0");

@@ -38,7 +38,7 @@ export default function (pi: ExtensionAPI) {
 		ctx.ui.notify(`fo-sound extension: missing sound file at ${SOUND_PATH}`, "warning");
 	});
 
-	playSound(START_SOUND_PATH);
+	// playSound(START_SOUND_PATH);
 
 	pi.on("agent_end", async () => {
 		playSound(SOUND_PATH);
