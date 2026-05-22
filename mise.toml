@@ -2,8 +2,9 @@
 rust = "1.93"
 bun = "1.3.9"
 python = "3.14.2"
-node = "24"
+node = "latest"
 java = "temurin-17.0.14+7"
 gradle = "8.12.1"
+deno = "latest"
 
 # Keeping PHP out of mise for now since Herd manages it.

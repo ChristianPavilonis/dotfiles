@@ -3,6 +3,8 @@ set -euo pipefail
 
 VAULT_DIR="${OBSIDIAN_VAULT_DIR:-$HOME/Documents/MyObsidianVault}"
 OB_CMD="${OBSIDIAN_OB_CMD:-$HOME/.bun/bin/ob}"
+SYNC_TIMEOUT="${OBSIDIAN_SYNC_TIMEOUT:-5m}"
+SYNC_KILL_AFTER="${OBSIDIAN_SYNC_KILL_AFTER:-30s}"
 
 cd "$VAULT_DIR"
 
@@ -12,7 +14,7 @@ while true; do
   for attempt in 1 2 3 4 5; do
     rm -rf ".obsidian/.sync.lock"
 
-    if "$OB_CMD" sync --path "$VAULT_DIR"; then
+    if timeout --kill-after="$SYNC_KILL_AFTER" "$SYNC_TIMEOUT" "$OB_CMD" sync --path "$VAULT_DIR"; then
       synced=1
       break
     fi

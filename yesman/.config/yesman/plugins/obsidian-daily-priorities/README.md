@@ -32,7 +32,7 @@ yesman emit obsidian.daily-priorities.update '{"date":"2026-05-21"}'
 ## Optional config
 
 ```bash
-yesman config set obsidian-daily-priorities vault_path '"/Users/christian/Documents/MyObsidianVault"'
+yesman config set obsidian-daily-priorities vault_path '"/home/christian/Documents/MyObsidianVault"'
 yesman config set obsidian-daily-priorities daily_folder '"daily"'
 yesman config set obsidian-daily-priorities max_tasks 12
 ```

@@ -1,8 +1,8 @@
 {
-  "lastChangelogVersion": "0.67.6",
+  "lastChangelogVersion": "0.74.0",
   "theme": "fallout-terminal",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.4",
+  "defaultModel": "gpt-5.5",
   "packages": [
     "npm:@ifi/pi-plan",
     "npm:pi-web-access",

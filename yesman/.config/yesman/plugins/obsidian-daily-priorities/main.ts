@@ -1,12 +1,12 @@
 import { definePlugin } from "@yesman/sdk";
 
-const DEFAULT_VAULT_PATH = "/Users/christian/Documents/MyObsidianVault";
+const DEFAULT_VAULT_PATH = "/home/christian/Documents/MyObsidianVault";
 const DEFAULT_DAILY_FOLDER = "daily";
 const DEFAULT_MAX_TASKS = 12;
 
 function localDateString(date = new Date()): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/New_York",
+    timeZone: "America/Chicago",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",

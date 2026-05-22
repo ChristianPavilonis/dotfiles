@@ -6,9 +6,11 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=%h/Documents/MyObsidianVault
-ExecStart=/home/christian/dotfiles/scripts/obsidian-vault-sync-loop.sh
+ExecStart=/usr/bin/timeout --kill-after=30s 6h %h/.bun/bin/ob sync --path %h/Documents/MyObsidianVault --continuous
 Restart=always
 RestartSec=10
+KillMode=mixed
+TimeoutStopSec=45
 Environment=HOME=%h
 Environment=PATH=%h/.local/share/mise/shims:%h/.bun/bin:/usr/local/bin:/usr/bin:/bin
 
