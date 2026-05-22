@@ -5,7 +5,7 @@ set -euo pipefail
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OS_NAME="$(uname -s)"
 
-COMMON_PACKAGES=(git kitty nu nvim opencode pi starship zellij)
+COMMON_PACKAGES=(git kitty nu nvim opencode pi starship yesman zellij)
 MACOS_PACKAGES=(aerospace)
 
 if ! command -v stow >/dev/null 2>&1; then
@@ -27,6 +27,7 @@ legacy_links=(
   "$HOME/.config/opencode/skills"
   "$HOME/.config/opencode/themes"
   "$HOME/.config/opencode/tools"
+  "$HOME/.config/yesman"
 )
 
 for link in "${legacy_links[@]}"; do
@@ -36,6 +37,7 @@ for link in "${legacy_links[@]}"; do
 done
 
 mkdir -p "$HOME/.config/opencode"
+mkdir -p "$HOME/.config/yesman"
 
 if [ "$OS_NAME" = "Darwin" ]; then
   if [ -e "$HOME/.aerospace.toml" ] && [ ! -L "$HOME/.aerospace.toml" ]; then

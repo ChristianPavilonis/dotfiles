@@ -115,6 +115,7 @@ cd ~/dotfiles
 - `opencode` -> `~/.config/opencode/*`
 - `pi` -> `~/.pi/*`
 - `starship` -> `~/.config/starship.toml`
+- `yesman` -> `~/.config/yesman/plugins/*`
 - `zellij` -> `~/.config/zellij`
 
 ## Daily stow commands
