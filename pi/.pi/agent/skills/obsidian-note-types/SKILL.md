@@ -39,7 +39,7 @@ Choose the most specific type that fits:
 | Type | Use for |
 |---|---|
 | `project` | Project home/index notes, durable project overviews, MOCs. |
-| `task` | Concrete action items with a desired outcome and checklist. Replaces new uses of `todo`. |
+| `task` | Action items with a desired outcome. |
 | `issue` | Bugs, blockers, risks, production problems, unresolved concerns. |
 | `plan` | Proposed implementation steps, project plans, migration plans, agent handoff plans. |
 | `reference` | Durable facts: APIs, architecture, commands, schemas, source-backed explanations. |
