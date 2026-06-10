@@ -1,0 +1,12 @@
+name = "git-main-updater"
+version = "0.1.0"
+entry = "main.ts"
+
+[permissions]
+read = ["/home/christian/projects"]
+run = ["git"]
+
+[config]
+projects_root = "/home/christian/projects"
+branches = ["main", "master"]
+concurrency = 2

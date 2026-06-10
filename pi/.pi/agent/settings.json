@@ -9,7 +9,7 @@
     "npm:pi-subagents",
     "npm:@codexstar/pi-listen"
   ],
-  "defaultThinkingLevel": "medium",
+  "defaultThinkingLevel": "high",
   "editorPaddingX": 1,
   "quietStartup": true
 }

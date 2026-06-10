@@ -1,3 +1,8 @@
 name = "obsidian-daily-priorities"
 version = "0.1.0"
 entry = "main.ts"
+
+[config]
+vault_path = "/home/christian/Documents/MyObsidianVault"
+daily_folder = "daily"
+max_tasks = 12

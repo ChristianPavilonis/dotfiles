@@ -1,0 +1,35 @@
+name = "yesman-agent-tasks"
+version = "0.1.0"
+entry = "main.ts"
+
+[permissions]
+read = [
+  "/home/christian/Documents/MyObsidianVault",
+  "/home/christian/projects",
+  "/home/christian/worktrees",
+]
+write = ["/home/christian/Documents/MyObsidianVault"]
+run = ["git"]
+
+[config]
+enabled = true
+dry_run = false
+vault_path = "/home/christian/Documents/MyObsidianVault"
+worktree_root = "/home/christian/worktrees"
+marker = "@yesman"
+statuses = ["open"]
+max_new_per_scan = 1
+max_concurrency = 1
+agent_timeout_minutes = 90
+draft_pr = true
+branch_prefix = "yesman"
+update_notes = true
+skip_projects = []
+agent_tools = ["read", "write", "edit", "bash", "ffgrep", "fffind"]
+agent_thinking = "off"
+
+[config.project_repos]
+rigzilla = "/home/christian/projects/rigzilla"
+scrapezilla = "/home/christian/projects/scrapezilla"
+"trusted-server" = "/home/christian/projects/trusted-server"
+yesman = "/home/christian/projects/yesman"

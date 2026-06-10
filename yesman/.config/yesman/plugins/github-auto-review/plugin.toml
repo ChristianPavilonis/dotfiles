@@ -1,0 +1,25 @@
+name = "github-auto-review"
+version = "0.1.0"
+entry = "main.ts"
+
+[permissions]
+run = ["gh", "git", "nu"]
+env = ["HOME", "PATH", "GH_TOKEN", "GITHUB_TOKEN"]
+
+[config]
+enabled = true
+harness_name = "github-auto-review.pi"
+thinking = "high"
+max_prs_per_tick = 2
+list_limit = 50
+max_pr_age_hours = 24
+review_prompt = """
+Use the reviewer agent to preform the review.
+"""
+
+[[config.repositories]]
+name = "trusted-server"
+cwd = "/home/christian/projects/trusted-server"
+repo = "IABTechLab/trusted-server"
+enabled = true
+skipDrafts = true
