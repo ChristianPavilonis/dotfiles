@@ -8,6 +8,10 @@ import {
 const DEFAULT_HARNESS_NAME = "github-auto-review.pi";
 const POLL_SCHEDULE = "0 0 * * * *";
 const REVIEW_RESULT_MARKER = "REVIEW_RESULT:";
+const REVIEW_PROMPT_TEMPLATE_PATHS = [
+  "/home/christian/.pi/agent/prompts/ts-review.md",
+  "/home/christian/dotfiles/pi/.pi/agent/prompts/ts-review.md",
+];
 const DEFAULT_MAX_PRS_PER_TICK = 2;
 const DEFAULT_LIST_LIMIT = 50;
 const DEFAULT_MAX_PR_AGE_HOURS = 24;
@@ -23,11 +27,9 @@ const DEFAULT_REPOSITORIES: RepositoryConfig[] = [
   },
 ];
 
-const DEFAULT_REVIEW_PROMPT = `Project-specific notes for trusted-server:
-- Perform a complete review rather than a superficial diff summary.
-- Prioritize correctness, security, privacy, authorization, data-loss risks, API compatibility,
-  concurrency/race conditions, test coverage, and maintainability.
-- Prefer actionable comments with concrete suggestions.`;
+const DEFAULT_REVIEW_PROMPT = `Additional automated-review notes:
+- Submit REQUEST_CHANGES only for blocking correctness, security, data-loss, authorization, or severe compatibility issues.
+- Submit COMMENT otherwise, including when no blocking issues are found.`;
 
 type RepositoryConfig = {
   name: string;
@@ -330,7 +332,7 @@ async function reviewPullRequestIfNeeded(
       return "skipped";
     }
 
-    const prompt = buildReviewPrompt(repo, pr, worktreePath, settings.reviewPrompt);
+    const prompt = await buildReviewPrompt(repo, pr, worktreePath, settings.reviewPrompt);
     const harnessResult = await runReviewHarness(ctx, settings, worktreePath, prompt);
 
     const submittedReview = await findSubmittedReview(
@@ -688,37 +690,68 @@ async function findSubmittedReview(
   return matches[0] ?? null;
 }
 
-function buildReviewPrompt(
+async function buildReviewPrompt(
   repo: RepositoryConfig,
   pr: PullRequest,
   worktreePath: string,
   reviewPrompt: string,
-): string {
-  return `You are reviewing GitHub PR #${pr.number} in ${repo.repo}.
+): Promise<string> {
+  const template = await loadReviewPromptTemplate();
+  const target = `PR #${pr.number}
 
-This is a automated review launched by the github-auto-review plugin.
-You MUST submit the review to GitHub before finishing. Do not do a dry run.
+Repository: ${repo.repo}
+Worktree: ${worktreePath}
+PR title: ${pr.title}
+PR URL: ${pr.url}
+Base branch: ${pr.baseRefName}
+Head branch: ${pr.headRefName}
+Head SHA: ${pr.headRefOid}
 
-Use the submit-gh-pr-review skill to submit the final review.
+This is an automated review launched by the github-auto-review plugin.
 
-Important submission policy:
+Additional automated-review instructions:
+${reviewPrompt.trim() || "None."}`;
+  const renderedReviewPrompt = renderPromptTemplate(template, target);
+
+  return `${renderedReviewPrompt}
+
+Automation/submission instructions:
+- You MUST submit the review to GitHub before finishing. Do not do a dry run.
+- Use the submit-gh-pr-review skill to submit the final review.
 - The submitted review body must start with "Automated review:".
 - Relevant inline comments should also make it clear they are from an automated review.
 - Submit only COMMENT or REQUEST_CHANGES.
-- Use REQUEST_CHANGES only for blocking correctness, security, data-loss, authorization, or severe
-  compatibility issues.
+- Use REQUEST_CHANGES only for blocking correctness, security, data-loss, authorization, or severe compatibility issues.
 - Use COMMENT otherwise.
-- Do not APPROVE. If the submit-gh-pr-review skill's default rules mention approving when there are
-  no findings, override that for this workflow and submit COMMENT instead.
-- If no blocking issues are found, submit a COMMENT review saying the automated review found no
-  blocking issues.
-
-Review instructions:
-${reviewPrompt.trim()}
+- Do not APPROVE. If the submit-gh-pr-review skill's default rules mention approving when there are no findings, override that for this workflow and submit COMMENT instead.
+- If no blocking issues are found, submit a COMMENT review saying the automated review found no blocking issues.
 
 After submitting, end your response with exactly one machine-readable result line using this format:
 ${REVIEW_RESULT_MARKER} {"submitted":true,"review_url":"https://github.com/...","event":"COMMENT or REQUEST_CHANGES","inline_comments":0}
 `;
+}
+
+async function loadReviewPromptTemplate(): Promise<string> {
+  const errors: string[] = [];
+  for (const path of REVIEW_PROMPT_TEMPLATE_PATHS) {
+    try {
+      return await Deno.readTextFile(path);
+    } catch (error) {
+      errors.push(`${path}: ${stringifyError(error)}`);
+    }
+  }
+
+  throw new Error(`failed to read Trusted Server review prompt template:\n${errors.join("\n")}`);
+}
+
+function renderPromptTemplate(template: string, args: string): string {
+  return stripPromptFrontmatter(template).replaceAll("$@", args.trim());
+}
+
+function stripPromptFrontmatter(text: string): string {
+  if (!text.startsWith("---")) return text.trim();
+  const match = text.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
+  return match ? text.slice(match[0].length).trim() : text.trim();
 }
 
 async function getSettings(ctx: PluginContext): Promise<Settings> {

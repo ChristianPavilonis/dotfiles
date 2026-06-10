@@ -1,6 +1,6 @@
 # github-auto-review
 
-Polls configured GitHub repositories for open PRs requesting review from the authenticated `gh` user, opens each PR with Christian's `gwpr` worktree helper, runs a Pi review agent, and has the agent submit a live GitHub review with the `submit-gh-pr-review` skill.
+Polls configured GitHub repositories for open PRs requesting review from the authenticated `gh` user, opens each PR with Christian's `gwpr` worktree helper, runs Pi with the shared Trusted Server review prompt, and has the agent submit a live GitHub review with the `submit-gh-pr-review` skill.
 
 ## Behavior
 
@@ -8,8 +8,9 @@ Polls configured GitHub repositories for open PRs requesting review from the aut
 - Query: `gh pr list --search review-requested:@me` from each repo cwd.
 - Freshness: skips PRs whose `updatedAt` is older than `max_pr_age_hours`.
 - Worktree: `nu -l -c 'gwpr <pr>; pwd'`.
+- Review prompt: loads `~/.pi/agent/prompts/ts-review.md` and fills in the PR target.
 - Review agent: Pi harness in the PR worktree.
-- Submission: the prompt instructs Pi to use the `submit-gh-pr-review` skill.
+- Submission: the prompt appends automation instructions that tell Pi to use the `submit-gh-pr-review` skill.
 - Verdicts: `COMMENT` or `REQUEST_CHANGES` only; never `APPROVE`.
 - Idempotency: stores reviewed state by `repo + PR number + head SHA`.
 
@@ -26,7 +27,7 @@ max_prs_per_tick = 2
 list_limit = 50
 max_pr_age_hours = 24
 review_prompt = """
-Project-specific review guidance...
+Extra automated-review guidance appended to the shared prompt...
 """
 
 [[config.repositories]]
@@ -49,7 +50,7 @@ Config keys:
 - `provider` string
 - `model` string
 - `tools` string array; omit to use Pi defaults
-- `review_prompt` string
+- `review_prompt` string; extra automated-review guidance appended to the shared `ts-review.md` prompt
 - `max_prs_per_tick` integer, default `2`
 - `list_limit` integer, default `50`
 - `max_pr_age_hours` number, default `24`

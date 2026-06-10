@@ -5,6 +5,10 @@ entry = "main.ts"
 [permissions]
 run = ["gh", "git", "nu"]
 env = ["HOME", "PATH", "GH_TOKEN", "GITHUB_TOKEN"]
+read = [
+  "/home/christian/.pi/agent/prompts/ts-review.md",
+  "/home/christian/dotfiles/pi/.pi/agent/prompts/ts-review.md",
+]
 
 [config]
 enabled = true
@@ -14,7 +18,7 @@ max_prs_per_tick = 2
 list_limit = 50
 max_pr_age_hours = 24
 review_prompt = """
-Use the reviewer agent to preform the review.
+This automated workflow should submit COMMENT unless it finds blocking correctness, security, data-loss, authorization, or severe compatibility issues.
 """
 
 [[config.repositories]]
