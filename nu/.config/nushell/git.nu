@@ -74,12 +74,56 @@ def "nu-complete git worktree branches" [] {
     | get value
 }
 
+def git-worktree-setup-source-roots [] {
+  let current_root = (^git rev-parse --show-toplevel | str trim)
+  let common_root = (^git rev-parse --path-format=absolute --git-common-dir | str trim | path dirname)
+  [$current_root $common_root] | uniq
+}
+
+def copy-worktree-dir-if-present [source_roots] {
+  let local_worktree_dir = (".worktree" | path expand)
+
+  if ($local_worktree_dir | path exists) {
+    return
+  }
+
+  for source_root in $source_roots {
+    let source_worktree_dir = ($source_root | path join ".worktree")
+
+    if $source_worktree_dir == $local_worktree_dir {
+      continue
+    }
+
+    if ($source_worktree_dir | path exists) {
+      print $"Copying .worktree/ from ($source_worktree_dir) → ($local_worktree_dir)"
+      cp -r $source_worktree_dir $local_worktree_dir
+      return
+    }
+  }
+}
+
+def run-worktree-setup [source_roots] {
+  copy-worktree-dir-if-present $source_roots
+
+  if (".worktree/setup" | path exists) {
+    print "Running .worktree/setup..."
+    ^"./.worktree/setup"
+  } else if (".worktree/setup.nu" | path exists) {
+    print "Running .worktree/setup.nu..."
+    ^nu .worktree/setup.nu
+  } else if (".worktree-setup" | path exists) {
+    print "Running .worktree-setup..."
+    ^"./.worktree-setup"
+  }
+}
+
 # Add a git worktree and cd into it by default
 def --env gwa [
   branch: string@"nu-complete git switch"  # branch (created if it doesn't exist)
   --no-switch(-n)                          # create the worktree without changing directory
 ] {
   let original_dir = $env.PWD
+  let setup_source_roots = (git-worktree-setup-source-roots)
   let worktree_root = ("~/worktrees" | path expand)
   let worktree_path = ($worktree_root | path join ($branch | str replace --all "/" "-"))
   mkdir $worktree_root
@@ -92,10 +136,7 @@ def --env gwa [
 
   cd $worktree_path
 
-  if (".worktree-setup" | path exists) {
-    print "Running .worktree-setup..."
-    ^"./.worktree-setup"
-  }
+  run-worktree-setup $setup_source_roots
 
   if $no_switch {
     cd $original_dir
@@ -264,6 +305,7 @@ def --env gwpr [
   }
 
   let worktree_root = ("~/worktrees" | path expand)
+  let setup_source_roots = (git-worktree-setup-source-roots)
   let pr_info = (gh pr view $pr_number --json headRefName,number | from json)
   let branch = $pr_info.headRefName
   let worktree_path = ($worktree_root | path join ($branch | str replace --all "/" "-"))
@@ -291,10 +333,7 @@ def --env gwpr [
   cd $worktree_path
   ^git checkout -B $branch
 
-  if (".worktree-setup" | path exists) {
-    print "Running .worktree-setup..."
-    ^"./.worktree-setup"
-  }
+  run-worktree-setup $setup_source_roots
 }
 
 def keep-the-streak-alive [] {
