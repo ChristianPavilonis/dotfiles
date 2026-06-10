@@ -1,0 +1,24 @@
+name = "tech-debt-analysis"
+version = "0.1.0"
+entry = "main.ts"
+
+[permissions]
+read = ["/home/christian/projects"]
+run = ["git", "gh"]
+env = ["HOME", "PATH", "GH_TOKEN", "GITHUB_TOKEN"]
+
+[config]
+enabled = true
+harness_name = "pi"
+thinking = "high"
+max_repos_per_run = 1
+issue_label = "tech-debt"
+agent_timeout_minutes = 120
+max_file_bytes = 250000
+agent_tools = ["read", "bash", "ffgrep", "fffind"]
+
+[[config.repositories]]
+name = "rigzilla"
+cwd = "/home/christian/projects/rigzilla"
+repo = "ChristianPavilonis/rigzilla"
+enabled = true
