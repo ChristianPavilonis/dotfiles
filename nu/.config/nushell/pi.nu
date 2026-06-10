@@ -8,10 +8,9 @@ def picrc [] {
   pi "/plan" "Look at the current PR's review comments using gh CLI commands. Identify any requested changes or actionable review feedback. Create a plan to address each valid comment, organized by file and priority."
 }
 
-# Launch pi in plan mode to review the current branch's PR
-# Requires the @ifi/pi-plan extension package.
+# Launch pi with the Trusted Server review prompt for the current branch's PR.
 def pipr [] {
-  pi "using the pr-reviewer review the current branch's PR."
+  pi "/ts-review" "current branch's PR"
 }
 
 def _worklog-default-date [] {
