@@ -3,6 +3,7 @@ import { definePlugin } from "@yesman/sdk";
 const DEFAULT_VAULT_PATH = "/home/christian/Documents/MyObsidianVault";
 const DEFAULT_DAILY_FOLDER = "daily";
 const DEFAULT_MAX_TASKS = 12;
+const DAILY_NOTE_MODEL = "gpt-5.3-codex-spark";
 
 function localDateString(date = new Date()): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -116,6 +117,7 @@ export default definePlugin((plugin) => {
       const result = await ctx.harness.run("pi", {
         prompt: buildPrompt({ vaultPath, dailyFolder, date, maxTasks }),
         cwd: vaultPath,
+        model: DAILY_NOTE_MODEL,
         thinking: "off",
         tools: ["read", "write", "edit", "bash", "ffgrep", "fffind"],
       });
