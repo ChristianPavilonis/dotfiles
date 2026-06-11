@@ -39,7 +39,7 @@ Choose the most specific type that fits:
 | Type | Use for |
 |---|---|
 | `project` | Project home/index notes, durable project overviews, MOCs. |
-| `task` | Action items with a desired outcome. |
+| `task` | Action items with a desired outcome, when capturing, be very terse. |
 | `issue` | Bugs, blockers, risks, production problems, unresolved concerns. |
 | `plan` | Proposed implementation steps, project plans, migration plans, agent handoff plans. |
 | `reference` | Durable facts: APIs, architecture, commands, schemas, source-backed explanations. |
