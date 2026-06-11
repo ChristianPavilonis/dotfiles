@@ -1,0 +1,3 @@
+name = "project-prompts"
+version = "0.1.0"
+entry = "main.ts"
