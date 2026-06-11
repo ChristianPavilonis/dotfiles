@@ -1,13 +1,18 @@
 # tech-debt-analysis
 
-Weekly YesMan plugin that asks Pi to inspect a random source file in a configured repository, find exactly one actionable tech-debt/refactor opportunity, and open a GitHub issue.
+Weekly YesMan plugin that asks Pi to inspect a random source file in a
+configured repository, find exactly one actionable tech-debt/refactor
+opportunity, and open a GitHub issue.
 
 ## Behavior
 
 - Schedule: `0 9 * * 1` — Mondays at 9:00 AM local time.
 - Handles `tech-debt-analysis.run`.
 - Selects one random tracked source file from the repo using `git ls-files`.
-- Filters out build output, vendor/dependency directories, lockfiles, generated files, media/binary-like files, and files larger than `max_file_bytes`.
+- If a repo config sets `include_paths`, only files under those paths are
+  eligible as the random starting file.
+- Filters out build output, vendor/dependency directories, lockfiles, generated
+  files, media/binary-like files, and files larger than `max_file_bytes`.
 - Runs Pi from the repository cwd.
 - Pi must:
   - start from the selected file,
@@ -37,7 +42,18 @@ name = "rigzilla"
 cwd = "/home/christian/projects/rigzilla"
 repo = "ChristianPavilonis/rigzilla"
 enabled = true
+include_paths = [
+  "app",
+  "database",
+  "resources",
+  "routes",
+  "src-tauri/src",
+  "tests",
+]
 ```
+
+Leave `include_paths` empty or omit it to allow any tracked source file that
+passes the global filters.
 
 ## Manual run
 

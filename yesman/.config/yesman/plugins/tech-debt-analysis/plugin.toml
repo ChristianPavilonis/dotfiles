@@ -22,3 +22,11 @@ name = "rigzilla"
 cwd = "/home/christian/projects/rigzilla"
 repo = "ChristianPavilonis/rigzilla"
 enabled = true
+include_paths = [
+  "app",
+  "database",
+  "resources",
+  "routes",
+  "src-tauri/src",
+  "tests",
+]

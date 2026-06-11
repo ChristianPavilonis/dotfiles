@@ -22,6 +22,14 @@ const DEFAULT_REPOSITORIES: RepositoryConfig[] = [
     cwd: "/home/christian/projects/rigzilla",
     repo: "ChristianPavilonis/rigzilla",
     enabled: true,
+    includePaths: [
+      "app",
+      "database",
+      "resources",
+      "routes",
+      "src-tauri/src",
+      "tests",
+    ],
   },
 ];
 
@@ -98,6 +106,7 @@ type RepositoryConfig = {
   cwd: string;
   repo: string;
   enabled: boolean;
+  includePaths: string[];
 };
 
 type Settings = {
@@ -216,6 +225,7 @@ async function handleRun(
           name: repo.name,
           repo: repo.repo,
           cwd: repo.cwd,
+          include_paths: repo.includePaths,
         })),
       },
     });
@@ -339,6 +349,7 @@ async function analyzeRepository(
   const startingFile = await chooseRandomSourceFile(
     repo.cwd,
     settings.maxFileBytes,
+    repo.includePaths,
   );
   const repoStatusBefore = await gitStatus(repo.cwd);
   const startedAt = new Date().toISOString();
@@ -349,6 +360,7 @@ async function analyzeRepository(
     cwd: repo.cwd,
     week,
     starting_file: startingFile,
+    include_paths: repo.includePaths,
     status: "started",
     started_at: startedAt,
   });
@@ -361,6 +373,7 @@ async function analyzeRepository(
       cwd: repo.cwd,
       week,
       starting_file: startingFile,
+      include_paths: repo.includePaths,
       started_at: startedAt,
     },
   });
@@ -403,6 +416,7 @@ async function analyzeRepository(
     cwd: repo.cwd,
     week,
     starting_file: markerStartingFile(marker) ?? startingFile,
+    include_paths: repo.includePaths,
     issue_url: verifiedIssue.url,
     issue_title: verifiedIssue.title,
     issue_state: verifiedIssue.state,
@@ -419,6 +433,7 @@ async function analyzeRepository(
     cwd: repo.cwd,
     week,
     starting_file: markerStartingFile(marker) ?? startingFile,
+    include_paths: repo.includePaths,
     issue_url: verifiedIssue.url,
     issue_title: verifiedIssue.title,
     issue_state: verifiedIssue.state,
@@ -533,6 +548,11 @@ function buildAgentPrompt(
 Repository: ${repo.repo}
 Working directory: ${repo.cwd}
 Starting file: ${startingFile}
+Eligible starting-file paths: ${
+    repo.includePaths.length > 0
+      ? repo.includePaths.join(", ")
+      : "all source paths"
+  }
 
 Hard constraints:
 - Start by reading the selected starting file.
@@ -656,18 +676,37 @@ function parseRepositoryConfig(value: unknown): RepositoryConfig | null {
     cwd,
     repo,
     enabled: typeof value.enabled === "boolean" ? value.enabled : true,
+    includePaths: parseIncludePaths(value.includePaths ?? value.include_paths),
   };
+}
+
+function parseIncludePaths(value: unknown): string[] {
+  const parsed = typeof value === "string" ? tryJsonParse(value) : value;
+  if (!Array.isArray(parsed)) return [];
+  return parsed
+    .filter((item): item is string => typeof item === "string")
+    .map(normalizeRepoPath)
+    .filter((item) => item.length > 0);
+}
+
+function normalizeRepoPath(path: string): string {
+  return path.trim().replace(/^\.\//, "").replace(/^\/+/, "").replace(
+    /\/+$/,
+    "",
+  );
 }
 
 async function chooseRandomSourceFile(
   cwd: string,
   maxFileBytes: number,
+  includePaths: string[],
 ): Promise<string> {
   const result = await runCommand("git", ["ls-files", "-z"], { cwd });
   const files = result.stdout.split("\0").filter((file) => file.length > 0);
   const candidates: string[] = [];
 
   for (const file of files) {
+    if (!isIncludedPath(file, includePaths)) continue;
     if (shouldExcludeFile(file)) continue;
     try {
       const stat = await Deno.stat(join(cwd, file));
@@ -679,12 +718,26 @@ async function chooseRandomSourceFile(
   }
 
   if (candidates.length === 0) {
-    throw new Error(`no source-file candidates found in ${cwd}`);
+    const includeDescription = includePaths.length > 0
+      ? ` within include paths: ${includePaths.join(", ")}`
+      : "";
+    throw new Error(
+      `no source-file candidates found in ${cwd}${includeDescription}`,
+    );
   }
 
   const random = new Uint32Array(1);
   crypto.getRandomValues(random);
   return candidates[random[0] % candidates.length];
+}
+
+function isIncludedPath(path: string, includePaths: string[]): boolean {
+  if (includePaths.length === 0) return true;
+  const normalized = normalizeRepoPath(path).toLowerCase();
+  return includePaths.some((includePath) => {
+    const include = normalizeRepoPath(includePath).toLowerCase();
+    return normalized === include || normalized.startsWith(`${include}/`);
+  });
 }
 
 function shouldExcludeFile(path: string): boolean {
