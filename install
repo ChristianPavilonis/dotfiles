@@ -85,6 +85,17 @@ if [ "$OS_NAME" = "Linux" ]; then
     chmod 600 "$opencode_env"
     echo "Created $opencode_env — update the password before starting the service."
   fi
+
+  # Create yesman UI env file stub if it doesn't exist. This file is intentionally
+  # outside the stowed dotfiles tree so the UI password stays machine-local.
+  yesman_env="$HOME/.config/yesman.env"
+  if [ ! -e "$yesman_env" ]; then
+    printf '# yesman UI credentials\nYESMAN_UI_PASSWORD=changeme\n' > "$yesman_env"
+    chmod 600 "$yesman_env"
+    echo "Created $yesman_env — update the password before starting yesmand.service."
+  fi
+
+  mkdir -p "$HOME/.local/share/yesman/runtime"
 fi
 
 if [ "$OS_NAME" = "Darwin" ]; then

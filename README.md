@@ -85,6 +85,24 @@ Note: if Tailscale is not connected when the firewall is configured, `ALLOW_PUBL
 is automatically promoted to `1` with a warning to prevent SSH lockout. Rerun the
 bootstrap after Tailscale is connected to close port 22.
 
+### Yesman UI service
+
+The VPS dotfiles replace the old Bun `yesmand.service` with the Rust Yesman daemon and UI server.
+The user service reads `~/.config/yesman.env`, binds the UI to `0.0.0.0:3777`, and runs from
+`~/.local/share/yesman/runtime` so runtime state is scoped consistently.
+
+After installing/building Yesman, set a real UI password and start the service:
+
+```bash
+cargo install --path ~/projects/yesman --locked --force
+$EDITOR ~/.config/yesman.env # set YESMAN_UI_PASSWORD
+systemctl --user daemon-reload
+systemctl --user enable --now yesmand.service
+yesman status
+```
+
+`yesmand.service` refuses to start while `YESMAN_UI_PASSWORD=changeme`.
+
 ## Tooling audit
 
 Generate a snapshot of what is currently installed:
@@ -116,6 +134,7 @@ cd ~/dotfiles
 - `pi` -> `~/.pi/*`
 - `starship` -> `~/.config/starship.toml`
 - `yesman` -> `~/.config/yesman/plugins/*`
+- `opencode` -> user systemd units, including `yesmand.service` for the Rust Yesman UI daemon
 - `zellij` -> `~/.config/zellij`
 
 ## Daily stow commands

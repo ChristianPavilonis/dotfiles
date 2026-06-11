@@ -139,11 +139,64 @@ check_dotfiles() {
   fi
 }
 
+check_yesman_service() {
+  local user_home
+  user_home="$(getent passwd "$VPS_USER" | cut -d: -f6)"
+  local yesman_bin="$user_home/.cargo/bin/yesman"
+  local service_file="$user_home/.config/systemd/user/yesmand.service"
+  local env_file="$user_home/.config/yesman.env"
+  local runtime_dir="$user_home/.local/share/yesman/runtime"
+
+  if [ -x "$yesman_bin" ]; then
+    pass "yesman binary present at $yesman_bin"
+  else
+    fail "yesman binary missing at $yesman_bin"
+  fi
+
+  if [ -f "$service_file" ]; then
+    pass "yesmand.service present"
+    if grep -Fq 'YESMAN_UI_ADDR=0.0.0.0:' "$service_file"; then
+      pass "yesman UI binds to 0.0.0.0"
+    else
+      fail "yesmand.service does not bind YESMAN_UI_ADDR to 0.0.0.0"
+    fi
+  else
+    fail "yesmand.service missing at $service_file"
+  fi
+
+  if [ -d "$runtime_dir" ]; then
+    pass "yesman runtime cwd exists"
+  else
+    fail "yesman runtime cwd missing at $runtime_dir"
+  fi
+
+  if [ -f "$env_file" ]; then
+    pass "yesman UI env file present"
+    local mode
+    mode="$(stat -c '%a' "$env_file" 2>/dev/null || true)"
+    if [ "$mode" = "600" ]; then
+      pass "yesman UI env file permissions are 600"
+    else
+      fail "yesman UI env file permissions are $mode, expected 600"
+    fi
+
+    if grep -Eq '^YESMAN_UI_PASSWORD=.+' "$env_file" \
+      && ! grep -Eq '^YESMAN_UI_PASSWORD=changeme$' "$env_file"; then
+      pass "yesman UI password is configured"
+    else
+      fail "set a real YESMAN_UI_PASSWORD in $env_file"
+    fi
+  else
+    fail "yesman UI env file missing at $env_file"
+  fi
+}
+
 echo "Running VPS doctor checks..."
 
 check_admin_user
 check_passwordless_sudo
 check_dotfiles
+check_yesman_service
 
 check_cmd git
 check_cmd stow

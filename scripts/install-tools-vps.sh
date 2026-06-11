@@ -105,7 +105,36 @@ enable_opencode_web() {
   echo "Don't forget to update ~/.config/opencode/.env with a real password first."
 }
 
+enable_yesman_service() {
+  local service="yesmand.service"
+  local service_file="$HOME/.config/systemd/user/$service"
+  local env_file="$HOME/.config/yesman.env"
+
+  if [ ! -f "$service_file" ]; then
+    echo "yesman service file not found; skipping."
+    return
+  fi
+
+  if command -v loginctl >/dev/null 2>&1; then
+    sudo loginctl enable-linger "$(whoami)" 2>/dev/null || true
+  fi
+
+  systemctl --user daemon-reload
+
+  if [ -f "$env_file" ] \
+    && grep -Eq '^YESMAN_UI_PASSWORD=.+' "$env_file" \
+    && ! grep -Eq '^YESMAN_UI_PASSWORD=changeme$' "$env_file"; then
+    systemctl --user enable "$service"
+    echo "yesman service enabled."
+    echo "Start it with: systemctl --user start $service"
+  else
+    echo "yesman service not enabled yet. Set a real YESMAN_UI_PASSWORD in $env_file, then run:"
+    echo "  systemctl --user enable --now $service"
+  fi
+}
+
 enable_opencode_web
+enable_yesman_service
 
 echo "VPS tool setup complete."
 echo "Next: run ./scripts/doctor-vps.sh"
