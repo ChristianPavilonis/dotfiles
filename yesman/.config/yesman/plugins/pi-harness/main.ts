@@ -19,6 +19,7 @@ export default definePlugin((plugin) => {
     provider: "openai-codex",
     model: "gpt-5.5",
     thinking: "off",
+    sessionMode: "auto",
   });
 
   plugin.on("system.started", async (ctx, event) => {
