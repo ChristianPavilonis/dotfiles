@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.74.0",
+  "lastChangelogVersion": "0.79.1",
   "theme": "fallout-terminal",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.5",
@@ -9,7 +9,7 @@
     "npm:pi-subagents",
     "npm:@codexstar/pi-listen"
   ],
-  "defaultThinkingLevel": "medium",
+  "defaultThinkingLevel": "off",
   "editorPaddingX": 1,
   "quietStartup": true
 }

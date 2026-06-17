@@ -16,7 +16,10 @@ export default definePlugin((plugin) => {
   plugin.harness("pi", {
     kind: "pi_rpc",
     cwd: ".",
+    provider: "openai-codex",
+    model: "gpt-5.5",
     thinking: "off",
+    sessionMode: "auto",
   });
 
   plugin.on("system.started", async (ctx, event) => {
@@ -33,16 +36,29 @@ export default definePlugin((plugin) => {
       cwd?: unknown;
       tools?: unknown;
       thinking?: unknown;
+      provider?: unknown;
+      model?: unknown;
     };
 
     const prompt = asString(payload.prompt, "Say hello from the Pi harness.");
+    const provider = asString(payload.provider, "");
+    const model = asString(payload.model, "");
 
-    await ctx.log("pi.ask received", { prompt });
+    await ctx.log("pi.ask received", {
+      prompt,
+      provider,
+      model,
+      cwd: asString(payload.cwd, "."),
+      thinking: asString(payload.thinking, "off"),
+      tools: asStringArray(payload.tools),
+    });
 
     const result = await ctx.harness.run("pi", {
       prompt,
       cwd: asString(payload.cwd, "."),
       thinking: asString(payload.thinking, "off"),
+      provider: provider || undefined,
+      model: model || undefined,
       tools: asStringArray(payload.tools),
     });
 
