@@ -51,6 +51,19 @@ function extractMessageText(message: MessageLike): string {
 		.join("\n");
 }
 
+function getFirstUserPrompt(ctx: ExtensionContext): string | undefined {
+	const firstUserEntry = ctx
+		.sessionManager
+		.getBranch()
+		.find((entry) => {
+			const candidate = entry as SessionEntryLike;
+			return candidate.type === "message" && candidate.message?.role === "user";
+		}) as SessionEntryLike | undefined;
+
+	const prompt = firstUserEntry?.message ? extractMessageText(firstUserEntry.message).trim() : "";
+	return prompt.length > 0 ? prompt : undefined;
+}
+
 function extractText(response: { content?: Array<{ type: string; text?: string }> }): string {
 	return (response.content ?? [])
 		.filter((part): part is { type: "text"; text: string } => part.type === "text" && typeof part.text === "string")
@@ -154,13 +167,16 @@ async function generateSessionTitle(
 				headers: auth.headers,
 				maxTokens: 80,
 				reasoning: "minimal",
-				temperature: 0.2,
 				timeoutMs: 30_000,
 			},
 		);
 
 		if (disposed || generation !== sessionGeneration || hasExplicitSessionName(ctx)) return;
-		if (response.stopReason === "error") return;
+		if (response.stopReason === "error") {
+			const message = response.errorMessage || "unknown provider error";
+			if (ctx.hasUI) ctx.ui.notify(`Session title generation failed: ${message}`, "warning");
+			return;
+		}
 
 		const title = sanitizeTitle(extractText(response), firstPrompt);
 		if (!title) return;
@@ -186,26 +202,25 @@ export default function (pi: ExtensionAPI) {
 		sessionGeneration += 1;
 	});
 
-	pi.on("message_end", (event, ctx) => {
+	pi.on("agent_end", async (_event, ctx) => {
 		if (generationStarted) return;
 		if (initialUserMessageCount > 0) return;
 		if (hasExplicitSessionName(ctx)) return;
 
-		const message = event.message as MessageLike;
-		if (message.role !== "user") return;
-
-		const firstPrompt = extractMessageText(message).trim();
+		const firstPrompt = getFirstUserPrompt(ctx);
 		if (!firstPrompt) return;
 
 		generationStarted = true;
 		const generation = sessionGeneration;
-		void generateSessionTitle(pi, ctx, firstPrompt, generation).catch((error) => {
+		try {
+			await generateSessionTitle(pi, ctx, firstPrompt, generation);
+		} catch (error) {
 			if (disposed || generation !== sessionGeneration) return;
 			if (ctx.hasUI) {
 				const message = error instanceof Error ? error.message : String(error);
 				ctx.ui.notify(`Session title generation failed: ${message}`, "warning");
 				ctx.ui.setStatus(STATUS_KEY, undefined);
 			}
-		});
+		}
 	});
 }
