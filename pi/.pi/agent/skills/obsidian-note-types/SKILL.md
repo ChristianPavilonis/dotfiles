@@ -29,6 +29,7 @@ tags: []
 - `tauritutorials`
 - `ideas`
 - `yesman`
+- `hottakes`
 
 If unclear, use `project: ideas`.
 
