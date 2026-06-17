@@ -8,9 +8,15 @@ const MAX_TITLE_LENGTH = 60;
 
 type SessionEntryLike = {
 	type?: string;
+	name?: string;
 	message?: {
 		role?: string;
 	};
+};
+
+type MessageLike = {
+	role?: string;
+	content?: unknown;
 };
 
 let disposed = false;
@@ -24,6 +30,25 @@ function countUserMessages(ctx: ExtensionContext): number {
 	return ctx.sessionManager
 		.getBranch()
 		.filter((entry: SessionEntryLike) => entry.type === "message" && entry.message?.role === "user").length;
+}
+
+function hasExplicitSessionName(ctx: ExtensionContext): boolean {
+	return ctx.sessionManager
+		.getEntries()
+		.some((entry: SessionEntryLike) => entry.type === "session_info" && typeof entry.name === "string" && entry.name.trim().length > 0);
+}
+
+function extractMessageText(message: MessageLike): string {
+	const content = message.content;
+	if (typeof content === "string") return content;
+	if (!Array.isArray(content)) return "";
+
+	return content
+		.filter((part): part is { type: "text"; text: string } =>
+			Boolean(part) && typeof part === "object" && part.type === "text" && typeof part.text === "string",
+		)
+		.map((part) => part.text)
+		.join("\n");
 }
 
 function extractText(response: { content?: Array<{ type: string; text?: string }> }): string {
@@ -134,7 +159,7 @@ async function generateSessionTitle(
 			},
 		);
 
-		if (disposed || generation !== sessionGeneration || pi.getSessionName()) return;
+		if (disposed || generation !== sessionGeneration || hasExplicitSessionName(ctx)) return;
 		if (response.stopReason === "error") return;
 
 		const title = sanitizeTitle(extractText(response), firstPrompt);
@@ -161,15 +186,20 @@ export default function (pi: ExtensionAPI) {
 		sessionGeneration += 1;
 	});
 
-	pi.on("before_agent_start", (event, ctx) => {
+	pi.on("message_end", (event, ctx) => {
 		if (generationStarted) return;
 		if (initialUserMessageCount > 0) return;
-		if (pi.getSessionName()) return;
-		if (!event.prompt.trim()) return;
+		if (hasExplicitSessionName(ctx)) return;
+
+		const message = event.message as MessageLike;
+		if (message.role !== "user") return;
+
+		const firstPrompt = extractMessageText(message).trim();
+		if (!firstPrompt) return;
 
 		generationStarted = true;
 		const generation = sessionGeneration;
-		void generateSessionTitle(pi, ctx, event.prompt, generation).catch((error) => {
+		void generateSessionTitle(pi, ctx, firstPrompt, generation).catch((error) => {
 			if (disposed || generation !== sessionGeneration) return;
 			if (ctx.hasUI) {
 				const message = error instanceof Error ? error.message : String(error);
