@@ -16,7 +16,7 @@ const DEFAULT_MAX_PRS_PER_TICK = 1;
 const DEFAULT_LIST_LIMIT = 50;
 const DEFAULT_MAX_PR_AGE_HOURS = 24;
 const DEFAULT_AGENT_TIMEOUT_MINUTES = 10;
-const DEFAULT_THINKING = "high";
+const DEFAULT_THINKING = "xhigh";
 
 const DEFAULT_REPOSITORIES: RepositoryConfig[] = [
   {
@@ -738,7 +738,7 @@ ${reviewPrompt.trim() || "None."}`;
   return `${renderedReviewPrompt}
 
 Automation/submission instructions:
-- You MUST submit the review to GitHub before finishing. Do not do a dry run.
+- You MUST submit the review to GitHub before finishing.
 - Use the submit-gh-pr-review skill to submit the final review.
 - The submitted review body must start with "Automated review:".
 - Relevant inline comments should also make it clear they are from an automated review.
