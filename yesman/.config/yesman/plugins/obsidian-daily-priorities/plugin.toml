@@ -6,3 +6,4 @@ entry = "main.ts"
 vault_path = "/home/christian/Documents/MyObsidianVault"
 daily_folder = "daily"
 max_tasks = 12
+agent_timeout_minutes = 10

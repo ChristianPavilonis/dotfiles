@@ -1,8 +1,9 @@
-import { definePlugin } from "@yesman/sdk";
+import { definePlugin, type HarnessRunResult, type PluginContext } from "@yesman/sdk";
 
 const DEFAULT_VAULT_PATH = "/home/christian/Documents/MyObsidianVault";
 const DEFAULT_DAILY_FOLDER = "daily";
 const DEFAULT_MAX_TASKS = 12;
+const DEFAULT_AGENT_TIMEOUT_MINUTES = 10;
 const DAILY_NOTE_MODEL = "gpt-5.3-codex-spark";
 
 function localDateString(date = new Date()): string {
@@ -29,6 +30,84 @@ function asPositiveInteger(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isInteger(value) && value > 0
     ? value
     : fallback;
+}
+
+function stringifyError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+async function runPiWithTimeout(
+  ctx: PluginContext,
+  input: {
+    prompt: string;
+    cwd: string;
+    model: string;
+    thinking: string;
+    tools: string[];
+  },
+  timeoutMinutes: number,
+): Promise<HarnessRunResult> {
+  const run = await ctx.harness.start("pi", input);
+  await ctx.log("obsidian daily priorities Pi harness run started", {
+    runId: run.runId,
+    cwd: input.cwd,
+    timeoutMinutes,
+  });
+
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    void ctx.harness.cancel(run.runId).catch((error: unknown) => {
+      void ctx.log("obsidian daily priorities failed to cancel timed out harness run", {
+        runId: run.runId,
+        error: stringifyError(error),
+      });
+    });
+  }, timeoutMinutes * 60_000);
+
+  let result: HarnessRunResult | undefined;
+  let toolCallCount = 0;
+
+  try {
+    for await (const streamEvent of ctx.harness.stream(run.runId)) {
+      switch (streamEvent.type) {
+        case "tool_call_start":
+          toolCallCount++;
+          break;
+        case "completed":
+          result = streamEvent.result;
+          break;
+        case "failed":
+          throw new Error(streamEvent.error);
+        case "cancelled":
+          throw new Error(
+            timedOut
+              ? `Pi harness run timed out after ${timeoutMinutes} minutes`
+              : "Pi harness run cancelled",
+          );
+      }
+    }
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  const status = await ctx.harness.status(run.runId);
+  if (status.state !== "completed") {
+    throw new Error(`Pi harness ended in unexpected state: ${status.state}`);
+  }
+
+  const completedResult = result ?? status.result;
+  if (!completedResult) {
+    throw new Error("Pi harness completed without a result");
+  }
+
+  await ctx.log("obsidian daily priorities Pi harness run completed", {
+    runId: run.runId,
+    toolCallCount,
+    outputLength: completedResult.outputText.length,
+  });
+
+  return completedResult;
 }
 
 function buildPrompt(options: {
@@ -89,6 +168,7 @@ export default definePlugin((plugin) => {
         vaultPath?: unknown;
         dailyFolder?: unknown;
         maxTasks?: unknown;
+        agentTimeoutMinutes?: unknown;
       }
       : {};
 
@@ -105,22 +185,28 @@ export default definePlugin((plugin) => {
       payload.maxTasks,
       (await ctx.config.get<number>("max_tasks")) ?? DEFAULT_MAX_TASKS,
     );
+    const agentTimeoutMinutes = asPositiveInteger(
+      payload.agentTimeoutMinutes,
+      (await ctx.config.get<number>("agent_timeout_minutes")) ??
+        DEFAULT_AGENT_TIMEOUT_MINUTES,
+    );
 
     await ctx.log("updating obsidian daily priorities", {
       date,
       vaultPath,
       dailyFolder,
       maxTasks,
+      agentTimeoutMinutes,
     });
 
     try {
-      const result = await ctx.harness.run("pi", {
+      const result = await runPiWithTimeout(ctx, {
         prompt: buildPrompt({ vaultPath, dailyFolder, date, maxTasks }),
         cwd: vaultPath,
         model: DAILY_NOTE_MODEL,
         thinking: "off",
         tools: ["read", "write", "edit", "bash", "ffgrep", "fffind"],
-      });
+      }, agentTimeoutMinutes);
 
       await ctx.log("obsidian daily priorities updated", {
         date,

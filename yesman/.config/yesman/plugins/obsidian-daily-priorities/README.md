@@ -6,7 +6,7 @@ Scheduled Yesman plugin that asks the global `pi` harness to create/update today
 
 - Registers a daily schedule: `0 7 * * *` (7:00 AM daily).
 - Handles `obsidian.daily-priorities.update`.
-- Calls `ctx.harness.run("pi", ...)`, so it depends on the `pi-harness` plugin.
+- Starts the global `pi` harness and cancels it after `agent_timeout_minutes` (default 10), so it depends on the `pi-harness` plugin.
 - Updates only the managed block in `daily/YYYY-MM-DD.md`:
 
 ```markdown
@@ -35,4 +35,5 @@ yesman emit obsidian.daily-priorities.update '{"date":"2026-05-21"}'
 yesman config set obsidian-daily-priorities vault_path '"/home/christian/Documents/MyObsidianVault"'
 yesman config set obsidian-daily-priorities daily_folder '"daily"'
 yesman config set obsidian-daily-priorities max_tasks 12
+yesman config set obsidian-daily-priorities agent_timeout_minutes 10
 ```
