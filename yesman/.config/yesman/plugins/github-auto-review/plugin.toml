@@ -14,9 +14,10 @@ read = [
 enabled = true
 harness_name = "github-auto-review.pi"
 thinking = "high"
-max_prs_per_tick = 2
+max_prs_per_tick = 1
 list_limit = 50
 max_pr_age_hours = 24
+agent_timeout_minutes = 10
 review_prompt = """
 This automated workflow should submit COMMENT unless it finds blocking correctness, security, data-loss, authorization, or severe compatibility issues.
 """

@@ -6,15 +6,16 @@ import {
 } from "@yesman/sdk";
 
 const DEFAULT_HARNESS_NAME = "github-auto-review.pi";
-const POLL_SCHEDULE = "0 0 * * * *";
+const POLL_SCHEDULE = "0 15 * * * *";
 const REVIEW_RESULT_MARKER = "REVIEW_RESULT:";
 const REVIEW_PROMPT_TEMPLATE_PATHS = [
   "/home/christian/.pi/agent/prompts/ts-review.md",
   "/home/christian/dotfiles/pi/.pi/agent/prompts/ts-review.md",
 ];
-const DEFAULT_MAX_PRS_PER_TICK = 2;
+const DEFAULT_MAX_PRS_PER_TICK = 1;
 const DEFAULT_LIST_LIMIT = 50;
 const DEFAULT_MAX_PR_AGE_HOURS = 24;
+const DEFAULT_AGENT_TIMEOUT_MINUTES = 10;
 const DEFAULT_THINKING = "high";
 
 const DEFAULT_REPOSITORIES: RepositoryConfig[] = [
@@ -51,6 +52,7 @@ type Settings = {
   maxPrsPerTick: number;
   listLimit: number;
   maxPrAgeHours: number;
+  agentTimeoutMinutes: number;
 };
 
 type PullRequest = {
@@ -445,37 +447,57 @@ async function runReviewHarness(
     provider: settings.provider,
     model: settings.model,
     tools: settings.tools,
+    timeoutMinutes: settings.agentTimeoutMinutes,
   });
+
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    void ctx.harness.cancel(run.runId).catch((error: unknown) => {
+      void ctx.log("github-auto-review failed to cancel timed out harness run", {
+        runId: run.runId,
+        error: stringifyError(error),
+      });
+    });
+  }, settings.agentTimeoutMinutes * 60_000);
 
   let outputText = "";
   let rawEventCount = 0;
   let toolCallCount = 0;
   let result: HarnessRunResult | undefined;
 
-  for await (const streamEvent of ctx.harness.stream(run.runId)) {
-    switch (streamEvent.type) {
-      case "text_delta":
-        outputText += streamEvent.delta;
-        break;
-      case "raw_event":
-        rawEventCount++;
-        break;
-      case "tool_call_start":
-        toolCallCount++;
-        await ctx.log("github-auto-review Pi tool call", {
-          runId: run.runId,
-          toolName: streamEvent.toolCall.toolName,
-          args: streamEvent.toolCall.args,
-        });
-        break;
-      case "completed":
-        result = streamEvent.result;
-        break;
-      case "failed":
-        throw new Error(streamEvent.error);
-      case "cancelled":
-        throw new Error("Pi harness run cancelled");
+  try {
+    for await (const streamEvent of ctx.harness.stream(run.runId)) {
+      switch (streamEvent.type) {
+        case "text_delta":
+          outputText += streamEvent.delta;
+          break;
+        case "raw_event":
+          rawEventCount++;
+          break;
+        case "tool_call_start":
+          toolCallCount++;
+          await ctx.log("github-auto-review Pi tool call", {
+            runId: run.runId,
+            toolName: streamEvent.toolCall.toolName,
+            args: streamEvent.toolCall.args,
+          });
+          break;
+        case "completed":
+          result = streamEvent.result;
+          break;
+        case "failed":
+          throw new Error(streamEvent.error);
+        case "cancelled":
+          throw new Error(
+            timedOut
+              ? `Pi harness run timed out after ${settings.agentTimeoutMinutes} minutes`
+              : "Pi harness run cancelled",
+          );
+      }
     }
+  } finally {
+    clearTimeout(timeout);
   }
 
   const status = await ctx.harness.status(run.runId);
@@ -778,6 +800,10 @@ async function getSettings(ctx: PluginContext): Promise<Settings> {
     await ctx.config.get<unknown>("max_pr_age_hours"),
     DEFAULT_MAX_PR_AGE_HOURS,
   );
+  const agentTimeoutMinutes = parsePositiveInteger(
+    await ctx.config.get<unknown>("agent_timeout_minutes"),
+    DEFAULT_AGENT_TIMEOUT_MINUTES,
+  );
 
   return {
     enabled,
@@ -791,6 +817,7 @@ async function getSettings(ctx: PluginContext): Promise<Settings> {
     maxPrsPerTick,
     listLimit,
     maxPrAgeHours,
+    agentTimeoutMinutes,
   };
 }
 

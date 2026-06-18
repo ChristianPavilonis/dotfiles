@@ -4,7 +4,7 @@ Polls configured GitHub repositories for open PRs requesting review from the aut
 
 ## Behavior
 
-- Schedule: once per hour at minute 0 (`0 0 * * * *`).
+- Schedule: once per hour at minute 15 (`0 15 * * * *`) so it does not compete with top-of-hour scheduled jobs.
 - Query: `gh pr list --search review-requested:@me` from each repo cwd.
 - Freshness: skips PRs whose `updatedAt` is older than `max_pr_age_hours`.
 - Worktree: `nu -l -c 'gwpr <pr>; pwd'`.
@@ -23,9 +23,10 @@ Config lives in `plugin.toml` under `[config]`. The checked-in default is:
 enabled = false
 harness_name = "github-auto-review.pi"
 thinking = "high"
-max_prs_per_tick = 2
+max_prs_per_tick = 1
 list_limit = 50
 max_pr_age_hours = 24
+agent_timeout_minutes = 10
 review_prompt = """
 Extra automated-review guidance appended to the shared prompt...
 """
@@ -51,9 +52,10 @@ Config keys:
 - `model` string
 - `tools` string array; omit to use Pi defaults
 - `review_prompt` string; extra automated-review guidance appended to the shared `ts-review.md` prompt
-- `max_prs_per_tick` integer, default `2`
+- `max_prs_per_tick` integer, default `1`
 - `list_limit` integer, default `50`
 - `max_pr_age_hours` number, default `24`
+- `agent_timeout_minutes` integer, default `10`; cancels a Pi review run that exceeds the budget
 
 ## Manual poll
 
