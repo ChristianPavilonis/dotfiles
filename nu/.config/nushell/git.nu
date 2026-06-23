@@ -237,9 +237,37 @@ def gwp [] {
 
   for wt in $selected {
     print $"Removing worktree: ($wt.branch) at ($wt.path)"
-    git worktree remove $wt.path
+    let remove_result = (do { ^git worktree remove $wt.path } | complete)
+
+    if $remove_result.exit_code != 0 {
+      print $"Warning: could not remove worktree ($wt.branch) at ($wt.path); skipping branch deletion."
+      if ($remove_result.stderr | str trim | is-not-empty) {
+        print ($remove_result.stderr | str trim)
+      }
+      continue
+    }
+
+    if ($remove_result.stdout | str trim | is-not-empty) {
+      print ($remove_result.stdout | str trim)
+    }
+
     print $"Deleting branch: ($wt.branch)"
-    git branch -d $wt.branch
+    let delete_result = (do { ^git branch -d $wt.branch } | complete)
+
+    if $delete_result.exit_code != 0 {
+      print $"Warning: could not delete branch ($wt.branch); continuing."
+      if ($delete_result.stderr | str trim | is-not-empty) {
+        print ($delete_result.stderr | str trim)
+      }
+      continue
+    }
+
+    if ($delete_result.stderr | str trim | is-not-empty) {
+      print ($delete_result.stderr | str trim)
+    }
+    if ($delete_result.stdout | str trim | is-not-empty) {
+      print ($delete_result.stdout | str trim)
+    }
   }
 
   git worktree prune
