@@ -821,7 +821,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 		description: "Open git diff",
 		handler: async (_args, ctx) => {
 			await execZellij(pi, ctx, {
-				args: ["action", "new-pane", "--stacked", "--cwd", ctx.cwd, "--", ...nu("gd")],
+				args: ["action", "new-pane", "--stacked", "--close-on-exit", "--cwd", ctx.cwd, "--", ...nu("gd")],
 				successMessage: (id) => `Opened stacked git diff pane${id ? ` ${id}` : ""}`,
 			});
 		},
