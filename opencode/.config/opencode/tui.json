@@ -1,8 +1,0 @@
-{
-  "keybinds": {
-    "agent_cycle": "tab",
-    "command_list": "ctrl+/",
-    "variant_cycle": "ctrl+v",
-    "input_paste": "none"
-  }
-}
