@@ -8,21 +8,13 @@ const STATUS_KEY = "note";
 const PI_BIN = process.env.PI_NOTE_PI_BIN || "pi";
 const VAULT_DIR = process.env.PI_NOTE_VAULT_DIR || path.join(os.homedir(), "Documents", "MyObsidianVault");
 const LOG_DIR = process.env.PI_NOTE_LOG_DIR || path.join(os.homedir(), ".pi", "agent", "note-jobs");
-const OBSIDIAN_MARKDOWN_SKILL = path.join(os.homedir(), ".pi", "agent", "skills", "obsidian-markdown", "SKILL.md");
-const OBSIDIAN_NOTE_TYPES_SKILL = path.join(os.homedir(), ".pi", "agent", "skills", "obsidian-note-types", "SKILL.md");
+const OBSIDIAN_SKILL = path.join(os.homedir(), ".pi", "agent", "skills", "obsidian", "SKILL.md");
 
 const NOTE_MODEL_SMALL = process.env.PI_NOTE_MODEL_SMALL || "openai-codex/gpt-5.3-codex-spark";
 const NOTE_MODEL_LARGE = process.env.PI_NOTE_MODEL_LARGE || "openai-codex/gpt-5.4-mini";
 const NOTE_MODEL_SMALL_CONTEXT_WINDOW = Number(process.env.PI_NOTE_MODEL_SMALL_CONTEXT_WINDOW || 128_000);
 const NOTE_MODEL_LARGE_CONTEXT_WINDOW = Number(process.env.PI_NOTE_MODEL_LARGE_CONTEXT_WINDOW || 272_000);
 const NOTE_MODEL_CONTEXT_RESERVE = Number(process.env.PI_NOTE_MODEL_CONTEXT_RESERVE || 16_384);
-
-const PROJECTS = ["rigzilla", "trusted-server", "scrapezilla", "tauritutorials", "ideas", "yesman", "hottakes"] as const;
-
-function formatLocalDateTime(date: Date): string {
-	const pad = (value: number) => String(value).padStart(2, "0");
-	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
 
 function safeJobId(date = new Date()): string {
 	return date.toISOString().replace(/[:.]/g, "-");
@@ -63,7 +55,6 @@ function chooseNoteModel(ctx: any): { model: string; tokens: number | null; reas
 
 function buildNotePrompt(args: string, now = new Date()): string {
 	const today = now.toISOString().slice(0, 10);
-	const createdAt = formatLocalDateTime(now);
 
 	return `You are a background note-taking agent running from a forked copy of the user's current pi conversation.
 Use the inherited conversation history as source context, then complete the note request below.
@@ -82,22 +73,9 @@ Hard constraints:
 - Keep the result concise, structured, and useful for future recall.
 
 Obsidian note rules:
-- Use Obsidian-flavored Markdown.
-- Every created note must start with this required frontmatter shape:
----
-created at: ${createdAt}
-project: ideas
-type: note
-status: current
-tags: []
----
-- The project field must be exactly one of: ${PROJECTS.join(", ")}.
-- If the project is unclear, use project: ideas.
-- Type must be one of: project, task, issue, plan, reference, log, scratch, note.
-- Use the most specific semantic type and an appropriate lowercase status.
+- Follow the loaded obsidian skill. Read its Markdown and project-notes references before acting.
 - If this is a daily/work-log style request, write/update a daily note for ${today} under a Daily notes folder if present; otherwise create it sensibly in the vault.
 - Otherwise create/update a note under Notes/ when possible.
-- Include a "#### Links" section at the bottom of created notes.
 
 Finish with a brief report containing the exact file path(s) changed.`;
 }
@@ -150,9 +128,7 @@ export default function (pi: ExtensionAPI) {
 					sessionFile,
 					"--no-extensions",
 					"--skill",
-					OBSIDIAN_MARKDOWN_SKILL,
-					"--skill",
-					OBSIDIAN_NOTE_TYPES_SKILL,
+					OBSIDIAN_SKILL,
 					"--tools",
 					"read,write,edit,find,grep,ls",
 					"-p",

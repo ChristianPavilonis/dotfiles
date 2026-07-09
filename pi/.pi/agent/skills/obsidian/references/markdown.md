@@ -1,11 +1,6 @@
----
-name: obsidian-markdown
-description: Create and edit Obsidian Flavored Markdown with wikilinks, embeds, callouts, properties, and other Obsidian-specific syntax. Use when working with .md files in Obsidian, or when the user mentions wikilinks, callouts, frontmatter, tags, embeds, or Obsidian notes.
----
+# Obsidian Flavored Markdown
 
-# Obsidian Flavored Markdown Skill
-
-This skill enables skills-compatible agents to create and edit valid Obsidian Flavored Markdown, including all Obsidian-specific syntax extensions.
+Use this reference to create and edit valid Obsidian Flavored Markdown, including Obsidian-specific syntax extensions.
 
 ## Overview
 
@@ -609,67 +604,9 @@ Internal notes:
 %%
 ````
 
-## Creating Notes in the Vault
+## Project-note metadata
 
-When creating or editing notes in the Obsidian vault, **always use the project note template** so that notes appear correctly in the Obsidian Bases.
-
-### Required Frontmatter
-
-Every note **must** include the following frontmatter fields:
-
-```yaml
----
-created at: 2026-01-30 17:54
-project: rigzilla
-type: note
-tags: []
----
-```
-
-| Field | Required | Description |
-|-------|----------|-------------|
-| `created at` | Yes | Use `YYYY-MM-DD HH:mm` format with the current date/time |
-| `project` | Yes | Must be one of the known project slugs (see AGENTS.md for the list) |
-| `type` | Yes | One of: `project`, `task`, `issue`, `plan`, `reference`, `log`, `scratch`, `note` |
-| `tags` | Yes | YAML list of tags, can be empty `[]` |
-
-### Type Descriptions
-
-Use the `obsidian-note-types` skill for the full classification rules.
-
-- `project` — Project home/index notes, durable project overviews, MOCs
-- `task` — Concrete action items with outcome/checklist; replaces new uses of `todo`
-- `issue` — Bugs, blockers, risks, production problems, unresolved concerns
-- `plan` — Proposed implementation steps, project plans, migration plans, handoff plans
-- `reference` — Durable facts: APIs, architecture, commands, schemas, source-backed explanations
-- `log` — Work/session summaries, progress updates, daily/project activity records
-- `scratch` — Messy temporary thinking, rough drafts, parking-lot notes
-- `note` — General durable notes that do not fit a more specific type
-
-### Note Structure
-
-Notes should follow this structure:
-
-```markdown
----
-created at: 2026-01-30 17:54
-project: trusted-server
-type: note
-tags: [architecture, api]
----
-
-Content goes here...
-
-
-#### Links
-```
-
-- The `#### Links` section at the bottom is required — this is where related wikilinks go.
-- Leave a blank line between content and the Links heading.
-
-### Why This Matters
-
-The Obsidian Bases filter notes by `project` and `type` frontmatter fields. If these are missing or incorrect, the note **will not appear** in the relevant project base or the Projects Overview base. Always set the `project` field to ensure your note is discoverable.
+For required frontmatter, note-type selection, status defaults, templates, and the required `#### Links` section, read [project notes](project-notes.md).
 
 ## References
 
