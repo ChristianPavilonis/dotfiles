@@ -5,7 +5,7 @@ set -euo pipefail
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OS_NAME="$(uname -s)"
 
-COMMON_PACKAGES=(git kitty nu nvim opencode pi starship yesman zellij)
+COMMON_PACKAGES=(git kitty nu nvim pi starship yesman zellij)
 MACOS_PACKAGES=(aerospace)
 
 if ! command -v stow >/dev/null 2>&1; then
@@ -20,13 +20,6 @@ legacy_links=(
   "$HOME/.config/nvim"
   "$HOME/.config/zellij"
   "$HOME/.config/starship.toml"
-  "$HOME/.config/opencode/AGENTS.md"
-  "$HOME/.config/opencode/agent"
-  "$HOME/.config/opencode/config.json"
-  "$HOME/.config/opencode/plugin"
-  "$HOME/.config/opencode/skills"
-  "$HOME/.config/opencode/themes"
-  "$HOME/.config/opencode/tools"
   "$HOME/.config/yesman"
 )
 
@@ -36,7 +29,6 @@ for link in "${legacy_links[@]}"; do
   fi
 done
 
-mkdir -p "$HOME/.config/opencode"
 mkdir -p "$HOME/.config/yesman"
 
 if [ "$OS_NAME" = "Darwin" ]; then
@@ -77,14 +69,6 @@ if [ "$OS_NAME" = "Linux" ]; then
   fi
 
   ln -s "$mise_source" "$mise_global"
-
-  # Create opencode server env file stub if it doesn't exist.
-  opencode_env="$HOME/.config/opencode/.env"
-  if [ ! -e "$opencode_env" ]; then
-    printf '# opencode web server credentials\nOPENCODE_SERVER_PASSWORD=changeme\n' > "$opencode_env"
-    chmod 600 "$opencode_env"
-    echo "Created $opencode_env — update the password before starting the service."
-  fi
 
   # Create yesman UI env file stub if it doesn't exist. This file is intentionally
   # outside the stowed dotfiles tree so the UI password stays machine-local.

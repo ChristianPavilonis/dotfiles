@@ -1,6 +1,7 @@
 ---
 name: handoff
 description: Use after planning when the user wants to hand work to a fresh agent. Writes the implementation plan to a temporary file, creates a git worktree, then opens a new Zellij tab with a Pi session and concise handoff prompt.
+disable-model-invocation: true
 ---
 
 # Handoff

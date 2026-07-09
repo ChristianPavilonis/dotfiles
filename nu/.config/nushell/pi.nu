@@ -10,7 +10,7 @@ def picrc [] {
 
 # Launch pi with the Trusted Server review prompt for the current branch's PR.
 def pipr [] {
-  pi "/ts-review" "current branch's PR"
+  pi "/ts-review"
 }
 
 def _worklog-default-date [] {

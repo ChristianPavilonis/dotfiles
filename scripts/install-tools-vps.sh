@@ -84,27 +84,6 @@ set_login_shell() {
 
 set_login_shell
 
-enable_opencode_web() {
-  local service="opencode-web.service"
-  local service_file="$HOME/.config/systemd/user/$service"
-
-  if [ ! -f "$service_file" ]; then
-    echo "opencode-web service file not found; skipping."
-    return
-  fi
-
-  # Enable lingering so user services run without an active login session.
-  if command -v loginctl >/dev/null 2>&1; then
-    sudo loginctl enable-linger "$(whoami)" 2>/dev/null || true
-  fi
-
-  systemctl --user daemon-reload
-  systemctl --user enable "$service"
-  echo "opencode-web service enabled."
-  echo "Start it with: systemctl --user start opencode-web"
-  echo "Don't forget to update ~/.config/opencode/.env with a real password first."
-}
-
 enable_yesman_service() {
   local service="yesmand.service"
   local service_file="$HOME/.config/systemd/user/$service"
@@ -133,7 +112,6 @@ enable_yesman_service() {
   fi
 }
 
-enable_opencode_web
 enable_yesman_service
 
 echo "VPS tool setup complete."

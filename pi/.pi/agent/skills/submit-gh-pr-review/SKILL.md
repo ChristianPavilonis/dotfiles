@@ -35,6 +35,7 @@ For each included finding that has a `path` and `line`, build a comment object.
 These appear as inline comments on specific files/lines in the PR.
 Use the GitHub ```suggestion syntax for any suggestions for small changes and nitpiks.
 
+
 NOTE: follow any contributing guidelines that exist in current repo.
 
 Each comment object:

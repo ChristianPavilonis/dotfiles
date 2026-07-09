@@ -237,7 +237,7 @@ def gwp [] {
 
   for wt in $selected {
     print $"Removing worktree: ($wt.branch) at ($wt.path)"
-    let remove_result = (do { ^git worktree remove $wt.path } | complete)
+    let remove_result = (do { ^git worktree remove -f $wt.path } | complete)
 
     if $remove_result.exit_code != 0 {
       print $"Warning: could not remove worktree ($wt.branch) at ($wt.path); skipping branch deletion."

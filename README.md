@@ -130,11 +130,9 @@ cd ~/dotfiles
 - `kitty` -> `~/.config/kitty`
 - `nu` -> `~/.config/nushell`
 - `nvim` -> `~/.config/nvim`
-- `opencode` -> `~/.config/opencode/*`
 - `pi` -> `~/.pi/*`
 - `starship` -> `~/.config/starship.toml`
 - `yesman` -> `~/.config/yesman/plugins/*`
-- `opencode` -> user systemd units, including `yesmand.service` for the Rust Yesman UI daemon
 - `zellij` -> `~/.config/zellij`
 
 ## Daily stow commands

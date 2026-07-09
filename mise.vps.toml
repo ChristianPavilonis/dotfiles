@@ -6,7 +6,6 @@ node = "23.9.0"
 deno = "latest"
 php = "8.4"
 neovim = "latest"
-opencode = "latest"
 gh = "latest"
 fzf = "latest"
 
