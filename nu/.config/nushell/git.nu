@@ -16,7 +16,23 @@ def gb [] {
   git branch | lines
 }
 
-def gd [] {
+def gd [
+  target?: string@"nu-complete gd target" # `pr` views a GitHub pull-request diff
+  pr?: string@"nu-complete gh pr list" # PR number, URL, or branch (with `gd pr`)
+] {
+  if $target == "pr" {
+    if $pr == null {
+      ^gh pr diff
+    } else {
+      ^gh pr diff $pr
+    } | diffnav
+    return
+  }
+
+  if $target != null {
+    error make {msg: "Usage: gd [pr [PR_NUMBER|URL|BRANCH]]"}
+  }
+
   let tracked_diff = (git diff)
   let untracked_files = (
     ^git ls-files --others --exclude-standard
@@ -286,6 +302,10 @@ def --env gwr [
     let worktree_path = ("~/worktrees" | path expand | path join ($branch | str replace --all "/" "-"))
     git worktree remove $worktree_path
   }
+}
+
+def "nu-complete gd target" [] {
+  [{ value: "pr", description: "view a GitHub pull-request diff" }]
 }
 
 # Completions for open PR numbers

@@ -10,6 +10,8 @@ type ZellijTarget = {
 	successMessage: (id: string | undefined) => string;
 };
 
+type ForkPlacement = "tab" | "left" | "down" | "up" | "right";
+
 type ZellijActionSuccess = {
 	ok: true;
 	stdout: string;
@@ -86,14 +88,31 @@ function buildReviewPrompt(args: string): string {
 	return trimmed.length > 0 ? `${REVIEW_TEMPLATE} ${trimmed}` : REVIEW_TEMPLATE;
 }
 
+function parseForkArgs(args: string): { placement: ForkPlacement; prompt: string } {
+	const trimmed = args.trim();
+	if (trimmed.length === 0) return { placement: "tab", prompt: "" };
+
+	const [placementArg, ...promptParts] = trimmed.split(/\s+/);
+	const placementByArg: Record<string, ForkPlacement> = {
+		t: "tab",
+		h: "left",
+		j: "down",
+		k: "up",
+		l: "right",
+	};
+	const placement = placementByArg[placementArg];
+	return placement ? { placement, prompt: promptParts.join(" ") } : { placement: "tab", prompt: trimmed };
+}
+
 function buildCommand(command: string | undefined, useNu: boolean | undefined): string[] {
 	if (!command || command.trim().length === 0) return [getDefaultShell()];
 	return useNu ?? true ? nu(command) : ["sh", "-lc", command];
 }
 
-function buildNewTabArgs(options: { cwd: string; name?: string; command?: string[] }): string[] {
+function buildNewTabArgs(options: { cwd: string; name?: string; command?: string[]; closeOnExit?: boolean }): string[] {
 	const args = ["action", "new-tab", "--cwd", options.cwd];
 	if (options.name && options.name.trim().length > 0) args.push("--name", options.name.trim());
+	if (options.closeOnExit) args.push("--close-on-exit");
 	args.push("--", ...(options.command ?? [getDefaultShell()]));
 	return args;
 }
@@ -106,10 +125,12 @@ function buildNewPaneArgs(options: {
 	stacked?: boolean;
 	tabId?: number;
 	command?: string[];
+	closeOnExit?: boolean;
 }): string[] {
 	const args = ["action", "new-pane", "--cwd", options.cwd];
 	if (options.name && options.name.trim().length > 0) args.push("--name", options.name.trim());
 	if (options.tabId !== undefined) args.push("--tab-id", String(options.tabId));
+	if (options.closeOnExit) args.push("--close-on-exit");
 	if (options.floating) args.push("--floating");
 	else if (options.stacked) args.push("--stacked");
 	else if (options.direction) args.push("--direction", options.direction);
@@ -325,6 +346,7 @@ const ZELLIJ_NEW_TAB_PARAMS = {
 		cwd: { type: "string", description: "Working directory for the new tab. Defaults to the current Pi cwd." },
 		name: { type: "string", description: "Optional Zellij tab name." },
 		command: { type: "string", description: "Optional command to run in the new tab. Defaults to the user's shell." },
+		closeOnExit: { type: "boolean", description: "Close the tab when its command exits. Defaults to false." },
 		useNu: { type: "boolean", description: "Run command through `nu -l -c`. Defaults to true when command is provided." },
 	},
 } as const;
@@ -428,6 +450,7 @@ const ZELLIJ_NEW_PANE_PARAMS = {
 		stacked: { type: "boolean", description: "Open as a stacked pane. Conflicts with direction and floating." },
 		tabId: { type: "integer", description: "Optional target tab ID." },
 		command: { type: "string", description: "Optional command to run in the pane. Defaults to the user's shell." },
+		closeOnExit: { type: "boolean", description: "Close the pane when its command exits. Defaults to false." },
 		useNu: { type: "boolean", description: "Run command through `nu -l -c`. Defaults to true when command is provided." },
 	},
 } as const;
@@ -466,7 +489,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 
 			const cwd = params.cwd?.trim() || ctx.cwd;
 			const command = buildCommand(params.command, params.useNu);
-			const zellijArgs = buildNewTabArgs({ cwd, name: params.name, command });
+			const zellijArgs = buildNewTabArgs({ cwd, name: params.name, command, closeOnExit: params.closeOnExit });
 			const result = await pi.exec("zellij", zellijArgs, { timeout: 5000, signal });
 
 			if (result.code !== 0) {
@@ -509,7 +532,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 			const cwd = params.cwd?.trim() || ctx.cwd;
 			const name = params.name?.trim() || "pi";
 			const command = nu(`pi ${nuString(prompt)}`);
-			const zellijArgs = buildNewTabArgs({ cwd, name, command });
+			const zellijArgs = buildNewTabArgs({ cwd, name, command, closeOnExit: true });
 			const result = await pi.exec("zellij", zellijArgs, { timeout: 5000, signal });
 
 			if (result.code !== 0) {
@@ -715,6 +738,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 				stacked: params.stacked,
 				tabId: params.tabId,
 				command,
+				closeOnExit: params.closeOnExit,
 			});
 			const result = await runZellijAction(pi, ctx, zellijArgs, signal);
 			if (result.ok === false) return zellijToolFailure(result);
@@ -811,7 +835,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 		description: "Open nvim in a stacked Zellij pane",
 		handler: async (_args, ctx) => {
 			await execZellij(pi, ctx, {
-				args: ["action", "new-pane", "--stacked", "--cwd", ctx.cwd, "--", "nvim"],
+				args: ["action", "new-pane", "--stacked", "--close-on-exit", "--cwd", ctx.cwd, "--", "nvim"],
 				successMessage: (id) => `Opened stacked nvim pane${id ? ` ${id}` : ""}`,
 			});
 		},
@@ -828,7 +852,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("zfork", {
-		description: "Open a fork of the current Pi session in a new Zellij tab, optionally with an initial prompt",
+		description: "Fork this Pi session: default/t opens a tab; h/j/k/l open a pane left/down/up/right. Append an initial prompt.",
 		handler: async (args, ctx) => {
 			if (!ensureInsideZellij(ctx)) return;
 
@@ -838,15 +862,48 @@ export default function zellijExtension(pi: ExtensionAPI) {
 				return;
 			}
 
-			const prompt = args.trim();
+			const { placement, prompt } = parseForkArgs(args);
 			const command = prompt.length > 0
 				? nu(`pi --fork ${nuString(sessionFile)} ${nuString(prompt)}`)
 				: nu(`pi --fork ${nuString(sessionFile)}`);
 
-			await execZellij(pi, ctx, {
-				args: buildNewTabArgs({ cwd: ctx.cwd, name: "pi-fork", command }),
-				successMessage: (id) => `Opened forked Pi tab${id ? ` ${id}` : ""}`,
-			});
+			if (placement === "tab") {
+				await execZellij(pi, ctx, {
+					args: buildNewTabArgs({ cwd: ctx.cwd, name: "pi-fork", command, closeOnExit: true }),
+					successMessage: (id) => `Opened forked Pi tab${id ? ` ${id}` : ""}`,
+				});
+				return;
+			}
+
+			// Zellij creates panes only to the right or below. Move the new pane afterward for left/up.
+			const createDirection = placement === "down" || placement === "up" ? "down" : "right";
+			const created = await runZellijAction(pi, ctx, buildNewPaneArgs({
+				cwd: ctx.cwd,
+				name: "pi-fork",
+				direction: createDirection,
+				command,
+				closeOnExit: true,
+			}));
+			if (created.ok === false) {
+				notify(ctx, created.message, "error");
+				return;
+			}
+
+			const paneId = created.stdout.trim();
+			const moveDirection = placement === "left" || placement === "up" ? placement : undefined;
+			if (moveDirection) {
+				if (!paneId) {
+					notify(ctx, `Opened forked Pi pane, but Zellij did not return its ID to move it ${moveDirection}.`, "warning");
+					return;
+				}
+				const moved = await runZellijAction(pi, ctx, ["action", "move-pane", "--pane-id", paneId, moveDirection]);
+				if (moved.ok === false) {
+					notify(ctx, `Opened forked Pi pane, but could not move it ${moveDirection}: ${moved.message}`, "warning");
+					return;
+				}
+			}
+
+			notify(ctx, `Opened forked Pi pane ${placement}${paneId ? ` ${paneId}` : ""}`, "info");
 		},
 	});
 
@@ -869,6 +926,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 					"new-pane",
 					"--direction",
 					"right",
+					"--close-on-exit",
 					"--cwd",
 					repoRoot,
 					"--name",

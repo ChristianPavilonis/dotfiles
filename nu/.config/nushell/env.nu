@@ -1,5 +1,8 @@
 # Nushell Environment Config File
 
+$env.EDITOR = "nvim"
+$env.VISUAL = "nvim"
+
 # The prompt indicators are environmental variables that represent
 # the state of the prompt
 $env.PROMPT_INDICATOR = { "" }
