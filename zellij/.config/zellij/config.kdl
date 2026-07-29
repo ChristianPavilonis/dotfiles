@@ -121,6 +121,42 @@ keybinds clear-defaults=true {
             SwitchToMode "normal"
         }
         bind "Ctrl o" { SwitchToMode "normal"; }
+        bind "i" {
+            Run "nu" "-l" "-c" "za latest-idle" {
+                floating true
+                borderless true
+                close_on_exit true
+                x "90%"
+                y "90%"
+                width "10%"
+                height "10%"
+            }
+            SwitchToMode "normal"
+        }
+        bind "n" {
+            Run "nu" "-l" "-c" "za next" {
+                floating true
+                borderless true
+                close_on_exit true
+                x "90%"
+                y "90%"
+                width "10%"
+                height "10%"
+            }
+            SwitchToMode "normal"
+        }
+        bind "Shift n" {
+            Run "nu" "-l" "-c" "za previous" {
+                floating true
+                borderless true
+                close_on_exit true
+                x "90%"
+                y "90%"
+                width "10%"
+                height "10%"
+            }
+            SwitchToMode "normal"
+        }
         bind "p" {
             LaunchOrFocusPlugin "plugin-manager" {
                 floating true

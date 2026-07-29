@@ -123,3 +123,126 @@ def zs [] {
         zellij attach $session_name --create options --default-cwd $selected_dir --default-layout $layout
     }
 }
+
+# Pi agents in the current Zellij session
+
+def pi-zellij-agent-state-dir [] {
+    let explicit = $env | get -o PI_ZELLIJ_AGENT_STATE_DIR | default ""
+    if ($explicit | is-not-empty) {
+        $explicit
+    } else {
+        let cache_home = $env | get -o XDG_CACHE_HOME | default $"($env.HOME)/.cache"
+        $cache_home | path join "pi-zellij-agents"
+    }
+}
+
+def pi-zellij-agent-records [] {
+    let state_dir = pi-zellij-agent-state-dir
+    if not ($state_dir | path exists) {
+        return []
+    }
+
+    glob ($state_dir | path join "*.json")
+        | each { |record_path|
+            try {
+                open $record_path | merge { _path: $record_path }
+            } catch {
+                null
+            }
+        }
+        | compact
+}
+
+def pi-zellij-live-agents [session: string] {
+    pi-zellij-agent-records
+        | where zellijSession == $session
+        | each { |record|
+            let pid_check = do { ^/bin/kill -0 $record.pid } | complete
+            if $pid_check.exit_code != 0 {
+                rm -f $record._path
+                null
+            } else {
+                let pane_number = $record.paneId | str replace "terminal_" "" | into int
+                $record | merge { paneNumber: $pane_number }
+            }
+        }
+        | compact
+}
+
+def pi-zellij-agent-cursor-path [session: string] {
+    let safe_session = $session | str replace --all --regex '[^A-Za-z0-9_.-]' '_'
+    pi-zellij-agent-state-dir | path join $"cursor-($safe_session).txt"
+}
+
+def pi-zellij-focus-agent [session: string, agent: record] {
+    let state_dir = pi-zellij-agent-state-dir
+    mkdir $state_dir
+    $agent.paneId | save --force (pi-zellij-agent-cursor-path $session)
+    let result = do { ^zellij --session $session action focus-pane-id $agent.paneId } | complete
+    let message = $"($result.stdout)($result.stderr)"
+    if ($result.exit_code != 0) and (not ($message | str contains "already focused")) {
+        let record_path = $agent | get -o _path
+        if ($record_path | is-not-empty) {
+            rm -f $record_path
+        }
+        error make { msg: ($message | str trim) }
+    }
+}
+
+def pi-zellij-cycle-agent [session: string, agents: table, direction: int] {
+    if ($agents | is-empty) {
+        return
+    }
+
+    let ordered = $agents | sort-by paneNumber
+    let cursor_path = pi-zellij-agent-cursor-path $session
+    let cursor = if ($cursor_path | path exists) {
+        open --raw $cursor_path | str trim
+    } else {
+        ""
+    }
+    let current_index = $ordered
+        | get paneId
+        | enumerate
+        | where item == $cursor
+        | get -o 0.index
+    let count = $ordered | length
+    let target_index = if ($current_index | is-empty) {
+        if $direction > 0 { 0 } else { $count - 1 }
+    } else {
+        ($current_index + $direction + $count) mod $count
+    }
+
+    pi-zellij-focus-agent $session ($ordered | get $target_index)
+}
+
+# Navigate Pi agents in this Zellij session.
+# Actions: latest-idle, next, previous, list.
+def za [action: string = "list"] {
+    let session = $env | get -o ZELLIJ_SESSION_NAME | default ""
+    if ($session | is-empty) {
+        error make { msg: "za must run inside Zellij" }
+    }
+
+    let agents = pi-zellij-live-agents $session
+    match $action {
+        "latest-idle" => {
+            let idle_agents = $agents | where state == "idle" | sort-by idleAt --reverse
+            if ($idle_agents | is-not-empty) {
+                pi-zellij-focus-agent $session ($idle_agents | first)
+            }
+        }
+        "next" => { pi-zellij-cycle-agent $session $agents 1 }
+        "previous" => { pi-zellij-cycle-agent $session $agents (-1) }
+        "list" => {
+            $agents | each { |agent| {
+                state: $agent.state
+                title: ($agent.title | default "(untitled)")
+                pane: $agent.paneId
+                cwd: $agent.cwd
+                idle_at: (if ($agent.idleAt | is-empty) { null } else { $agent.idleAt * 1_000_000 | into datetime })
+            } }
+        }
+        _ => { error make { msg: $"unknown za action: ($action)" } }
+    }
+}

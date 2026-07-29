@@ -25,9 +25,11 @@ If no PR exists, tell the user and stop.
 Based on the **included** findings:
 
 - Any P0  → `REQUEST_CHANGES`
-- Only P1 or below → `COMMENT`
+- 3+ P1s → `REQUEST_CHANGES`
+- Few P1s and lower → `APPROVE` (note findings)
 - No findings / only nitpiks → `APPROVE`
 
+We should only request changes or approve, never only comment.
 
 ### 3. Build inline comments
 

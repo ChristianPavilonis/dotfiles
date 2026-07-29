@@ -1,4 +1,4 @@
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { execFile } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -40,7 +40,10 @@ export default function (pi: ExtensionAPI) {
 
 	// playSound(START_SOUND_PATH);
 
-	pi.on("agent_end", async () => {
+	pi.on("agent_settled", async (_event, ctx) => {
+		// Subagents load global extensions too; only notify for the parent Pi process.
+		if (process.env.PI_SUBAGENT_CHILD === "1") return;
+		if (!ctx.isIdle()) return;
 		playSound(SOUND_PATH);
 	});
 }
