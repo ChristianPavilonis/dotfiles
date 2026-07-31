@@ -5,9 +5,8 @@ $env.VISUAL = "nvim"
 
 # Keep user-installed tools (including Mise) available in Nushell.
 let user_bin = ($nu.home-dir | path join ".local/bin")
-if ($user_bin | path exists) {
-  $env.PATH = ($env.PATH | prepend $user_bin)
-}
+let mise_shims = ($nu.data-dir | path join "shims")
+$env.PATH = ($env.PATH | prepend ([$user_bin, $mise_shims] | where {|path| $path | path exists}))
 
 # The prompt indicators are environmental variables that represent
 # the state of the prompt
