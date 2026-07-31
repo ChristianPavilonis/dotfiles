@@ -47,7 +47,7 @@ def _worklog-string [value] {
 }
 
 def _worklog-lower [value] {
-  _worklog-string $value | str downcase
+  _worklog-string $value | str lowercase
 }
 
 def _worklog-has-text [value] {

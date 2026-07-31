@@ -318,7 +318,7 @@ def "nu-complete gh pr list" [] {
 # Return the path of the worktree currently checking out a branch, if any.
 def git-worktree-path-for-branch [branch: string] {
   let lines = (^git worktree list --porcelain | lines)
-  mut current_path = null
+  mut current_path = ""
 
   for line in $lines {
     if ($line | str starts-with "worktree ") {

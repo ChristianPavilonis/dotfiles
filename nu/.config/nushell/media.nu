@@ -51,7 +51,7 @@ def organize-media [
       $name
     }
 
-    let ext = (($classify_name | path parse).extension | default "" | str downcase)
+    let ext = (($classify_name | path parse).extension | default "" | str lowercase)
 
     let dest_folder = if ($ext in $video_exts) {
       "video"
