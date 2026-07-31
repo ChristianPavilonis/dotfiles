@@ -4,7 +4,7 @@ $env.EDITOR = "nvim"
 $env.VISUAL = "nvim"
 
 # Keep user-installed tools (including Mise) available in Nushell.
-let user_bin = ($nu.home-path | path join ".local/bin")
+let user_bin = ($nu.home-dir | path join ".local/bin")
 if ($user_bin | path exists) {
   $env.PATH = ($env.PATH | prepend $user_bin)
 }
