@@ -1,4 +1,5 @@
 [tools]
+"aqua:nushell/nushell" = "latest"
 rust = "1.93"
 bun = "1.3.9"
 python = "3.14.2"
@@ -6,6 +7,7 @@ node = "23.9.0"
 deno = "latest"
 php = "8.4"
 neovim = "latest"
+zellij = "0.44.3"
 gh = "latest"
 fzf = "latest"
 
