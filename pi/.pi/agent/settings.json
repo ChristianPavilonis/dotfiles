@@ -11,5 +11,6 @@
   ],
   "defaultThinkingLevel": "high",
   "editorPaddingX": 1,
-  "quietStartup": true
+  "quietStartup": true,
+  "tuiMode": "fullscreen"
 }

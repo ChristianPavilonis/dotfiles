@@ -1,0 +1,31 @@
+manifest_version = 1
+extension_id = "github-pr-reviewer"
+display_name = "GitHub PR Reviewer"
+release = "0.1.0"
+protocol = "yesman.extension/1"
+executable = "./run.sh"
+args = []
+cwd = "."
+pass_env = ["HOME", "PATH", "GH_TOKEN", "GITHUB_TOKEN", "LANG"]
+
+# This extension is inert until explicitly configured and enabled in YesMan.
+[config]
+enabled = false
+poll_interval_seconds = 900
+max_prs_per_poll = 1
+list_limit = 50
+max_pr_age_hours = 24
+skip_drafts = true
+
+# Add one table per repository after obtaining its durable YesMan workspace ID.
+#
+# [[config.repositories]]
+# name = "example"
+# repo = "OWNER/REPOSITORY"
+# cwd = "/absolute/path/to/local/repository"
+# workspace_id = "00000000-0000-7000-8000-000000000000"
+# enabled = true
+
+[limits]
+startup_timeout_ms = 10000
+tool_timeout_ms = 300000

@@ -11,7 +11,7 @@ const LOG_DIR = process.env.PI_NOTE_LOG_DIR || path.join(os.homedir(), ".pi", "a
 const OBSIDIAN_SKILL = path.join(os.homedir(), ".pi", "agent", "skills", "obsidian", "SKILL.md");
 
 const NOTE_MODEL_SMALL = process.env.PI_NOTE_MODEL_SMALL || "openai-codex/gpt-5.3-codex-spark";
-const NOTE_MODEL_LARGE = process.env.PI_NOTE_MODEL_LARGE || "openai-codex/gpt-5.4-mini";
+const NOTE_MODEL_LARGE = process.env.PI_NOTE_MODEL_LARGE || "openai-codex/gpt-5.6-luna";
 const NOTE_MODEL_SMALL_CONTEXT_WINDOW = Number(process.env.PI_NOTE_MODEL_SMALL_CONTEXT_WINDOW || 128_000);
 const NOTE_MODEL_LARGE_CONTEXT_WINDOW = Number(process.env.PI_NOTE_MODEL_LARGE_CONTEXT_WINDOW || 272_000);
 const NOTE_MODEL_CONTEXT_RESERVE = Number(process.env.PI_NOTE_MODEL_CONTEXT_RESERVE || 16_384);

@@ -132,7 +132,7 @@ cd ~/dotfiles
 - `nvim` -> `~/.config/nvim`
 - `pi` -> `~/.pi/*`
 - `starship` -> `~/.config/starship.toml`
-- `yesman` -> `~/.config/yesman/plugins/*`
+- `yesman` -> `~/.config/yesman/*` (legacy plugins and standalone extensions)
 - `zellij` -> `~/.config/zellij`
 
 ## Daily stow commands
