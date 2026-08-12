@@ -1,0 +1,24 @@
+manifest_version = 1
+extension_id = "git-main-updater"
+display_name = "Git Main Updater"
+release = "0.1.0"
+protocol = "yesman.extension/1"
+executable = "./run.sh"
+args = []
+cwd = "."
+pass_env = ["PATH", "LANG"]
+
+# This extension is inert until it is explicitly configured and enabled in YesMan.
+[config]
+enabled = false
+# workspace_id = "00000000-0000-7000-8000-000000000000"
+projects_root = "/Users/christian/projects"
+branches = ["main", "master"]
+time_zone = "America/Chicago"
+daily_hour = 6
+daily_minute = 30
+poll_interval_seconds = 900
+
+[limits]
+startup_timeout_ms = 10000
+tool_timeout_ms = 300000
