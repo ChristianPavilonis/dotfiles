@@ -1,30 +1,32 @@
 manifest_version = 1
 extension_id = "github-pr-reviewer"
 display_name = "GitHub PR Reviewer"
-release = "0.1.0"
+release = "0.1.5"
 protocol = "yesman.extension/1"
 executable = "./run.sh"
 args = []
 cwd = "."
-pass_env = ["HOME", "PATH", "GH_TOKEN", "GITHUB_TOKEN", "LANG"]
+# `gh auth login` stores credentials under HOME; tokens need not be injected.
+pass_env = []
 
 # This extension is inert until explicitly configured and enabled in YesMan.
 [config]
-enabled = false
+enabled = true
 poll_interval_seconds = 900
 max_prs_per_poll = 1
 list_limit = 50
 max_pr_age_hours = 24
 skip_drafts = true
 
-# Add one table per repository after obtaining its durable YesMan workspace ID.
-#
-# [[config.repositories]]
-# name = "example"
-# repo = "OWNER/REPOSITORY"
-# cwd = "/absolute/path/to/local/repository"
-# workspace_id = "00000000-0000-7000-8000-000000000000"
-# enabled = true
+[[config.repositories]]
+name = "trusted-server"
+repo = "IABTechLab/trusted-server"
+cwd = "/home/christian/projects/trusted-server"
+workspace_id = "019fe2fd-23b1-7610-92a0-912c73ec9ebe"
+enabled = true
+
+[root_run]
+reasoning_effort = "high"
 
 [limits]
 startup_timeout_ms = 10000

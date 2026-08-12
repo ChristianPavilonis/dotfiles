@@ -1,4 +1,5 @@
 import {
+  buildReviewPrompt,
   conversationTitle,
   parsePullRequest,
   parseSettings,
@@ -69,6 +70,43 @@ Deno.test("conversation titles stay within the protocol schema bound", () => {
   );
   if (Array.from(title).length > 128) {
     throw new Error("title exceeds protocol schema bound");
+  }
+});
+
+Deno.test("review prompt scales by changed-file group and requires submission", () => {
+  const prompt = buildReviewPrompt(
+    {
+      name: "example",
+      repo: "owner/repository",
+      cwd: "/tmp/repository",
+      workspaceId: "0190c7d4-5f4c-7cc6-9f35-000000000002",
+      enabled: true,
+    },
+    {
+      number: 12,
+      title: "Review me",
+      url: "https://github.com/owner/repository/pull/12",
+      headRefOid: "a".repeat(40),
+      headRefName: "feature",
+      baseRefName: "main",
+      isDraft: false,
+    },
+    "/tmp/worktree",
+  );
+  for (
+    const requirement of [
+      "Account for every changed-file group",
+      "A large PR may legitimately require many focused calls",
+      "Submission is mandatory",
+      "finish only after GitHub confirms the review was posted",
+    ]
+  ) {
+    if (!prompt.includes(requirement)) {
+      throw new Error(`review prompt is missing: ${requirement}`);
+    }
+  }
+  if (prompt.includes("Complete the review within 20 tool calls")) {
+    throw new Error("review prompt retained the fixed tool-call target");
   }
 });
 
