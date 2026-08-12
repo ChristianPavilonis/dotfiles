@@ -124,7 +124,7 @@ def zs [] {
     }
 }
 
-# Pi agents in the current Zellij session
+# Pi agents across Zellij sessions
 
 def pi-zellij-agent-state-dir [] {
     let explicit = $env | get -o PI_ZELLIJ_AGENT_STATE_DIR | default ""
@@ -153,9 +153,8 @@ def pi-zellij-agent-records [] {
         | compact
 }
 
-def pi-zellij-live-agents [session: string] {
+def pi-zellij-live-agents [] {
     pi-zellij-agent-records
-        | where zellijSession == $session
         | each { |record|
             let pid_check = do { ^/bin/kill -0 $record.pid } | complete
             if $pid_check.exit_code != 0 {
@@ -167,6 +166,10 @@ def pi-zellij-live-agents [session: string] {
             }
         }
         | compact
+}
+
+def pi-zellij-live-agents-in-session [session: string] {
+    pi-zellij-live-agents | where zellijSession == $session
 }
 
 def pi-zellij-agent-cursor-path [session: string] {
@@ -186,6 +189,13 @@ def pi-zellij-focus-agent [session: string, agent: record] {
             rm -f $record_path
         }
         error make { msg: ($message | str trim) }
+    }
+}
+
+def pi-zellij-switch-session [session: string] {
+    let result = do { ^zellij pipe --plugin $ZELLIJ_SWITCH_PLUGIN -- $"--session ($session)" } | complete
+    if $result.exit_code != 0 {
+        error make { msg: ($"($result.stdout)($result.stderr)" | str trim) }
     }
 }
 
@@ -216,7 +226,8 @@ def pi-zellij-cycle-agent [session: string, agents: table, direction: int] {
     pi-zellij-focus-agent $session ($ordered | get $target_index)
 }
 
-# Navigate Pi agents in this Zellij session.
+# Navigate Pi agents. latest-idle considers all Zellij sessions; next, previous,
+# and list remain scoped to the current session.
 # Actions: latest-idle, next, previous, list.
 def za [action: string = "list"] {
     let session = $env | get -o ZELLIJ_SESSION_NAME | default ""
@@ -224,12 +235,16 @@ def za [action: string = "list"] {
         error make { msg: "za must run inside Zellij" }
     }
 
-    let agents = pi-zellij-live-agents $session
+    let agents = pi-zellij-live-agents-in-session $session
     match $action {
         "latest-idle" => {
-            let idle_agents = $agents | where state == "idle" | sort-by idleAt --reverse
+            let idle_agents = pi-zellij-live-agents | where state == "idle" | sort-by idleAt --reverse
             if ($idle_agents | is-not-empty) {
-                pi-zellij-focus-agent $session ($idle_agents | first)
+                let agent = $idle_agents | first
+                pi-zellij-focus-agent $agent.zellijSession $agent
+                if $agent.zellijSession != $session {
+                    pi-zellij-switch-session $agent.zellijSession
+                }
             }
         }
         "next" => { pi-zellij-cycle-agent $session $agents 1 }
