@@ -40,10 +40,10 @@ type HostState = {
 };
 
 const EXTENSION_ID = "github-pr-reviewer";
-const EXTENSION_RELEASE = "0.1.5";
+const EXTENSION_RELEASE = "0.1.6";
 // Include this in the durable request identity when changing the review protocol.
 // It makes a deliberately improved review policy retry a previously failed head once.
-const REVIEW_POLICY_VERSION = "3";
+const REVIEW_POLICY_VERSION = "4";
 const DEFAULT_POLL_INTERVAL_SECONDS = 900;
 const DEFAULT_MAX_PRS_PER_POLL = 1;
 const DEFAULT_LIST_LIMIT = 50;
