@@ -451,6 +451,7 @@ plugins {
     status-bar location="zellij:status-bar"
     strider location="zellij:strider"
     tab-bar location="zellij:tab-bar"
+    vertical-tabs location="file:~/.config/zellij/plugins/zellij-vertical-tabs.wasm"
     welcome-screen location="zellij:session-manager" {
         welcome_screen true
     }
