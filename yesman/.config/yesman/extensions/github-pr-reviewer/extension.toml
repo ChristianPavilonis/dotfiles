@@ -1,7 +1,7 @@
 manifest_version = 1
 extension_id = "github-pr-reviewer"
 display_name = "GitHub PR Reviewer"
-release = "0.1.6"
+release = "0.1.7"
 protocol = "yesman.extension/1"
 executable = "./run.sh"
 args = []
@@ -13,7 +13,7 @@ pass_env = []
 [config]
 enabled = true
 poll_interval_seconds = 900
-max_prs_per_poll = 1
+max_prs_per_poll = 2
 list_limit = 50
 max_pr_age_hours = 24
 skip_drafts = true
