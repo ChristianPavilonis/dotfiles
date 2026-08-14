@@ -1,7 +1,7 @@
 manifest_version = 1
 extension_id = "github-pr-reviewer"
 display_name = "GitHub PR Reviewer"
-release = "0.1.7"
+release = "0.1.8"
 protocol = "yesman.extension/1"
 executable = "./run.sh"
 args = []

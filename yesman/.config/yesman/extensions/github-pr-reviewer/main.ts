@@ -40,10 +40,10 @@ type HostState = {
 };
 
 const EXTENSION_ID = "github-pr-reviewer";
-const EXTENSION_RELEASE = "0.1.7";
+const EXTENSION_RELEASE = "0.1.8";
 // Include this in the durable request identity when changing the review protocol.
 // It makes a deliberately improved review policy retry a previously failed head once.
-const REVIEW_POLICY_VERSION = "4";
+const REVIEW_POLICY_VERSION = "5";
 const DEFAULT_POLL_INTERVAL_SECONDS = 900;
 const DEFAULT_MAX_PRS_PER_POLL = 1;
 const DEFAULT_LIST_LIMIT = 50;
@@ -421,28 +421,66 @@ export function buildReviewPrompt(
 ): string {
   return `Review GitHub pull request #${pullRequest.number} for ${repository.repo}.
 
-Repository: ${repository.repo}
-PR URL: ${pullRequest.url}
-Worktree: ${worktree}
-Base branch: ${pullRequest.baseRefName}
-Head branch: ${pullRequest.headRefName}
-Head SHA: ${pullRequest.headRefOid}
+Review target:
+- Repository: ${repository.repo}
+- PR URL: ${pullRequest.url}
+- Worktree: ${worktree}
+- Base branch: ${pullRequest.baseRefName}
+- Head branch: ${pullRequest.headRefName}
+- Required head SHA: ${pullRequest.headRefOid}
 
-Use the worktree above, not the default workspace directory. Do not modify files or push commits.
+Use the worktree above, not the default workspace directory. Do not modify files, create commits, or push commits. Do not spawn subagents.
 
-Use a phased review that scales to the PR size:
+First read and follow the review procedure at:
 
-1. Triage once. Confirm the head SHA, then inspect changed-file names, diff statistics, and per-file line counts. Group the files into coherent subsystems and distinguish runtime behavior from tests, docs, generated files, and mechanical changes.
-2. Cover the full change breadth without dumping the entire PR. Account for every changed-file group, but use focused per-file or per-subsystem diffs. For a large PR, inspect representative mechanical changes and spend depth on behavior-changing or high-risk code. Keep each command's output bounded and useful.
-3. Investigate risk, not volume. Trace direct callers and relevant invariants for security, authorization, caching, persistence, concurrency, compatibility, and data-loss-sensitive changes. Read unchanged code only when needed to validate a concrete concern.
-4. Verify candidate findings. Before reporting a blocker, confirm it against the current head and cite precise file/line evidence. Run targeted tests only when they resolve a specific uncertainty; do not run broad suites merely for completeness.
-5. Drive toward closure. Keep track of which file groups are already accounted for. Do not repeat broad searches, reread the same ranges, or restart the review from another angle without a concrete unresolved question. Every additional tool call should either cover an unchecked group or verify a specific finding.
+- ~/.pi/agent/prompts/ts-review.md
 
-A large PR may legitimately require many focused calls. The goal is not an arbitrary call count; it is complete risk-based coverage without circular exploration. Once all groups are accounted for and concrete concerns are resolved, stop investigating and submit the review.
+Treat it as the review standard. Establish the actual PR/base/head, inspect the diff and relevant surrounding code, read repository guidance, check CI and existing review feedback, and prioritize correctness, security, compatibility, error handling, and meaningful test gaps. Report only high-confidence findings with exact changed-file paths and right-side line numbers.
 
-Submission is mandatory. If there are blocking correctness, security, authorization, data-loss, or severe compatibility findings, submit REQUEST_CHANGES with concise evidence and inline comments where appropriate. Otherwise submit COMMENT with a short no-blockers summary. Never APPROVE. Do not finish with only a plan, analysis, or local summary.
+Before preparing the GitHub review, read and follow the submission mechanics at:
 
-Immediately before submission, re-check that the PR head still equals ${pullRequest.headRefOid}. If it changed, do not submit. Otherwise use the GitHub CLI from the configured authenticated account and finish only after GitHub confirms the review was posted. If context pressure or repeated compaction begins to interfere with progress, stop exploring and submit the best evidence-based review rather than starting another inspection pass.`;
+- ~/.pi/agent/skills/submit-gh-pr-review/SKILL.md
+
+Use that skill's single-payload GitHub API flow and inline-comment procedure. Put each line-specific finding in an inline comment when GitHub accepts it. Use the review body for the summary and only findings that have no valid diff line or cannot be attached after the skill's fallback procedure.
+
+## Automated-review submission policy
+
+This policy overrides any conflicting approval guidance in the submission skill:
+
+- Never submit APPROVE.
+- Submit REQUEST_CHANGES only for confirmed merge-blocking findings: P0 issues, or equally concrete correctness, security, data-loss, authorization, CI-breaking, or severe compatibility defects.
+- Otherwise submit COMMENT, including when there are no findings.
+- Do not submit speculative concerns, style nits, or duplicate existing feedback.
+
+Use this review body structure. Begin the body with **Automated Review:** so authors know its source.
+
+## Automated Review:
+
+### Review Summary
+
+<What changed, what you reviewed, and overall risk.>
+
+### Findings
+
+#### P0 / Blockers
+<Findings or “None.”>
+
+#### P1 / High
+<Findings or “None.”>
+
+#### P2 / Medium
+<Findings or “None.”>
+
+#### P3 / Low
+<Findings or “None.”>
+
+### CI / Existing Reviews
+
+<Relevant CI state and existing-review context.>
+
+For every included finding, explain the issue, why it matters in this repository, and a concrete fix. Do not inflate severity.
+
+Submission is mandatory. Submit exactly one review using the submission skill's gh api --input - flow, then finish only after GitHub confirms the review URL, verdict, and inline-comment count.`;
 }
 
 export async function reviewRequestId(

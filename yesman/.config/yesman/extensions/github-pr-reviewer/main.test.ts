@@ -73,7 +73,7 @@ Deno.test("conversation titles stay within the protocol schema bound", () => {
   }
 });
 
-Deno.test("review prompt scales by changed-file group and requires submission", () => {
+Deno.test("review prompt uses the trusted-server procedure and requires submission", () => {
   const prompt = buildReviewPrompt(
     {
       name: "example",
@@ -95,18 +95,23 @@ Deno.test("review prompt scales by changed-file group and requires submission", 
   );
   for (
     const requirement of [
-      "Account for every changed-file group",
-      "A large PR may legitimately require many focused calls",
+      "~/.pi/agent/prompts/ts-review.md",
+      "~/.pi/agent/skills/submit-gh-pr-review/SKILL.md",
+      "Do not spawn subagents",
+      "**Automated Review:**",
+      "Never submit APPROVE",
+      "Submit REQUEST_CHANGES only for confirmed merge-blocking findings",
+      "Otherwise submit COMMENT, including when there are no findings",
       "Submission is mandatory",
-      "finish only after GitHub confirms the review was posted",
+      "review URL, verdict, and inline-comment count",
     ]
   ) {
     if (!prompt.includes(requirement)) {
       throw new Error(`review prompt is missing: ${requirement}`);
     }
   }
-  if (prompt.includes("Complete the review within 20 tool calls")) {
-    throw new Error("review prompt retained the fixed tool-call target");
+  if (prompt.includes("Immediately before submission, re-check")) {
+    throw new Error("review prompt retained the unnecessary head re-check");
   }
 });
 
