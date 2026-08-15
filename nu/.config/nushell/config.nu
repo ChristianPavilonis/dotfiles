@@ -1,168 +1,12 @@
 # Nushell Config File
 
-# For more information on themes, see
-# https://www.nushell.sh/book/coloring_and_theming.html
-let dark_theme = {
-    # color for nushell primitives
-    separator: green
-    leading_trailing_space_bg: { attr: n } # no fg, no bg, attr none effectively turns this off
-    header: green_bold
-    empty: green
-    # Closures can be used to choose colors for specific values.
-    # The value (in this case, a bool) is piped into the closure.
-    bool: { if $in { 'green_bold' } else { 'green' } }
-    int: green
-    filesize: {|e|
-      if $e == 0b {
-	'green'
-      } else if $e < 1mb {
-	'green'
-      } else { 'green' }
-    }
-    duration: green
-    date: { (date now) - $in |
-      if $in < 1hr {
-	'#9cff57'
-      } else if $in < 6hr {
-	'#73c95a'
-      } else if $in < 1day {
-	'#73c95a'
-      } else if $in < 3day {
-	'#73c95a'
-      } else if $in < 1wk {
-	'#9cff57'
-      } else if $in < 6wk {
-	'#73c95a'
-      } else if $in < 52wk {
-	'#73c95a'
-      } else { 'green' }
-    }
-    range: green
-    float: green
-    string: green
-    nothing: green
-    binary: green
-    cellpath: green
-    row_index: green_bold
-    record: green
-    list: green
-    block: green
-    hints: green
+# Theme colors are generated from themes/*/{dark,light}.json.
+# Set DOTFILES_THEME_VARIANT=light before starting Nushell to use the light variant.
+source ~/.config/nushell/theme.nu
 
-    shape_and: green_bold
-    shape_binary: green_bold
-    shape_block: green_bold
-    shape_bool: green_bold
-    shape_custom: green
-    shape_datetime: green_bold
-    shape_directory: green
-    shape_external: green
-    shape_externalarg: green_bold
-    shape_filepath: green
-    shape_flag: green_bold
-    shape_float: green_bold
-    # shapes are used to change the cli syntax highlighting
-    shape_garbage: { fg: "#9cff57" bg: "#4a7a3f" attr: b}
-    shape_globpattern: green_bold
-    shape_int: green_bold
-    shape_internalcall: green_bold
-    shape_list: green_bold
-    shape_literal: green
-    shape_matching_brackets: { attr: u }
-    shape_nothing: green_bold
-    shape_operator: green
-    shape_or: green_bold
-    shape_pipe: green_bold
-    shape_range: green_bold
-    shape_record: green_bold
-    shape_redirection: green_bold
-    shape_signature: green_bold
-    shape_string: green
-    shape_string_interpolation: green_bold
-    shape_table: green_bold
-    shape_variable: green
-}
-
-let light_theme = {
-    # color for nushell primitives
-    separator: green
-    leading_trailing_space_bg: { attr: n } # no fg, no bg, attr none effectively turns this off
-    header: green_bold
-    empty: green
-    # Closures can be used to choose colors for specific values.
-    # The value (in this case, a bool) is piped into the closure.
-    bool: { if $in { 'green_bold' } else { 'green' } }
-    int: green
-    filesize: {|e|
-      if $e == 0b {
-	'green'
-      } else if $e < 1mb {
-	'green_bold'
-      } else { 'green_bold' }
-    }
-    duration: green
-  date: { (date now) - $in |
-    if $in < 1hr {
-      'green_bold'
-    } else if $in < 6hr {
-      'green'
-    } else if $in < 1day {
-      'green_bold'
-    } else if $in < 3day {
-      'green_bold'
-    } else if $in < 1wk {
-      'green_bold'
-    } else if $in < 6wk {
-      'green'
-    } else if $in < 52wk {
-      'green_bold'
-    } else { 'green' }
-  }
-    range: green
-    float: green
-    string: green
-    nothing: green
-    binary: green
-    cellpath: green
-    row_index: green_bold
-    record: green
-    list: green
-    block: green
-    hints: green
-
-    shape_and: green_bold
-    shape_binary: green_bold
-    shape_block: green_bold
-    shape_bool: green_bold
-    shape_custom: green
-    shape_datetime: green_bold
-    shape_directory: green
-    shape_external: green
-    shape_externalarg: green_bold
-    shape_filepath: green
-    shape_flag: green_bold
-    shape_float: green_bold
-    # shapes are used to change the cli syntax highlighting
-    shape_garbage: { fg: "#9cff57" bg: "#4a7a3f" attr: b}
-    shape_globpattern: green_bold
-    shape_int: green_bold
-    shape_internalcall: green_bold
-    shape_list: green_bold
-    shape_literal: green
-    shape_matching_brackets: { attr: u }
-    shape_nothing: green_bold
-    shape_operator: green
-    shape_or: green_bold
-    shape_pipe: green_bold
-    shape_range: green_bold
-    shape_record: green_bold
-    shape_redirection: green_bold
-    shape_signature: green_bold
-    shape_string: green
-    shape_string_interpolation: green_bold
-    shape_table: green_bold
-    shape_variable: green
-}
+let theme_variant = ($env | get -o DOTFILES_THEME_VARIANT | default (fallout-default-variant))
+let theme_color_config = (fallout-color-config $theme_variant)
+let theme_explore_config = (fallout-explore-config $theme_variant)
 
 # External completer example
 # let carapace_completer = {|spans|
@@ -189,62 +33,7 @@ $env.config = {
     }
   }
 
-  explore: {
-    help_banner: true
-    exit_esc: true
-
-    command_bar_text: '#9cff57'
-    # command_bar: {fg: '#9cff57' bg: '#223311' }
-
-    status_bar_background: {fg: '#0b120c' bg: '#9cff57' }
-    # status_bar_text: {fg: '#9cff57' bg: '#223311' }
-
-    highlight: {bg: '#4a7a3f' fg: '#9cff57' }
-
-    status: {
-      # warn: {bg: 'green', fg: 'green'}
-      # error: {bg: 'green', fg: 'green'}
-      # info: {bg: 'green', fg: 'green'}
-    }
-
-    try: {
-      # border_color: 'red'
-      # highlighted_color: 'green'
-
-      # reactive: false
-    }
-
-    table: {
-      split_line: '#4a7a3f'
-
-      cursor: true
-
-      line_index: true
-      line_shift: true
-      line_head_top: true
-      line_head_bottom: true
-
-      show_head: true
-      show_index: true
-
-      # selected_cell: {fg: 'green', bg: '#4a7a3f'}
-      # selected_row: {fg: 'green', bg: '#4a7a3f'}
-      # selected_column: green
-
-      # padding_column_right: 2
-      # padding_column_left: 2
-
-      # padding_index_left: 2
-      # padding_index_right: 1
-    }
-
-    config: {
-      cursor_color: {bg: '#4a7a3f' fg: '#9cff57' }
-
-      # border_color: green
-      # list_color: green
-    }
-  }
+  explore: $theme_explore_config
 
   history: {
     max_size: 10000 # Session has to be reloaded for this to take effect
@@ -265,7 +54,7 @@ $env.config = {
   filesize: {
     # what goes here?
   }
-  color_config: $dark_theme   # if you want a light theme, replace `$dark_theme` to `$light_theme`
+  color_config: $theme_color_config
   footer_mode: "never" # always, never, number_of_rows, auto
   float_precision: 2
   # buffer_editor: "emacs" # command that will be used to edit the current line buffer with ctrl+o, if unset fallback to $env.EDITOR and $env.VISUAL

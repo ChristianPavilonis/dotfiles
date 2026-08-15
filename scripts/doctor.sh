@@ -86,6 +86,14 @@ if command -v nu >/dev/null 2>&1; then
   fi
 fi
 
+if command -v mise >/dev/null 2>&1; then
+  if mise exec -C "$ROOT_DIR" -- bun "$ROOT_DIR/scripts/theme.ts" check >/dev/null 2>&1; then
+    pass "generated theme files are up to date"
+  else
+    fail "generated theme files are stale or invalid"
+  fi
+fi
+
 if [ ! -f "$HOME/.cache/starship/init.nu" ]; then
   fail "missing starship init at ~/.cache/starship/init.nu"
 else

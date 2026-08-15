@@ -5,7 +5,7 @@ set -euo pipefail
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OS_NAME="$(uname -s)"
 
-COMMON_PACKAGES=(git kitty nu nvim pi starship yesman zellij)
+COMMON_PACKAGES=(git kitty nu nvim starship yesman zellij)
 MACOS_PACKAGES=(aerospace)
 
 if ! command -v stow >/dev/null 2>&1; then
@@ -40,6 +40,15 @@ if [ "$OS_NAME" = "Darwin" ]; then
 fi
 
 stow -d "$DOTFILES" -t "$HOME" "${COMMON_PACKAGES[@]}"
+
+# Preserve an existing machine-local Pi settings file while still stowing the
+# durable themes, extensions, prompts, and skills from the repository.
+if [ -e "$HOME/.pi/agent/settings.json" ] && [ ! -L "$HOME/.pi/agent/settings.json" ]; then
+  echo "Preserving existing machine-local ~/.pi/agent/settings.json"
+  stow --ignore='settings\\.json$' -d "$DOTFILES" -t "$HOME" pi
+else
+  stow -d "$DOTFILES" -t "$HOME" pi
+fi
 
 # Link platform-specific git config.
 gitconfig_platform="$HOME/.gitconfig-platform"
@@ -87,7 +96,7 @@ if [ "$OS_NAME" = "Darwin" ]; then
   nu_default_dir="$HOME/Library/Application Support/nushell"
   mkdir -p "$nu_default_dir"
 
-  for nu_file in config.nu env.nu mise.nu; do
+  for nu_file in config.nu env.nu mise.nu theme.nu; do
     target="$nu_default_dir/$nu_file"
     source_file="$DOTFILES/nu/.config/nushell/$nu_file"
 

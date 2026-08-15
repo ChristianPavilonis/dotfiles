@@ -135,14 +135,6 @@ vim.keymap.set('n', '<leader>gd', function()
     vim.cmd("G diff " .. path)
 end)
 
-vim.keymap.set('n', '<leader>tl', function()
-    vim.cmd("colorscheme kanagawa-lotus")
-end)
-
-vim.keymap.set('n', '<leader>td', function()
-    vim.cmd("colorscheme kanagawa-wave")
-end)
-
 vim.keymap.set('n', '<leader>lf', function()
     vim.lsp.buf.format({ async = false })
 end)

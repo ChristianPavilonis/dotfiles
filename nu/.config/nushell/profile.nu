@@ -237,3 +237,22 @@ source ./zoxide.nu
 source ./zellij.nu
 
 use ~/.cache/starship/init.nu
+
+# Unified theme manager. Examples: `theme dark`, `theme light`, `theme nord`.
+def theme [...args: string] {
+  let dotfiles = ($env | get -o DOTFILES_ROOT | default ($env.HOME | path join "dotfiles"))
+  let script = ($dotfiles | path join "scripts" "theme.ts")
+  if not ($script | path exists) {
+    error make { msg: $"Theme manager not found: ($script)" }
+  }
+
+  let command = if ($args | is-empty) {
+    ["current"]
+  } else if (($args | first) in ["current", "list", "set", "generate", "check"]) {
+    $args
+  } else {
+    ["set"] | append $args
+  }
+
+  ^mise exec -C $dotfiles -- bun $script ...$command
+}

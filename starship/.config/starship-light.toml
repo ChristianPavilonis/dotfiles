@@ -6,17 +6,17 @@ format = "$directory$git_branch$git_status$fill$cmd_duration$line_break$characte
 right_format = "$status"
 
 [palettes.fallout_terminal]
-bg = '#2e3440'
-panel = '#3b4252'
-green = '#88c0d0'
-greenSoft = '#8fbcbb'
-greenDim = '#616e82'
-greenPale = '#eceff4'
+bg = '#eceff4'
+panel = '#e5e9f0'
+green = '#5e81ac'
+greenSoft = '#4c7a8a'
+greenDim = '#5e81ac'
+greenPale = '#2e3440'
 gray = '#4c566a'
-cyan = '#8fbcbb'
-blue = '#81a1c1'
-amber = '#ebcb8b'
-red = '#bf616a'
+cyan = '#3b7d8f'
+blue = '#5e81ac'
+amber = '#9a6b00'
+red = '#a33f4a'
 
 [directory]
 style = 'bold fg:green'

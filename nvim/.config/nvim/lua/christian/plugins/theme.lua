@@ -1,37 +1,20 @@
 return {
-  -- current theme
   {
-    "shawilly/fallout.nvim",
+    -- Generated colorscheme and lualine palette are sourced from themes/.
+    'nvim-lualine/lualine.nvim',
     lazy = false,
     priority = 1000,
-    opts = {},
-    config = function(_, opts)
-      require("fallout").setup(opts)
-      vim.cmd.colorscheme("fallout")
-    end,
-  },
-
-  -- {
-  --   'rebelot/kanagawa.nvim',
-  --   priority = 1000,
-  --   config = function()
-  --     vim.cmd.colorscheme 'kanagawa'
-  --     vim.api.nvim_set_hl(0, 'NvimTreeIndentMarker', {fg = "#5D5C8A"})
-  --   end
-  -- },
-
-
-  {
-    -- Set lualine as statusline
-    'nvim-lualine/lualine.nvim',
-    -- See `:help lualine.txt`
     opts = {
       options = {
         icons_enabled = true,
-        theme = 'kanagawa',
+        theme = require('christian.lualine_theme'),
         component_separators = '|',
         section_separators = '',
       },
     },
+    config = function(_, opts)
+      vim.cmd.colorscheme('fallout-terminal')
+      require('lualine').setup(opts)
+    end,
   },
 }
