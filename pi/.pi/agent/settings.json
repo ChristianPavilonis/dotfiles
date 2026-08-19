@@ -2,12 +2,13 @@
   "lastChangelogVersion": "0.79.1",
   "theme": "fallout-terminal",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.5",
+  "defaultModel": "gpt-5.6-sol",
   "packages": [
     "npm:@ifi/pi-plan",
     "npm:pi-web-access",
     "npm:pi-subagents",
-    "npm:@codexstar/pi-listen"
+    "npm:@codexstar/pi-listen",
+    "npm:remote-pi"
   ],
   "defaultThinkingLevel": "high",
   "editorPaddingX": 1,
