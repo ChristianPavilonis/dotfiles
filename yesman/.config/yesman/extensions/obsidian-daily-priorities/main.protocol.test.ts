@@ -61,7 +61,7 @@ async function runTranscript(): Promise<Record<string, unknown>[]> {
       params: {
         protocol: "yesman.extension/1",
         extension_id: "obsidian-daily-priorities",
-        extension_release: "0.1.0",
+        extension_release: "0.1.2",
         enabled_workspace_ids: [workspaceId],
         config: { enabled: true, workspace_id: workspaceId, daily_hour: 0 },
       },

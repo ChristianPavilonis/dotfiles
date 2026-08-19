@@ -1,0 +1,19 @@
+[Unit]
+Description=Obsidian Headless Sync (the_new_vault)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=exec
+WorkingDirectory=/home/christian/Documents/MyObsidianVault
+ExecStart=/home/christian/.local/share/mise/installs/node/latest/bin/node /home/christian/.local/share/mise/installs/node/latest/lib/node_modules/obsidian-headless/cli.js sync --path /home/christian/Documents/MyObsidianVault --continuous
+Restart=always
+RestartSec=10s
+TimeoutStopSec=30s
+UMask=0077
+Environment=HOME=/home/christian
+Environment=XDG_CONFIG_HOME=/home/christian/.config
+Environment=PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+
+[Install]
+WantedBy=default.target

@@ -10,6 +10,7 @@ type Settings = {
   dailyHour: number;
   pollIntervalSeconds: number;
   maxTasks: number;
+  requestNonce?: string;
 };
 
 type State = {
@@ -20,11 +21,11 @@ type State = {
   polling: boolean;
   completedDate?: string;
   pendingRequests: Map<string, number>;
-  timer?: number;
+  timer?: ReturnType<typeof setInterval>;
 };
 
 const EXTENSION_ID = "obsidian-daily-priorities";
-const EXTENSION_RELEASE = "0.1.0";
+const EXTENSION_RELEASE = "0.1.2";
 const DEFAULT_VAULT_PATH = "/Users/christian/Documents/MyObsidianVault";
 const DEFAULT_DAILY_FOLDER = "daily";
 const DEFAULT_TIME_ZONE = "America/Chicago";
@@ -192,7 +193,11 @@ async function poll(): Promise<void> {
       return;
     }
 
-    const requestId = dailyRequestId(settings.workspaceId, now.date);
+    const requestId = dailyRequestId(
+      settings.workspaceId,
+      now.date,
+      settings.requestNonce,
+    );
     if (state.pendingRequests.has(requestId)) return;
 
     state.pendingRequests.set(requestId, Date.now());
@@ -259,6 +264,7 @@ export function parseSettings(value: Json | undefined): Settings {
   const dailyFolder = relativePath(config.daily_folder, DEFAULT_DAILY_FOLDER);
   const timeZone = validTimeZone(config.time_zone) ?? DEFAULT_TIME_ZONE;
   const workspaceId = uuidV7(config.workspace_id) ?? undefined;
+  const requestNonce = requestNonceValue(config.request_nonce);
   return {
     enabled: config.enabled === true && workspaceId !== undefined,
     workspaceId,
@@ -273,6 +279,7 @@ export function parseSettings(value: Json | undefined): Settings {
       86_400,
     ),
     maxTasks: boundedInteger(config.max_tasks, DEFAULT_MAX_TASKS, 1, 50),
+    requestNonce,
   };
 }
 
@@ -280,13 +287,19 @@ function defaultSettings(): Settings {
   return parseSettings({});
 }
 
-export function dailyRequestId(workspaceId: string, date: string): string {
-  return `obsidian-daily-priorities:${workspaceId}:${date}`;
+export function dailyRequestId(
+  workspaceId: string,
+  date: string,
+  requestNonce?: string,
+): string {
+  const suffix = requestNonce ? `:${requestNonce}` : "";
+  return `obsidian-daily-priorities:${workspaceId}:${date}${suffix}`;
 }
 
 function dateFromRequestId(requestId: string): string | undefined {
-  const match = /^obsidian-daily-priorities:[0-9a-f-]+:(\d{4}-\d{2}-\d{2})$/
-    .exec(requestId);
+  const match =
+    /^obsidian-daily-priorities:[0-9a-f-]+:(\d{4}-\d{2}-\d{2})(?::[a-z0-9][a-z0-9_-]{0,47})?$/
+      .exec(requestId);
   return match?.[1];
 }
 
@@ -380,6 +393,12 @@ function relativePath(value: Json | undefined, fallback: string): string {
   return parts.every((part) => part.length > 0 && part !== "." && part !== "..")
     ? value
     : fallback;
+}
+
+function requestNonceValue(value: Json | undefined): string | undefined {
+  return typeof value === "string" && /^[a-z0-9][a-z0-9_-]{0,47}$/.test(value)
+    ? value
+    : undefined;
 }
 
 function validTimeZone(value: Json | undefined): string | undefined {

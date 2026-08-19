@@ -47,6 +47,25 @@ Deno.test("daily receipt identity is stable and scoped to workspace/date", () =>
   }
 });
 
+Deno.test("a validated nonce creates an explicit recovery receipt", () => {
+  const standard = dailyRequestId(WORKSPACE_ID, "2026-08-08");
+  const recovery = dailyRequestId(
+    WORKSPACE_ID,
+    "2026-08-08",
+    "vault-sync-retry-2026-08-08",
+  );
+  const settings = parseSettings({
+    request_nonce: "vault-sync-retry-2026-08-08",
+  });
+  const invalid = parseSettings({ request_nonce: "invalid nonce" });
+  if (
+    standard === recovery || !settings.requestNonce ||
+    invalid.requestNonce !== undefined || recovery.length > 128
+  ) {
+    throw new Error("recovery receipt nonce validation is invalid");
+  }
+});
+
 Deno.test("time-zone date and hour honor America/Chicago", () => {
   const before = nowInTimeZone(
     new Date("2026-08-08T11:59:00Z"),

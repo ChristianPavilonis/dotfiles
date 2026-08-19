@@ -29,6 +29,14 @@ poll_interval_seconds = 900
 max_tasks = 12
 ```
 
+### Recovering an already-accepted same-day run
+
+Daily requests are intentionally idempotent per workspace and date. If a request was accepted before the vault was available, set a unique lowercase `request_nonce` (letters, digits, `_`, and `-`; maximum 48 characters), publish the changed extension release, and re-enable it. That creates one explicit recovery request for the same date. Remove the nonce and publish again after the recovery run completes, so future daily requests retain their normal receipt identity.
+
+```toml
+request_nonce = "vault-sync-retry-2026-08-12"
+```
+
 `vault_path` must be absolute; `daily_folder` must be a relative, traversal-free path. The extension also requires that YesMan's initialization snapshot authorizes this extension for `workspace_id`.
 
 Restart YesMan after manifest changes. Configure the workspace's agent policy with the model and file access appropriate to its vault; unlike the legacy plugin, this extension does not hard-code a model or tool list.
