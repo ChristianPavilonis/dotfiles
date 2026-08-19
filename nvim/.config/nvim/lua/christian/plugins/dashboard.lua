@@ -37,11 +37,18 @@ return {
       }
     }
 
-    vim.api.nvim_set_hl(0, 'DashboardHeader', { fg = '#9cff57' })
-    vim.api.nvim_set_hl(0, 'DashboardDesc', { fg = '#9cff57' })
-    vim.api.nvim_set_hl(0, 'DashboardIcon', { fg = '#9cff57' })
-    vim.api.nvim_set_hl(0, 'DashboardKey', { fg = '#9cff57' })
-    vim.api.nvim_set_hl(0, 'DashboardFooter', { fg = '#9cff57' })
+    local theme_palette = require('christian.theme_palette')
+    local palette = theme_palette[theme_palette.active]
+    local dashboard_groups = {
+      'DashboardHeader',
+      'DashboardDesc',
+      'DashboardIcon',
+      'DashboardKey',
+      'DashboardFooter',
+    }
+    for _, group in ipairs(dashboard_groups) do
+      vim.api.nvim_set_hl(0, group, { fg = palette.accent })
+    end
   end,
   dependencies = { { 'nvim-tree/nvim-web-devicons' } }
 }

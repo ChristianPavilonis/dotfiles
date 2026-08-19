@@ -154,6 +154,38 @@ stow -D -t ~ <package>
 2. Mirror the target path under that package (for example `foo/.config/foo/config.toml`).
 3. Run `stow -R -t ~ foo`.
 
+## Unified Fallout Terminal theme
+
+Theme colors live in `themes/<family>/{dark,light}.json`. The native Kitty,
+Pi, Starship, Nushell, Zellij, and Neovim files are generated from those sources:
+
+```bash
+bun scripts/theme.ts generate
+bun scripts/theme.ts check
+```
+
+Generated files are committed because GNU Stow links the native configs directly.
+Do not edit generated theme files by hand. Change `activeVariant` in
+`themes/profile.json`, then run `bun scripts/theme.ts generate` to select the
+active generated variant. Kitty automatically selects its dark, light, and
+no-preference variants from the reserved `*.auto.conf` files. From Nushell, theme
+families and variants can be swapped with:
+
+```nu
+theme list
+theme current
+theme dark
+theme light
+theme toggle
+theme nord
+theme nord light
+```
+
+When run inside Zellij 0.44.3+, the command also applies the selected dark/light
+theme to the current session. Outside Zellij, the generated configuration is used
+by new sessions. Nushell can also override the generated default for one new shell
+with `DOTFILES_THEME_VARIANT=light`.
+
 ## Pi customizations
 
 The `pi/` package is linked into `~/.pi` and is laid out for Pi's global config:
@@ -163,8 +195,10 @@ The `pi/` package is linked into `~/.pi` and is laid out for Pi's global config:
 - `pi/.pi/agent/extensions/` — TypeScript extensions
 - `pi/.pi/agent/prompts/` — Markdown prompt templates
 - `pi/.pi/agent/skills/` — skills with `SKILL.md`
-- `pi/.pi/agent/themes/` — theme JSON files
+- `pi/.pi/agent/themes/` — generated theme JSON files
 
-Runtime state like `~/.pi/agent/auth.json` and `~/.pi/agent/sessions/` stays local and is not tracked in git.
+If `~/.pi/agent/settings.json` already exists as a regular machine-local file,
+`./install` preserves it while stowing the rest of the Pi package. Runtime state
+like `~/.pi/agent/auth.json` and `~/.pi/agent/sessions/` stays local and is not tracked in git.
 
 See `pi/README.md` for a quick guide to what belongs in each folder.

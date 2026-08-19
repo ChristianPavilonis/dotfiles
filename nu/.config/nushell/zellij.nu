@@ -118,7 +118,11 @@ def zs [] {
     let session_name = $selected_dir | path basename
 
     if ($env | get -o ZELLIJ | is-not-empty) {
-        zellij pipe --plugin $switch_plugin -- $"--session ($session_name) --cwd ($selected_dir) --layout ($layout)"
+        # zellij-switch resolves `--layout` relative to its own context, not
+        # Zellij's configured layout directory. Give it the custom layout's
+        # absolute path (without .kdl; the plugin adds that suffix).
+        let switch_layout = ($env.HOME | path join ".config" "zellij" "layouts" $layout)
+        zellij pipe --plugin $switch_plugin -- $"--session ($session_name) --cwd ($selected_dir) --layout ($switch_layout)"
     } else {
         zellij attach $session_name --create options --default-cwd $selected_dir --default-layout $layout
     }

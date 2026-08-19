@@ -2,18 +2,18 @@
   "$schema": "https://raw.githubusercontent.com/badlogic/pi-mono/main/packages/coding-agent/src/modes/interactive/theme/theme-schema.json",
   "name": "fallout-terminal",
   "vars": {
-    "bg": "#0b120c",
-    "panel": "#101a12",
-    "green": "#9cff57",
-    "greenSoft": "#73c95a",
-    "greenDim": "#4a7a3f",
-    "greenPale": "#c7ffb0",
-    "amber": "#d6c96b",
-    "red": "#ff6b6b",
-    "blue": "#7fd7ff",
-    "purple": "#c48dff",
-    "cyan": "#9cff57",
-    "gray": "#4f6651"
+    "bg": "#2e3440",
+    "panel": "#3b4252",
+    "green": "#88c0d0",
+    "greenSoft": "#8fbcbb",
+    "greenDim": "#616e82",
+    "greenPale": "#eceff4",
+    "amber": "#ebcb8b",
+    "red": "#bf616a",
+    "blue": "#81a1c1",
+    "purple": "#b48ead",
+    "cyan": "#8fbcbb",
+    "gray": "#4c566a"
   },
   "colors": {
     "accent": "green",
@@ -27,19 +27,17 @@
     "dim": "gray",
     "text": "",
     "thinkingText": "greenSoft",
-
-    "selectedBg": "#162018",
-    "userMessageBg": "#0f1710",
+    "selectedBg": "#434c5e",
+    "userMessageBg": "#343b49",
     "userMessageText": "greenPale",
-    "customMessageBg": "#0f1710",
+    "customMessageBg": "#343b49",
     "customMessageText": "greenPale",
     "customMessageLabel": "green",
-    "toolPendingBg": "#111b13",
-    "toolSuccessBg": "#102014",
-    "toolErrorBg": "#201110",
+    "toolPendingBg": "#394250",
+    "toolSuccessBg": "#35464b",
+    "toolErrorBg": "#4b343a",
     "toolTitle": "green",
     "toolOutput": "greenPale",
-
     "mdHeading": "greenPale",
     "mdLink": "cyan",
     "mdLinkUrl": "greenDim",
@@ -50,33 +48,29 @@
     "mdQuoteBorder": "greenDim",
     "mdHr": "greenDim",
     "mdListBullet": "green",
-
-    "toolDiffAdded": "#5fff87",
-    "toolDiffRemoved": "#ff8787",
+    "toolDiffAdded": "#a3be8c",
+    "toolDiffRemoved": "#bf616a",
     "toolDiffContext": "greenDim",
-
     "syntaxComment": "greenDim",
     "syntaxKeyword": "green",
     "syntaxFunction": "blue",
     "syntaxVariable": "greenPale",
-    "syntaxString": "#a7ff7d",
+    "syntaxString": "#a3be8c",
     "syntaxNumber": "amber",
     "syntaxType": "cyan",
     "syntaxOperator": "green",
     "syntaxPunctuation": "greenSoft",
-
     "thinkingOff": "greenDim",
     "thinkingMinimal": "greenSoft",
     "thinkingLow": "green",
     "thinkingMedium": "cyan",
     "thinkingHigh": "purple",
     "thinkingXhigh": "red",
-
     "bashMode": "amber"
   },
   "export": {
-    "pageBg": "#081009",
-    "cardBg": "#101a12",
-    "infoBg": "#1a241c"
+    "pageBg": "#242933",
+    "cardBg": "#3b4252",
+    "infoBg": "#3d5668"
   }
 }
