@@ -2,10 +2,9 @@
 
 const PI_WORKLOG_DIR = ("~/.pi/agent/logs" | path expand)
 
-# Launch pi in plan mode to address PR review comments
-# Requires the @ifi/pi-plan extension package.
+# Launch pi to evaluate the current PR's review comments.
 def picrc [] {
-  pi "/plan" "Look at the current PR's review comments using gh CLI commands. Identify any requested changes or actionable review feedback. Create a plan to address each valid comment, organized by file and priority."
+  pi "/skill:review-reviewers"
 }
 
 # Launch pi with the Trusted Server review prompt for the current branch's PR.

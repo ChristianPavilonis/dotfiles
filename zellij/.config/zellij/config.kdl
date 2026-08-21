@@ -734,7 +734,7 @@ theme_light "fallout-terminal-light"
 // The name of the default layout to load on startup
 // Default: "default"
 // 
-default_layout "christian"
+default_layout "blank"
  
 // The folder in which Zellij will look for layouts
 // (Requires restart)

@@ -27,7 +27,7 @@ This is the preferred flow:
 
 ## Plan file
 
-Create a durable temp directory and write the plan as markdown:
+Create a temp directory and write the plan as markdown:
 
 ```bash
 mkdir -p /tmp/pi-handoffs
@@ -43,6 +43,7 @@ The plan file should include:
 - Validation commands to run
 - Risks, gotchas, and open questions
 - Any constraints from the user
+- Use the writing-for-agents skill
 
 ## Worktree creation
 

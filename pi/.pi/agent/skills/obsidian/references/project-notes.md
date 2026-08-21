@@ -98,19 +98,9 @@ Add only meaningful known relationships. In particular:
 - Do not duplicate reverse links solely for symmetry; Obsidian backlinks provide them.
 - Preserve useful existing relationship links when editing a note.
 
-## Templates
+## Tasks
 
-Use the destination-specific templates in `templates/`:
-
-- `Project Home.md`
-- `Project Doc.md`
-- `Project Note.md`
-- `Project Task.md`
-- `Project Spec.md`
-- `Project Plan.md`
-- `Project Log.md`
-
-Templater assigns these templates automatically when a note is created inside one of the category folders. The Project Home template is for a new project's root note only.
+when creating a task just create the note with a short description capturing the intent of the task do not generate meaningless checklists or Acceptance criteria. 1 or two sentences, and any concrete reference material
 
 ## Dashboards
 
