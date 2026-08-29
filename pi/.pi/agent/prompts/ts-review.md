@@ -39,14 +39,24 @@ Review flow:
    - Compare the implementation with the PR description, commits, existing tests, and analogous code where that clarifies intent.
    - Do not consider this step complete until every changed file and significant hunk has an understood purpose and review result.
 
-4. Check validation and existing feedback.
-   - Run `gh pr checks <number>` and inspect relevant failing or skipped checks. Do not treat green CI as proof that the change is correct.
+4. Establish the validation path.
+   - Inspect the project's available test, type-check, lint, build, and integration commands.
+   - Run `gh pr checks <number>` and inspect relevant failing or skipped checks. Green CI is supporting evidence, not proof that the change is correct.
+   - Choose the narrowest safe checks that exercise the changed behavior.
+
+5. Prove the load-bearing safety claims.
+   - Load the `engineering-principles` skill and read its verification reference.
+   - Apply that reference to the highest-risk changed behavior. Prefer claims that, if true, clear several speculative risks at once.
+   - Follow contracts beyond symbol searches when relevant: pinned dependency behavior, serialized data, database state, feature flags, cross-language consumers, and deployment configuration.
+   - If the change has no materially risky behavior, record that instead of inventing a safety claim.
+   - Run the selected checks when feasible and report their exact commands and results.
+
+6. Check existing feedback.
    - Inspect existing review bodies, inline comments, replies, unresolved threads, and issue comments. Use pagination where supported:
      - `gh api --paginate repos/{owner}/{repo}/pulls/<number>/reviews`
      - `gh api --paginate repos/{owner}/{repo}/pulls/<number>/comments`
      - `gh api --paginate repos/{owner}/{repo}/issues/<number>/comments`
    - Do not repeat an existing finding unless the new review adds materially different evidence or impact.
-   - Inspect the project’s available test, type-check, lint, build, and integration commands. Run the narrowest relevant checks when feasible and report the exact commands and results.
 
 Review priorities, in order:
 1. Correctness bugs, regressions, broken invariants, edge cases, async or concurrency issues, and resource leaks.
@@ -82,6 +92,16 @@ PR #<number>: <title>
 
 Reviewed `<head-sha>` against `<base-sha>`. <Brief summary of the change and overall risk.>
 
+## Safety proof
+
+1. **<load-bearing safety claim>**
+   - Highest evidence: <Source | Path | Executed | Runtime>
+   - Evidence: <file and line, traced path, exact command and result, or runtime observation>
+   - Status: <proven | unproven>
+   - Next check: <cheapest check; omit when proven>
+
+<Add a second claim only when another high-risk behavior depends on a distinct fact. If the change has no material safety claim, say "No material safety claim." instead.>
+
 ## Findings
 
 ### P0 / Blockers
@@ -109,7 +129,7 @@ Reviewed `<head-sha>` against `<base-sha>`. <Brief summary of the change and ove
 - Checks run: <commands and results>
 - CI: <relevant status and failures>
 - Existing feedback: <relevant comments or "No duplicate findings found">
-- Residual risk: <remaining uncertainty, or "None identified">
+- Residual risk: <unproven safety claims and other remaining uncertainty, or "None identified">
 ```
 
 Omit empty severity sections. If there are no meaningful findings, say so explicitly under `## Findings` and still report validation, CI, existing-feedback, and residual-risk context.
