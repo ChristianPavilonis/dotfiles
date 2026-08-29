@@ -12,6 +12,23 @@ def pipr [] {
   pi "/ts-review"
 }
 
+# Launch pi in the Obsidian vault for an interactive weekly planning session.
+def planweek [] {
+  let vault = ($env.HOME | path join "Documents" "MyObsidianVault")
+  let dotfiles = ($env | get -o DOTFILES_ROOT | default ($env.HOME | path join "dotfiles"))
+  let planner_prompt = ($dotfiles | path join "pi" ".pi" "agent" "system-prompts" "weekly-planner.md")
+
+  if not ($vault | path exists) {
+    error make { msg: $"Obsidian vault not found: ($vault)" }
+  }
+  if not ($planner_prompt | path exists) {
+    error make { msg: $"Weekly planner prompt not found: ($planner_prompt)" }
+  }
+
+  cd $vault
+  ^pi --no-approve --system-prompt (open $planner_prompt --raw) --name "Weekly planning" "Begin the planning conversation."
+}
+
 def _worklog-default-date [] {
   date now | format date "%Y-%m-%d"
 }

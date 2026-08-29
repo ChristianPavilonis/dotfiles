@@ -194,6 +194,7 @@ The `pi/` package is linked into `~/.pi` and is laid out for Pi's global config:
 - `pi/.pi/agent/keybindings.json` — custom Pi shortcuts
 - `pi/.pi/agent/extensions/` — TypeScript extensions
 - `pi/.pi/agent/prompts/` — Markdown prompt templates
+- `pi/.pi/agent/system-prompts/` — focused system prompts used by shell launchers
 - `pi/.pi/agent/skills/` — skills with `SKILL.md`
 - `pi/.pi/agent/themes/` — generated theme JSON files
 

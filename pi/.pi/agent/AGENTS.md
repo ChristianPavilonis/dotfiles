@@ -8,7 +8,7 @@ For maintained projects, folder structure is authoritative: create and edit proj
 
 Use `Notes/` for durable non-project knowledge. Daily notes may capture work completed today, but project records belong in their project directory.
 
-Use mermaide charts when explaining how things work and flow.
+Use mermaide charts when explaining how things work and flow. (prefer top to bottom flows)
 
 ## Subagent Model Routing
 

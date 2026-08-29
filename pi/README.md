@@ -8,6 +8,7 @@ This package holds my local Pi customizations and is meant to be linked into `~/
 - `keybindings.json` — Custom keyboard shortcuts.
 - `extensions/` — TypeScript extensions that add tools, commands, hooks, UI, or custom providers. Example: `model-leader.ts` for a `ctrl+x` model palette.
 - `prompts/` — Markdown prompt templates you can run with `/name`.
+- `system-prompts/` — Focused system prompts loaded by shell commands such as `planweek`.
 - `skills/` — Skill directories containing `SKILL.md` plus any helper scripts or references.
 - `themes/` — generated JSON theme files for Pi's TUI colors. Edit the canonical sources in `~/dotfiles/themes/<family>/` and run `bun scripts/theme.ts generate` instead of editing these files directly.
 

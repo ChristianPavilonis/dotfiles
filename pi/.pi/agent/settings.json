@@ -13,5 +13,12 @@
   "defaultThinkingLevel": "high",
   "editorPaddingX": 1,
   "quietStartup": true,
-  "tuiMode": "fullscreen"
+  "tuiMode": "fullscreen",
+  "subagents": {
+    "agentOverrides": {
+      "reviewer": {
+        "disabled": true
+      }
+    }
+  }
 }

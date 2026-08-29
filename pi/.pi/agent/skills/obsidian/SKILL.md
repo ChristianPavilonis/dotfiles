@@ -19,6 +19,8 @@ Use this skill for any work in `~/Documents/MyObsidianVault/`. Load only the ref
 
 For a request spanning categories, read every applicable reference. For example, a project note that should appear in a Base requires both `markdown.md` and `project-notes.md`; changing a Base requires `bases.md`.
 
+after creating or editing a note you can open it using the obsidian cli: `obsidian open file="Note Name" newtab`
+
 ## Guardrails
 
 - The vault is `~/Documents/MyObsidianVault/`.
