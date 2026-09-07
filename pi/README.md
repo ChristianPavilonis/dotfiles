@@ -10,12 +10,12 @@ This package holds my local Pi customizations and is meant to be linked into `~/
 - `prompts/` — Markdown prompt templates you can run with `/name`.
 - `system-prompts/` — Focused system prompts loaded by shell commands such as `planweek`.
 - `skills/` — Skill directories containing `SKILL.md` plus any helper scripts or references.
-- `themes/` — generated JSON theme files for Pi's TUI colors. Edit the canonical sources in `~/dotfiles/themes/<family>/` and run `bun scripts/theme.ts generate` instead of editing these files directly.
+- Pi's active `omarchy-system` theme is generated at runtime by Omarchy in `~/.pi/agent/themes/`.
 
 ## Notes
 
 - Keep machine- or project-specific tweaks here when I want Pi to behave differently from the defaults.
-- Stow only the durable config files here (`settings.json`, `keybindings.json`, `extensions/`, `prompts/`, `skills/`, `themes/`).
+- Stow only the durable config files here (`settings.json`, `keybindings.json`, `extensions/`, `prompts/`, and `skills/`).
 - Leave runtime state out of the repo: `~/.pi/agent/auth.json`, `~/.pi/agent/sessions/`, and similar local cache/state files should stay unmanaged.
 - Pi also supports optional files like `AGENTS.md` and `SYSTEM.md` under `~/.pi/agent/` if I want to add them later.
 - After changing files here, run the repo's `./install` script again to refresh symlinks.

@@ -41,14 +41,32 @@ fi
 
 stow -d "$DOTFILES" -t "$HOME" "${COMMON_PACKAGES[@]}"
 
+if [ "$OS_NAME" = "Linux" ] && command -v omarchy >/dev/null 2>&1; then
+  stow -d "$DOTFILES" -t "$HOME" omarchy
+fi
+
 # Preserve an existing machine-local Pi settings file while still stowing the
-# durable themes, extensions, prompts, and skills from the repository.
+# durable extensions, prompts, and skills from the repository.
 if [ -e "$HOME/.pi/agent/settings.json" ] && [ ! -L "$HOME/.pi/agent/settings.json" ]; then
   echo "Preserving existing machine-local ~/.pi/agent/settings.json"
   stow --ignore='settings\\.json$' -d "$DOTFILES" -t "$HOME" pi
 else
   stow -d "$DOTFILES" -t "$HOME" pi
 fi
+
+# Remove links left by the retired dotfiles theme generator.
+for legacy_pi_theme in \
+  fallout-terminal-dark.json \
+  fallout-terminal-light.json \
+  fallout-terminal.json \
+  nord-dark.json \
+  nord-light.json \
+  README.md; do
+  legacy_pi_theme_path="$HOME/.pi/agent/themes/$legacy_pi_theme"
+  if [ -L "$legacy_pi_theme_path" ]; then
+    rm "$legacy_pi_theme_path"
+  fi
+done
 
 # Link platform-specific git config.
 gitconfig_platform="$HOME/.gitconfig-platform"
@@ -96,7 +114,7 @@ if [ "$OS_NAME" = "Darwin" ]; then
   nu_default_dir="$HOME/Library/Application Support/nushell"
   mkdir -p "$nu_default_dir"
 
-  for nu_file in config.nu env.nu mise.nu theme.nu; do
+  for nu_file in config.nu env.nu mise.nu; do
     target="$nu_default_dir/$nu_file"
     source_file="$DOTFILES/nu/.config/nushell/$nu_file"
 
@@ -128,6 +146,19 @@ if [ ! -e "$HOME/.cache/starship/init.nu" ]; then
   cat <<'EOF' > "$HOME/.cache/starship/init.nu"
 export-env {}
 EOF
+fi
+
+if [ "$OS_NAME" = "Linux" ] && command -v omarchy >/dev/null 2>&1; then
+  zellij_runtime="$HOME/.local/state/dotfiles/zellij"
+  mkdir -p "$zellij_runtime"
+  ln -sfn "$HOME/.config/zellij/config.kdl" "$zellij_runtime/config.kdl"
+  ln -sfn "$HOME/.config/zellij/layouts" "$zellij_runtime/layouts"
+  ln -sfn "$HOME/.local/state/omarchy/current/theme" "$zellij_runtime/themes"
+
+  omarchy theme refresh
+  if [ -f "$HOME/.pi/agent/settings.json" ] && [ ! -L "$HOME/.pi/agent/settings.json" ]; then
+    omarchy-theme-set-pi --activate
+  fi
 fi
 
 echo "Done. Dotfiles linked with stow."

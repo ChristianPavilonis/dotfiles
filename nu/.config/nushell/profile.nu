@@ -238,21 +238,20 @@ source ./zellij.nu
 
 use ~/.cache/starship/init.nu
 
-# Unified theme manager. Examples: `theme dark`, `theme light`, `theme nord`.
+# Short form for Omarchy's theme commands. `theme nord` is equivalent to
+# `omarchy theme set nord`; `theme` opens the switcher.
 def theme [...args: string] {
-  let dotfiles = ($env | get -o DOTFILES_ROOT | default ($env.HOME | path join "dotfiles"))
-  let script = ($dotfiles | path join "scripts" "theme.ts")
-  if not ($script | path exists) {
-    error make { msg: $"Theme manager not found: ($script)" }
+  if (which omarchy | is-empty) {
+    error make { msg: "Omarchy is not installed" }
   }
 
   let command = if ($args | is-empty) {
-    ["current"]
-  } else if (($args | first) in ["current", "list", "set", "generate", "check"]) {
+    ["switcher"]
+  } else if (($args | first) in ["bg", "current", "dir", "extras", "install", "list", "refresh", "remove", "set", "switcher", "update"]) {
     $args
   } else {
     ["set"] | append $args
   }
 
-  ^mise exec -C $dotfiles -- bun $script ...$command
+  ^omarchy theme ...$command
 }

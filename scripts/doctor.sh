@@ -86,12 +86,14 @@ if command -v nu >/dev/null 2>&1; then
   fi
 fi
 
-if command -v mise >/dev/null 2>&1; then
-  if mise exec -C "$ROOT_DIR" -- bun "$ROOT_DIR/scripts/theme.ts" check >/dev/null 2>&1; then
-    pass "generated theme files are up to date"
-  else
-    fail "generated theme files are stale or invalid"
-  fi
+if command -v omarchy >/dev/null 2>&1; then
+  for themed_file in kitty.conf neovim.lua nushell.nu pi.json starship.toml zellij.kdl; do
+    if [ -f "$HOME/.local/state/omarchy/current/theme/$themed_file" ]; then
+      pass "Omarchy generated $themed_file"
+    else
+      fail "missing Omarchy theme output: $themed_file"
+    fi
+  done
 fi
 
 if [ ! -f "$HOME/.cache/starship/init.nu" ]; then

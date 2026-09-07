@@ -44,6 +44,20 @@ $env.NU_PLUGIN_DIRS = [
 	($nu.config-path | path dirname | path join 'plugins')
 ]
 
+# Starship reads the generated file on every prompt, so theme changes apply
+# without restarting Nushell.
+const omarchy_starship_config = "~/.local/state/omarchy/current/theme/starship.toml"
+if ($omarchy_starship_config | path exists) {
+  $env.STARSHIP_CONFIG = ($omarchy_starship_config | path expand)
+}
+
+# Zellij does not expand ~ or environment variables in theme_dir. The installer
+# creates this portable runtime directory with links to the config and theme.
+const omarchy_zellij_config = "~/.local/state/dotfiles/zellij"
+if ($omarchy_zellij_config | path exists) {
+  $env.ZELLIJ_CONFIG_DIR = ($omarchy_zellij_config | path expand)
+}
+
 source ~/.config/nushell/profile.nu
 source ~/.config/nushell/local.nu
 source ~/.config/nushell/secrets.nu

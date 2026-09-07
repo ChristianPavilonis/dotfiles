@@ -1,10 +1,10 @@
-# Follow the active Omarchy theme.
-include ~/.local/state/omarchy/current/theme/kitty.conf
+# Colors are generated from themes/*/{dark,light}.json into the
+# dark/light/no-preference-theme.auto.conf files below.
 
 # font_family JetBrainsMono Nerd Font Mono
 font_family ShureTechMono Nerd Font Mono
 
-font_size 12
+font_size 16
 adjust_line_height 135%
 
 cursor_blink_interval 0

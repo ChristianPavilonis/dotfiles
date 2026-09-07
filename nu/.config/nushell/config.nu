@@ -1,12 +1,27 @@
 # Nushell Config File
 
-# Theme colors are generated from themes/*/{dark,light}.json.
-# Set DOTFILES_THEME_VARIANT=light before starting Nushell to use the light variant.
-source ~/.config/nushell/theme.nu
-
-let theme_variant = ($env | get -o DOTFILES_THEME_VARIANT | default (fallout-default-variant))
-let theme_color_config = (fallout-color-config $theme_variant)
-let theme_explore_config = (fallout-explore-config $theme_variant)
+# Omarchy renders this file from the active theme. On other systems, keep
+# Nushell's built-in colors.
+const omarchy_theme_path = "~/.local/state/omarchy/current/theme/nushell.nu"
+const omarchy_theme_source = if ($omarchy_theme_path | path exists) {
+  $omarchy_theme_path
+} else {
+  null
+}
+let omarchy_theme = source $omarchy_theme_source
+let default_config = ($env.config? | default {})
+let theme_color_config = (
+  $omarchy_theme
+  | default {}
+  | get -o color_config
+  | default ($default_config | get -o color_config | default {})
+)
+let theme_explore_config = (
+  $omarchy_theme
+  | default {}
+  | get -o explore
+  | default ($default_config | get -o explore | default {})
+)
 
 # External completer example
 # let carapace_completer = {|spans|
