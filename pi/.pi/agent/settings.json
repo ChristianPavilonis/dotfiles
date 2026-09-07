@@ -7,8 +7,7 @@
     "npm:@ifi/pi-plan",
     "npm:pi-web-access",
     "npm:pi-subagents",
-    "npm:@codexstar/pi-listen",
-    "npm:remote-pi"
+    "npm:@codexstar/pi-listen"
   ],
   "defaultThinkingLevel": "high",
   "editorPaddingX": 1,

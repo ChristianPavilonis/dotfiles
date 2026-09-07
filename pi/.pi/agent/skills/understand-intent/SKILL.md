@@ -1,12 +1,12 @@
 ---
-name: gather-requirements
+name: understand-intent
 description: Use before planning or implementation when a request is ambiguous, underspecified, or has multiple plausible outcomes. Turn it into a small, user-confirmed intent.
 disable-model-invocation: true
 ---
 
-# Gather requirements
+# Understand intent
 
-Use this skill before detailed planning or implementation. Stay in requirements gathering until the user confirms the intent.
+Use this skill before detailed planning or implementation. Stay focused on intent until the user confirms it.
 
 1. Restate the request in plain language. Identify the desired outcome, affected area, constraints, and any ambiguity.
    Done when you can name the behavior the user wants and the uncertainty blocking work.
@@ -19,3 +19,6 @@ Use this skill before detailed planning or implementation. Stay in requirements 
 
 4. Ask the user to confirm or correct the sentence. If they correct it, return to step 2.
    Done when the user confirms the intent.
+
+
+Do not ask questions on implementation details or anything that is too concrete. If you have questions, keep it focused on intended behavior and outcomes.
