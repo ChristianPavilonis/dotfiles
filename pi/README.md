@@ -10,12 +10,14 @@ This package holds my local Pi customizations and is meant to be linked into `~/
 - `prompts/` — Markdown prompt templates you can run with `/name`.
 - `system-prompts/` — Focused system prompts loaded by shell commands such as `planweek`.
 - `skills/` — Skill directories containing `SKILL.md` plus any helper scripts or references.
-- Pi's active `omarchy-system` theme is generated at runtime by Omarchy in `~/.pi/agent/themes/`.
+- `themes/` contains durable themes used outside Omarchy. Omarchy generates its active `omarchy-system` theme at runtime in `~/.pi/agent/themes/`.
 
 ## Notes
 
-- Keep machine- or project-specific tweaks here when I want Pi to behave differently from the defaults.
-- Stow only the durable config files here (`settings.json`, `keybindings.json`, `extensions/`, `prompts/`, and `skills/`).
+- Keep global Pi preferences and package selections in `settings.json`. Outside Omarchy, Pi writes interactive preference and package changes through the stowed symlink, so Git shows the changes.
+- The install script refuses to overwrite a divergent regular `~/.pi/agent/settings.json` outside Omarchy. Reconcile it with the repository copy first.
+- Omarchy keeps its Pi settings machine-local because its theme integration updates that file at runtime.
+- Stow only the durable config files here (`settings.json`, `keybindings.json`, `extensions/`, `prompts/`, `skills/`, `themes/`).
 - Leave runtime state out of the repo: `~/.pi/agent/auth.json`, `~/.pi/agent/sessions/`, and similar local cache/state files should stay unmanaged.
 - Pi also supports optional files like `AGENTS.md` and `SYSTEM.md` under `~/.pi/agent/` if I want to add them later.
 - After changing files here, run the repo's `./install` script again to refresh symlinks.

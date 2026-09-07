@@ -41,32 +41,48 @@ fi
 
 stow -d "$DOTFILES" -t "$HOME" "${COMMON_PACKAGES[@]}"
 
+use_omarchy=false
 if [ "$OS_NAME" = "Linux" ] && command -v omarchy >/dev/null 2>&1; then
+  use_omarchy=true
   stow -d "$DOTFILES" -t "$HOME" omarchy
 fi
 
-# Preserve an existing machine-local Pi settings file while still stowing the
-# durable extensions, prompts, and skills from the repository.
-if [ -e "$HOME/.pi/agent/settings.json" ] && [ ! -L "$HOME/.pi/agent/settings.json" ]; then
-  echo "Preserving existing machine-local ~/.pi/agent/settings.json"
+pi_settings="$HOME/.pi/agent/settings.json"
+repo_pi_settings="$DOTFILES/pi/.pi/agent/settings.json"
+if [ "$use_omarchy" = true ] && [ -f "$pi_settings" ] && [ ! -L "$pi_settings" ]; then
+  # Omarchy updates the active theme in its machine-local Pi settings.
+  echo "Preserving existing Omarchy-managed ~/.pi/agent/settings.json"
   stow --ignore='settings\\.json$' -d "$DOTFILES" -t "$HOME" pi
 else
+  # Pi writes preference and package changes through this link, which keeps
+  # non-Omarchy settings visible to Git.
+  if [ -f "$pi_settings" ] && [ ! -L "$pi_settings" ]; then
+    if ! cmp -s "$pi_settings" "$repo_pi_settings"; then
+      echo "Error: $pi_settings differs from $repo_pi_settings"
+      echo "Reconcile the files before running install again."
+      exit 1
+    fi
+    rm "$pi_settings"
+  fi
   stow -d "$DOTFILES" -t "$HOME" pi
 fi
 
-# Remove links left by the retired dotfiles theme generator.
-for legacy_pi_theme in \
-  fallout-terminal-dark.json \
-  fallout-terminal-light.json \
-  fallout-terminal.json \
-  nord-dark.json \
-  nord-light.json \
-  README.md; do
-  legacy_pi_theme_path="$HOME/.pi/agent/themes/$legacy_pi_theme"
-  if [ -L "$legacy_pi_theme_path" ]; then
-    rm "$legacy_pi_theme_path"
-  fi
-done
+if [ "$use_omarchy" = true ]; then
+  # Remove links left by the retired dotfiles theme generator. Omarchy writes
+  # its generated Pi theme into the machine-local themes directory instead.
+  for legacy_pi_theme in \
+    fallout-terminal-dark.json \
+    fallout-terminal-light.json \
+    fallout-terminal.json \
+    nord-dark.json \
+    nord-light.json \
+    README.md; do
+    legacy_pi_theme_path="$HOME/.pi/agent/themes/$legacy_pi_theme"
+    if [ -L "$legacy_pi_theme_path" ]; then
+      rm "$legacy_pi_theme_path"
+    fi
+  done
+fi
 
 # Link platform-specific git config.
 gitconfig_platform="$HOME/.gitconfig-platform"
