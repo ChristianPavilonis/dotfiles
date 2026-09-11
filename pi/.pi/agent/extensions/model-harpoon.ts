@@ -11,24 +11,30 @@ type ModelPreset = {
 const PRESETS: ModelPreset[] = [
   {
     key: "1",
+    label: "GPT-6 Astra",
+    provider: "openai-codex",
+    modelId: "gpt-6-astra",
+  },
+  {
+    key: "2",
     label: "GPT-5.6 Sol",
     provider: "openai-codex",
     modelId: "gpt-5.6-sol",
   },
   {
-    key: "2",
+    key: "3",
     label: "GPT-5.6 Terra",
     provider: "openai-codex",
     modelId: "gpt-5.6-terra",
   },
   {
-    key: "3",
+    key: "4",
     label: "GPT-5.6 Luna",
     provider: "openai-codex",
     modelId: "gpt-5.6-luna",
   },
   {
-    key: "4",
+    key: "5",
     label: "GPT-5.3 Codex Spark",
     provider: "openai-codex",
     modelId: "gpt-5.3-codex-spark",
@@ -74,7 +80,7 @@ class ModelLeaderOverlay {
     }
 
     this.box.addChild(new Text("", 1, 0));
-    this.box.addChild(new Text(this.theme.fg("dim", "Press 1/2/3/4 to switch • Esc to cancel"), 1, 0));
+    this.box.addChild(new Text(this.theme.fg("dim", "Press 1/2/3/4/5 to switch • Esc to cancel"), 1, 0));
   }
 
   handleInput(data: string): void {

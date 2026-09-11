@@ -17,6 +17,7 @@ Current local extensions include:
 - `commit.ts` — `/commit [instructions]` spawns a background forked pi agent on `openai-codex/gpt-5.3-codex-spark` to inspect changes and create one local git commit
 - `daily-work-log.ts` — appends one JSONL record per non-extension user input to `~/.pi/agent/logs/YYYY-MM-DD.jsonl`
 - `note.ts` — `/note <prompt>` spawns a background forked pi agent to write/update an Obsidian note without interrupting the current session
+- `notify-done.ts` — sends Omarchy completion notifications on Linux, with click-to-focus for the owning Kitty/Zellij session and pane
 - `session-title.ts` — auto-generates an untitled new session's display name after the first prompt using `openai-codex/gpt-5.3-codex-spark`
 - `model-harpoon.ts` — opens a model picker on Alt+M
 - `thinking-harpoon.ts` — opens a descending thinking-level picker on Alt+T

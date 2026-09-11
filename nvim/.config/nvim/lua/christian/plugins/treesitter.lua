@@ -2,13 +2,34 @@ return {
   {
     -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    branch = 'master',
     dependencies = {
       'nvim-treesitter/nvim-treesitter-textobjects',
-      'JoosepAlviste/nvim-ts-context-commentstring',
+      {
+        'JoosepAlviste/nvim-ts-context-commentstring',
+        init = function()
+          vim.g.skip_ts_context_commentstring_module = true
+        end,
+        opts = { enable_autocmd = false },
+      },
       'nushell/tree-sitter-nu',
     },
     build = ':TSUpdate',
     config = function()
+      local ts_install = require('nvim-treesitter.install')
+      local ts_cli_version = require('nvim-treesitter.utils').ts_cli_version()
+      local parsed_cli_version = ts_cli_version and vim.version.parse(ts_cli_version)
+
+      -- tree-sitter-cli 0.26 removed --no-bindings, which the legacy branch still passes.
+      if parsed_cli_version and vim.version.ge(parsed_cli_version, { 0, 26, 0 }) then
+        ts_install.ts_generate_args = { 'generate', '--abi', vim.treesitter.language_version }
+      end
+
+      -- GCC 16 defaults to C23, which breaks older parsers such as tree-sitter-perl.
+      for _, compiler in ipairs({ 'cc', 'gcc', 'clang' }) do
+        ts_install.command_extra_args[compiler] = { '-std=gnu17' }
+      end
+
       require('nvim-treesitter.configs').setup {
         highlight = {
           enable = true,

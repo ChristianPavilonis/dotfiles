@@ -1,48 +1,64 @@
 ---
 name: review-reviewers
-description: Human-led walkthrough of GitHub PR review comments. Use when the user wants to inspect reviewer feedback one comment at a time, understand each proposed fix and its scope, and make every disposition themselves.
+description: Produce a concise Obsidian report from GitHub PR feedback. Separate mechanical fixes from consequential requests, recommend an approach, and leave decisions for the user to record inline.
 disable-model-invocation: true
 ---
 
 # Review reviewers
 
-The user owns every decision. Fetch the evidence, explain it, and record the user's choice. Assess reviewer claims as hypotheses rather than authority. Present consequences without choosing or recommending a disposition.
+Assess reviewer claims as hypotheses rather than authority. Produce a report instead of a comment-by-comment chat. Recommend an approach; the user owns the decision.
 
-## Prepare the review
+## Prepare
 
-1. Identify the pull request. Fetch its latest review summaries and threads, including unresolved comments and pending reviews visible through GitHub. Label resolved, outdated, and duplicate comments rather than silently dropping them.
+1. Fetch the PR's latest review summaries and threads, including pending reviews visible through GitHub. Preserve each comment's author, link, location, and state. Disclose retrieval gaps.
+2. Read the PR intent, relevant code, tests, and linked context. Check each request's premise and impact on behavior and contracts. Name missing evidence explicitly.
+3. Group comments by requested change. Merge duplicates with all source links, split independently decidable requests, and show conflicts together. Assign stable IDs such as `R1`. Account briefly for resolved, outdated, and informational feedback without treating it as a fresh request.
 
-   Done when every fetched comment has an author, link, location when applicable, and review state.
+Done when every fetched comment maps to a request or an accounting note, and each request has supporting evidence or a named uncertainty.
 
-2. Gather the context needed to assess the comments. Read the PR description, linked issues and documentation, the changed code and nearby behavior, and relevant tests. Identify the PR's intended behavior and any contracts it introduces, changes, or relies on, such as APIs, schemas, configuration, persisted data, events, CLI behavior, and documented compatibility.
+## Write the report
 
-   Done when each comment's factual premise can be checked against the code and stated intent, or the missing context can be named precisely.
+Keep the opening to one short paragraph identifying the PR link, reviewed head commit, review timestamp, intended behavior, category counts, and any coverage gaps. Use exactly two request categories.
 
-3. Tell the user how many comments need decisions, then start with the first one. Keep the rest in a queue rather than presenting the whole analysis at once.
+### Mechanical fixes
 
-## Work one comment at a time
+Include only verified, bounded fixes that preserve behavior, contracts, and PR intent, introduce no meaningful trade-off, and are independent of unresolved decisions. Small implementation effort alone does not qualify a request. Put uncertain or disputed requests in **Decisions required**.
 
-For the current comment:
+Use one compact bullet per fix: ID, source and location, proposed change, and why it is mechanical. Group these for batch consideration; classification is not approval.
 
-1. Show the reviewer, link, file and line, and the relevant text.
-2. Explain the concern in plain language. Include only the code and PR context needed to understand it. Separate facts supported by the code from assumptions or missing context.
-3. Explain the reviewer's suggested fix as concrete code or behavior changes. If the reviewer did not suggest a fix, say so.
-4. State the scope of that fix, including affected files, components, tests, documentation, migrations, or consumers that can be identified from the repository.
-5. State explicitly whether the fix would preserve or change the PR's intent. Name any contract it would alter or break and who relies on that contract. If the impact cannot be established, name the uncertainty.
-6. Ask the user what decision to record. Neutral choices may include address it, reply or push back, defer it, investigate it, or skip it. Wait for the user's answer before moving to another comment.
+### Decisions required
 
-If a decision depends on context only the user has, ask one focused question and continue with the same comment after they answer.
+Include policy choices, behavior or compatibility changes, scope expansion, altered PR intent, competing approaches, and uncertain consequences. Put policy and intent decisions first; link dependencies.
 
-Record the user's decision and rationale in their words. Carry out code changes, GitHub replies, or thread resolution only when the user explicitly asks for that action. After any requested action, report what happened and return to the next undecided comment.
+Use the entry below. Prefer short bullets and roughly 150 words per entry, expanding only for material consequences. State the affected scope and consumers, whether PR intent changes, and the main trade-off against accepting. Separate evidence from assumptions. If the reviewer proposed no fix, label any inferred approach.
 
-## Finish
+Recommend accept, reject, or defer for each entry, with a brief reason and the main downside or uncertainty. When evidence is insufficient, recommend a specific investigation rather than inventing confidence. Keep recommendations separate from the user's decision. Every report must include at least one grounded recommendation; if there are no consequential requests, give a brief overall recommendation supported by the review.
 
-After every comment has a decision or the user has explicitly skipped it, return a decision ledger containing:
+```markdown
+### R1. Requested change
 
-- the comment and link
-- the user's decision
-- any requested follow-up
-- intent or contract impact
-- unresolved questions
+Source: [Reviewer](URL) · `file:line` · review state
 
-Mark undecided items as undecided. The ledger reflects the user's choices and does not replace them with a recommended outcome.
+- Request: ...
+- Evidence: ...
+- Consequences: affected scope, intent or contract impact, main trade-off.
+- Recommendation: ... because ... Main downside or uncertainty: ...
+
+#### Your decision
+
+Decision:
+```
+
+## Save and stop
+
+Load the `obsidian` skill and its Markdown and project-note references. Save the report in the owning project's `notes/` directory using those conventions. Ask for the destination if the project is unclear. Include brief comment accounting notes and keep empty request categories visible.
+
+Before updating a report, reread it. Preserve IDs and user-written decisions, rationale, and conditions. Give new requests new IDs. Flag materially changed evidence or requests for renewed confirmation beside the original decision.
+
+Done when every fetched comment is accounted for, every active request is classified, consequential entries have recommendations and decision fields, and the report is saved. Return its path, category counts, and coverage limitations. Stop for the user's inline decisions; undecided entries do not block completion.
+
+## Follow-up when requested
+
+Reread the report before acting. Blank or `undecided` entries remain undecided. Clarify ambiguous decisions and materially changed requests before acting on them.
+
+Recommendations and recorded acceptance are not execution instructions. Make code changes, post GitHub replies, or resolve threads only when explicitly requested, within the user's decisions and conditions. Record completed actions separately from decisions.

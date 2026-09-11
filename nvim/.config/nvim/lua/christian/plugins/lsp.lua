@@ -69,9 +69,6 @@ return {
       }
     }
 
-    require('lspconfig').gopls.setup {
-    }
-
     vim.diagnostic.config({
       virtual_text = false,
       float = {

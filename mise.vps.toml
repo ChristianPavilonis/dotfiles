@@ -12,6 +12,7 @@ gh = "latest"
 fzf = "latest"
 codex = "latest"
 pi = "latest"
+"aqua:dlvhdr/diffnav" = "latest"
 
 # Keep this intentionally small for VPS hosts.
 # Add more runtimes only when the server needs them.

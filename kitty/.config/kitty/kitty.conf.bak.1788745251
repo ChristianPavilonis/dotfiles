@@ -14,10 +14,6 @@ window_padding_width 0
 
 macos_option_as_alt yes
 
-# Omarchy sends these shortcuts for Super+C and Super+V in terminals.
-map ctrl+insert copy_to_clipboard
-map shift+insert paste_from_clipboard
-
 map cmd+t new_tab_with_cwd
 map cmd+n new_os_window_with_cwd
 

@@ -126,6 +126,7 @@ cd ~/dotfiles
 ## Managed packages
 
 - `aerospace` -> `~/.aerospace.toml` (macOS only)
+- `gh-dash` -> `~/.config/gh-dash`
 - `git` -> `~/.gitconfig`
 - `kitty` -> `~/.config/kitty`
 - `nu` -> `~/.config/nushell`

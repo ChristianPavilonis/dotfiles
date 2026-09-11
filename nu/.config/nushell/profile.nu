@@ -229,6 +229,7 @@ def ff [] {
 }
 
 source ./git.nu
+source ./worktree-cleanup.nu
 source ./media.nu
 source ./pi.nu
 source ./php.nu
