@@ -7,7 +7,7 @@ import path from "node:path";
 const STATUS_KEY = "commit";
 const PI_BIN = process.env.PI_COMMIT_PI_BIN || "pi";
 const LOG_DIR = process.env.PI_COMMIT_LOG_DIR || path.join(os.homedir(), ".pi", "agent", "commit-jobs");
-const COMMIT_MODEL = process.env.PI_COMMIT_MODEL || "openai-codex/gpt-5.3-codex-spark";
+const COMMIT_MODEL = process.env.PI_COMMIT_MODEL || "openai-codex/gpt-5.6-luna";
 
 function safeJobId(date = new Date()): string {
 	return date.toISOString().replace(/[:.]/g, "-");

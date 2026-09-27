@@ -131,11 +131,54 @@ cd ~/dotfiles
 - `kitty` -> `~/.config/kitty`
 - `nu` -> `~/.config/nushell`
 - `nvim` -> `~/.config/nvim`
-- `omarchy` -> `~/.config/omarchy/themed/*` (Omarchy Linux only)
+- `omarchy` -> theme templates, SD card importer, and udiskie hook (Omarchy Linux only)
 - `pi` -> `~/.pi/*`
 - `starship` -> `~/.config/starship.toml`
 - `yesman` -> `~/.config/yesman/*` (legacy plugins and standalone extensions)
 - `zellij` -> `~/.config/zellij`
+
+## SD card imports on Omarchy
+
+After `stow -t ~ omarchy`, restart udiskie or log out and back in. Omarchy's
+existing udiskie autostart loads `~/.config/udiskie/config.yml`.
+Requires system Python with PyGObject/GTK4, udiskie, and notify-send, already
+installed on this desktop. `~/.local/bin` must be on udiskie's PATH.
+
+Mounting an external drive with a `DCIM` directory opens a folder-name prompt.
+Enter `weekend-trip` to copy into `~/Pictures/Imports/weekend-trip/`.
+Cancel leaves everything alone. Nothing deletes or modifies source media.
+
+The importer flattens these files into the chosen folder:
+- RAW and JPEG photos under `DCIM/`, including Sony `.ARW` files.
+- MP4s under `DCIM/` or Sony's `PRIVATE/M4ROOT/CLIP/`.
+
+It excludes video thumbnails, proxy clips in `SUB/`, XML sidecars, databases,
+LUTs, and all other formats. Paths and extensions are case-insensitive.
+Other camera video layouts need an explicit addition to the scanner.
+
+Each file is SHA-256 verified before publication. Identical existing files are
+skipped; different files sharing a name receive `-1`, `-2`, etc. Existing files
+are never overwritten. A Stop button keeps completed copies and removes the
+current partial copy. Retry into the same folder to resume. Power loss or a
+forced kill can leave a hidden `.sd-import-*` temporary file in the destination;
+it is not treated as a completed import. One import window runs at a time.
+Wait for completion before safely ejecting the card.
+
+Code: `omarchy/.local/bin/sd-card-import`.
+
+```bash
+# Read-only scan of a mounted card
+sd-card-import device_mounted True /run/media/$USER/F02F-2C1E --scan
+
+# Manually open the prompt for an already mounted card
+sd-card-import device_mounted True /run/media/$USER/F02F-2C1E
+
+# Tests use temporary fixtures, never the real card
+/usr/bin/python -B -m unittest discover -s scripts/tests -p 'test_sd_card_import.py' -v
+```
+
+To disable automatic prompts, remove `program_options.event_hook` from the
+udiskie config and restart udiskie or log out and back in.
 
 ## Daily stow commands
 

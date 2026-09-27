@@ -1,0 +1,248 @@
+#!/usr/bin/python
+"""Import camera media through udiskie's device_mounted hook. Never delete sources."""
+
+import argparse
+import fcntl
+import hashlib
+import os
+from pathlib import Path
+import shutil
+import stat
+import subprocess
+import tempfile
+import threading
+
+PHOTOS = set("jpg jpeg arw srf sr2 cr2 cr3 crw nef nrw raf rw2 orf pef dng raw".split())
+CHUNK = 4 * 1024 * 1024
+
+
+def folder_name(value):
+    value = value.strip()
+    if (not value or value in {".", ".."} or value.startswith(".")
+            or any(c in value for c in "/\\")
+            or any(ord(c) < 32 or ord(c) == 127 for c in value)
+            or len(os.fsencode(value)) > 200):
+        raise ValueError("Enter a folder name, not a path. Hidden names aren't allowed.")
+    return value
+
+
+def media_files(root):
+    files = []
+    def fail(error):
+        raise error
+    for directory, dirs, names in os.walk(root, onerror=fail):
+        dirs[:] = sorted(d for d in dirs if not d.startswith(".")
+                         and not (Path(directory) / d).is_symlink())
+        for name in sorted(names):
+            path = Path(directory) / name
+            parts = tuple(p.upper() for p in path.relative_to(root).parts[:-1])
+            extension = path.suffix.lower()[1:]
+            photo = parts[:1] == ("DCIM",) and extension in PHOTOS
+            video = extension == "mp4" and (
+                parts[:1] == ("DCIM",) or parts == ("PRIVATE", "M4ROOT", "CLIP"))
+            if (not name.startswith(".") and (photo or video)
+                    and stat.S_ISREG(path.lstat().st_mode)):
+                files.append(path)
+    return files
+
+
+def digest(path, stop):
+    result = hashlib.sha256()
+    with path.open("rb") as stream:
+        while block := stream.read(CHUNK):
+            if stop.is_set():
+                raise InterruptedError("Import stopped. Verified copies have been kept.")
+            result.update(block)
+    return result.digest()
+
+
+def destination(base, name):
+    target = base / folder_name(name)
+    base.mkdir(parents=True, exist_ok=True)
+    target.mkdir(exist_ok=True)
+    if target.is_symlink() or not target.is_dir():
+        raise ValueError("The destination must be a real folder, not a symlink.")
+    return target
+
+
+def copy_verified(source, target, stop):
+    """Stage, verify, then publish without overwriting. Return True for a new copy."""
+    before = source.stat(follow_symlinks=False)
+    if not stat.S_ISREG(before.st_mode):
+        raise ValueError(f"Not a regular media file: {source}")
+    checksum = digest(source, stop)
+    candidate = target / source.name
+    number = 0
+    # Deterministic suffixes make retries find their earlier collision copies.
+    while os.path.lexists(candidate):
+        if (not candidate.is_symlink() and candidate.is_file()
+                and candidate.stat().st_size == before.st_size
+                and digest(candidate, stop) == checksum):
+            return False
+        number += 1
+        candidate = target / f"{source.stem}-{number}{source.suffix}"
+
+    fd, temporary = tempfile.mkstemp(prefix=".sd-import-", dir=target)
+    temporary = Path(temporary)
+    try:
+        with os.fdopen(fd, "wb") as output, source.open("rb") as input_file:
+            while block := input_file.read(CHUNK):
+                if stop.is_set():
+                    raise InterruptedError("Import stopped. Verified copies have been kept.")
+                output.write(block)
+            output.flush()
+            os.fsync(output.fileno())
+        after = source.stat(follow_symlinks=False)
+        if ((before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns)
+                != (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns)
+                or digest(temporary, stop) != checksum):
+            raise OSError(f"Verification failed: {source.name}")
+        shutil.copystat(source, temporary, follow_symlinks=False)
+        # link() is atomic and fails if anything appeared at this name meanwhile.
+        os.link(temporary, candidate)
+        directory_fd = os.open(target, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+        return True
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def notify(message):
+    subprocess.run(["notify-send", "SD card import", message], check=False)
+
+
+def show_import(root):
+    import gi
+    gi.require_version("Gtk", "4.0")
+    from gi.repository import GLib, Gtk
+
+    base = Path.home() / "Pictures/Imports"
+    stop = threading.Event()
+    app = Gtk.Application(application_id="local.sdcard.Import")
+
+    def activate(app):
+        window = Gtk.ApplicationWindow(application=app, title="Import SD card")
+        window.set_default_size(480, 220)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
+        for edge in ("top", "bottom", "start", "end"):
+            getattr(box, f"set_margin_{edge}")(24)
+        window.set_child(box)
+        label = Gtk.Label(label=f"Copy RAW/JPEG photos and MP4 clips from {root.name}\nto ~/Pictures/Imports. Originals stay on the card.", wrap=True)
+        box.append(label)
+        entry = Gtk.Entry(placeholder_text="Folder name, e.g. weekend-trip")
+        box.append(entry)
+        progress = Gtk.ProgressBar(show_text=True)
+        box.append(progress)
+        status = Gtk.Label(label="", wrap=True)
+        box.append(status)
+        buttons = Gtk.Box(spacing=12)
+        cancel = Gtk.Button(label="Cancel")
+        start = Gtk.Button(label="Import")
+        start.add_css_class("suggested-action")
+        buttons.append(cancel)
+        buttons.append(start)
+        box.append(buttons)
+        running = False
+
+        def close(*_):
+            if running:
+                stop.set()
+                status.set_text("Stopping after the current read...")
+                return True
+            window.destroy()
+            return True
+
+        def update(index, count, name):
+            progress.set_fraction(index / count if count else 0)
+            progress.set_text(f"{index}/{count}")
+            status.set_text(name)
+            return False
+
+        def finished(message):
+            nonlocal running
+            running = False
+            status.set_text(message)
+            cancel.set_label("Close")
+            notify(message)
+            return False
+
+        def worker(target):
+            copied = skipped = 0
+            try:
+                files = media_files(root)
+                if not files:
+                    raise ValueError("No supported photos or videos found.")
+                for index, source in enumerate(files):
+                    if stop.is_set():
+                        raise InterruptedError("Import stopped. Verified copies have been kept.")
+                    GLib.idle_add(update, index, len(files), f"Copying and verifying {source.name}")
+                    if copy_verified(source, target, stop):
+                        copied += 1
+                    else:
+                        skipped += 1
+                    GLib.idle_add(update, index + 1, len(files), source.name)
+                message = f"Done: {copied} copied, {skipped} already present.\n{target}"
+            except Exception as error:
+                message = f"{error}\n{copied} copied, {skipped} already present. Originals unchanged."
+            GLib.idle_add(finished, message)
+
+        def begin(*_):
+            nonlocal running
+            if running or not start.get_sensitive():
+                return
+            try:
+                target = destination(base, entry.get_text())
+            except (ValueError, OSError) as error:
+                status.set_text(str(error))
+                return
+            running = True
+            entry.set_sensitive(False)
+            start.set_sensitive(False)
+            cancel.set_label("Stop")
+            status.set_text("Scanning card...")
+            threading.Thread(target=worker, args=(target,), daemon=True).start()
+
+        cancel.connect("clicked", close)
+        start.connect("clicked", begin)
+        entry.connect("activate", begin)
+        window.connect("close-request", close)
+        window.present()
+        entry.grab_focus()
+
+    app.connect("activate", activate)
+    app.run([])
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("event")
+    parser.add_argument("external")
+    parser.add_argument("mount_path")
+    parser.add_argument("--scan", action="store_true", help="List supported media without showing a prompt or copying")
+    args = parser.parse_args()
+    if args.event != "device_mounted" or args.external != "True" or not args.mount_path:
+        return
+    root = Path(args.mount_path)
+    if (not root.is_absolute() or not root.is_mount()
+            or not any(p.name.upper() == "DCIM" and p.is_dir() and not p.is_symlink()
+                       for p in root.iterdir())):
+        return
+    if args.scan:
+        files = media_files(root)
+        print(f"{len(files)} media files, {sum(p.stat().st_size for p in files):,} bytes")
+        return
+    # One prompt/import at a time; flock releases automatically on process exit.
+    runtime = Path(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"))
+    with (runtime / "sd-card-import.lock").open("w") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return
+        show_import(root)
+
+
+if __name__ == "__main__":
+    main()
