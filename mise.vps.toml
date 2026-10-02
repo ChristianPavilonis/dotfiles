@@ -15,6 +15,7 @@ pi = "latest"
 "aqua:dlvhdr/diffnav" = "latest"
 gemini = { version = "latest", allow_builds = ["@github/keytar", "node-pty"] }
 yazi = "latest"
+copilot = "latest"
 
 # Keep this intentionally small for VPS hosts.
 # Add more runtimes only when the server needs them.

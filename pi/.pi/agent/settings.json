@@ -1,12 +1,17 @@
 {
   "lastChangelogVersion": "0.85.1",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.6-sol",
+  "defaultModel": "gpt-6.1-sol",
   "packages": [
     "npm:@ifi/pi-plan",
     "npm:pi-web-access",
-    "npm:pi-subagents",
-    "npm:@codexstar/pi-listen",
+    {
+      "source": "npm:pi-subagents",
+      "extensions": [],
+      "skills": [],
+      "prompts": [],
+      "themes": []
+    },
     "npm:@ff-labs/pi-fff",
     "npm:@narumitw/pi-usage"
   ],
@@ -35,6 +40,18 @@
     "agentOverrides": {
       "reviewer": {
         "disabled": true
+      },
+      "worker": {
+        "model": "openai-codex/gpt-6-luna",
+        "thinking": "medium"
+      },
+      "scout": {
+        "model": "openai-codex/gpt-6-luna",
+        "thinking": "low"
+      },
+      "delegate": {
+        "model": "openai-codex/gpt-6-luna",
+        "thinking": "medium"
       }
     }
   },
