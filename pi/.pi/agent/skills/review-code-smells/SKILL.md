@@ -1,7 +1,6 @@
 ---
 name: review-code-smells
-description: Code-smell review of a change against the fixed smell catalog. Invoke explicitly when local maintainability and implementation shape need scrutiny without an architecture or correctness review.
-disable-model-invocation: true
+description: Review a code change when the user specifically requests code smells or catalog-based maintainability checks. Use the review skill for a general or multi-lane code review.
 ---
 
 # Review code smells
@@ -9,6 +8,7 @@ disable-model-invocation: true
 Read [`../_review-shared/interactive-review.md`](../_review-shared/interactive-review.md) completely, then run its workflow with this lane contract:
 
 - Reviewer: `code-smell-reviewer`
+- Reviewer instructions: [code-smell-reviewer.md](../../agents/code-smell-reviewer.md)
 - Stable key: `code-smells`
 - Finding prefix: `S`
 - Intent rule: `none`

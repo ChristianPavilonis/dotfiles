@@ -1,7 +1,6 @@
 ---
 name: review-architecture
-description: Architecture review of a code change for intent alignment, brittle boundaries, unnecessary scope, contract churn, and simpler solution shapes. Invoke explicitly when the solution as a whole needs scrutiny.
-disable-model-invocation: true
+description: Review a code change when the user specifically requests architecture, intent alignment, boundary design, or solution simplification. Use the review skill for a general or multi-lane code review.
 ---
 
 # Review architecture
@@ -9,6 +8,7 @@ disable-model-invocation: true
 Read [`../_review-shared/interactive-review.md`](../_review-shared/interactive-review.md) completely, then run its workflow with this lane contract:
 
 - Reviewer: `solution-reviewer`
+- Reviewer instructions: [solution-reviewer.md](../../agents/solution-reviewer.md)
 - Stable key: `architecture`
 - Finding prefix: `A`
 - Intent rule: `confirm`

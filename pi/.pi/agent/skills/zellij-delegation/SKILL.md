@@ -16,11 +16,11 @@ Track worker pane IDs, assignments, and file ownership. If an agent needs to edi
 ## Launch workers
 
 1. Read `ZELLIJ_PANE_ID` from the environment and normalize it to `terminal_<id>`. This is the parent pane, not necessarily the focused pane. Confirm Zellij tools are available. If they are unavailable, continue locally.
-2. Create each worker with `zellij_new_pane`, an explicit `cwd`, a short task name, `command: "pi"`, and `closeOnExit: true`. Default to panes in this session's tab. Leave placement and `tabId` unset for automatic pane grouping.
-3. Record the returned pane ID. If creation reports a partial failure, inspect `zellij_list_panes` before retrying so you do not create duplicate workers.
-4. Read the worker with `zellij_read_pane` until its Pi editor is ready, then send its assignment.
+2. Build each worker's assignment as described below before launching it.
+3. Create each worker with `zellij_new_pane`, an explicit `cwd`, a short task name, `command: "pi <quoted-assignment>"`, and `closeOnExit: true`. Quote the full assignment as one argument for the launch shell so Pi receives it as its initial prompt. Default to panes in this session's tab. Leave placement and `tabId` unset for automatic pane grouping.
+4. Record the returned pane ID. If creation reports a partial failure, inspect `zellij_list_panes` before retrying so you do not create duplicate workers.
 
-Start each assignment with an instruction to read [worker.md](worker.md). Resolve that file to an absolute path from this skill's directory so the worker can find it from any working directory. Send the path, not a copy of its contents.
+Start each assignment with an instruction to read [worker.md](worker.md). Resolve that file to an absolute path from this skill's directory so the worker can find it from any working directory. Include the path, not a copy of its contents.
 
 Then include only task-specific details:
 
@@ -33,7 +33,7 @@ Launch the independent tasks, then continue the main agent's own assignment.
 
 ## Communicate
 
-Send messages to explicit pane IDs with `zellij_write_pane`, `mode: "paste"`, and `submit: true`.
+Send follow-up messages to explicit pane IDs with `zellij_write_pane`, `mode: "paste"`, and `submit: true`.
 
 Require acknowledgment before relying on a changed assignment or handoff.
 

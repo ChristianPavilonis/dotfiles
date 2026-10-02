@@ -1,7 +1,6 @@
 ---
 name: review-correctness
-description: Correctness review of a code change for concrete bugs, regressions, security failures, compatibility breaks, bad state transitions, and unprotected changed behavior. Invoke explicitly when behavioral defects are the concern.
-disable-model-invocation: true
+description: Review a code change when the user specifically requests correctness, security, compatibility, or regression checks. Use the review skill for a general or multi-lane code review.
 ---
 
 # Review correctness
@@ -9,6 +8,7 @@ disable-model-invocation: true
 Read [`../_review-shared/interactive-review.md`](../_review-shared/interactive-review.md) completely, then run its workflow with this lane contract:
 
 - Reviewer: `correctness-reviewer`
+- Reviewer instructions: [correctness-reviewer.md](../../agents/correctness-reviewer.md)
 - Stable key: `correctness`
 - Finding prefix: `C`
 - Intent rule: `infer`

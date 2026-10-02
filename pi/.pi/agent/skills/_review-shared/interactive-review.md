@@ -1,22 +1,12 @@
 # Interactive review workflow
 
-Each review skill supplies a lane contract with a reviewer or local inspection method, finding prefix, intent rule, focus, and finding bar. Follow this workflow for that lane only.
+Each review skill supplies a lane contract with a reviewer or local inspection method, finding prefix, intent rule, focus, and finding bar.
+
+When the assignment explicitly says `Review mode: worker`, read [worker-review.md](worker-review.md) completely and follow that workflow instead. Otherwise follow the interactive workflow below for this lane only.
 
 ## Resolve the target
 
-Treat text supplied after the skill command as an explicit target. Resolve requested files, refs, commits, ranges, or pull requests to concrete comparison points.
-
-Without an explicit target:
-
-1. Review staged, unstaged, and relevant untracked working changes when the worktree is dirty.
-2. With a clean worktree, review the open pull request for the current branch at its exact base and head revisions.
-3. With no open pull request, review the current branch from its merge base with `main`, then `master`, preferring the matching remote-tracking branch.
-
-Stop when no target can be resolved without guessing. Include whole-file content for relevant untracked files. Exclude generated or ignored files only when repository guidance puts them outside review scope.
-
-Record inspection commands and a fingerprint that can detect target changes. Use object IDs for committed comparisons. For working changes, account for `HEAD`, status, staged and unstaged diffs, and included untracked content.
-
-Done when the target identifies one reproducible set of changes.
+Read [target.md](target.md) completely and resolve one reproducible target before continuing.
 
 ## Establish intent
 
@@ -30,13 +20,15 @@ Done when the lane has enough intent context to distinguish a finding from an un
 
 ## Inspect the lane
 
-Build a compact target contract containing the repository and cwd, exact target and commands, included untracked files, known intent and requirements, repository guidance, review-only authority, lane focus, and finding bar.
+Build a compact target contract containing the repository and cwd, exact target and commands, included untracked files, fingerprint and recomputation commands, known intent and requirements, repository guidance, review-only authority, lane focus, and finding bar.
 
-For a delegated lane:
+For a delegated lane with the `subagent` tool available:
 
 1. Call `subagent({ action: "list" })` and confirm the lane's reviewer is executable.
 2. Launch that reviewer in one top-level `subagent` call with `async: true`. Use a `workflowScript` containing one `runs.run` with the lane's stable key, reviewer, target contract, `context: "fresh"`, and `output: false`.
 3. Inspect the target yourself while the reviewer runs. When it returns, verify every cited location and enough surrounding code to establish the claim.
+
+When `subagent` is unavailable, read the lane's linked reviewer instructions completely and apply its review process and domain rules directly to the resolved target. Use this workflow's batch format and disclose local execution.
 
 For a local lane, perform the inspection method named by the skill and collect candidate findings directly.
 

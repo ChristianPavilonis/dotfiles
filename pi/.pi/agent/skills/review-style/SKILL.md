@@ -1,7 +1,6 @@
 ---
 name: review-style
-description: Style review of changed code using repository formatting, lint, naming, readability, and local convention evidence. Invoke explicitly when code style is the concern.
-disable-model-invocation: true
+description: Review a code change when the user specifically requests formatting, lint, naming, readability, or repository convention checks. Use the review skill for a general or multi-lane code review.
 ---
 
 # Review style

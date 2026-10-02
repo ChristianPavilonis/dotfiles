@@ -1,64 +1,50 @@
 ---
 name: review-reviewers
-description: Produce a concise Obsidian report from GitHub PR feedback. Separate mechanical fixes from consequential requests, recommend an approach, and leave decisions for the user to record inline.
+description: Assess GitHub PR review feedback. Bring decisions to the user with options and trade-offs, flag changes to PR intent, and batch inconsequential fixes for approval.
 disable-model-invocation: true
 ---
 
 # Review reviewers
 
-Assess reviewer claims as hypotheses rather than authority. Produce a report instead of a comment-by-comment chat. Recommend an approach; the user owns the decision.
+Assess review requests against the PR's intent, then help the user choose a response.
 
-## Prepare
+## Read the feedback
 
-1. Fetch the PR's latest review summaries and threads, including pending reviews visible through GitHub. Preserve each comment's author, link, location, and state. Disclose retrieval gaps.
-2. Read the PR intent, relevant code, tests, and linked context. Check each request's premise and impact on behavior and contracts. Name missing evidence explicitly.
-3. Group comments by requested change. Merge duplicates with all source links, split independently decidable requests, and show conflicts together. Assign stable IDs such as `R1`. Account briefly for resolved, outdated, and informational feedback without treating it as a fresh request.
+1. Fetch the PR's current review summaries and threads. Include pending reviews where accessible and disclose retrieval gaps.
+2. Establish the PR's intent and scope from its description, diff, and linked context. For each active request, read the relevant code and tests. Investigate disputed premises or missing evidence when they could change your recommendation.
+3. Group feedback by requested change. Merge duplicates, split requests the user can decide separately, and consider conflicting comments together. Keep source links for the decision brief. Mention resolved, outdated, or informational comments only when they still affect an active request.
 
-Done when every fetched comment maps to a request or an accounting note, and each request has supporting evidence or a named uncertainty.
+Done when every active request has been considered against the PR's intent and relevant implementation, with material uncertainties identified.
 
-## Write the report
+## Present a decision brief
 
-Keep the opening to one short paragraph identifying the PR link, reviewed head commit, review timestamp, intended behavior, category counts, and any coverage gaps. Use exactly two request categories.
+Respond in chat. Open with the PR link and a short statement of its intent. Mention coverage gaps that limit the assessment.
 
-### Mechanical fixes
+### Decisions
 
-Include only verified, bounded fixes that preserve behavior, contracts, and PR intent, introduce no meaningful trade-off, and are independent of unresolved decisions. Small implementation effort alone does not qualify a request. Put uncertain or disputed requests in **Decisions required**.
+Bring requests with meaningful consequences or trade-offs to the user as decisions. Include disputed requests and requests whose consequences remain uncertain. Put changes to PR intent or scope first.
 
-Use one compact bullet per fix: ID, source and location, proposed change, and why it is mechanical. Group these for batch consideration; classification is not approval.
+For each decision, give:
 
-### Decisions required
+- Request and source link.
+- Consequences, affected users or systems, and any change to PR intent.
+- Viable options and trade-offs.
+- Recommendation, reason, and main downside. If evidence is missing, name the check needed to choose.
 
-Include policy choices, behavior or compatibility changes, scope expansion, altered PR intent, competing approaches, and uncertain consequences. Put policy and intent decisions first; link dependencies.
+Keep entries short. Distinguish known consequences from assumptions and reviewer suggestions from your own alternatives. Group related decisions, but make clear which choices can be made independently.
 
-Use the entry below. Prefer short bullets and roughly 150 words per entry, expanding only for material consequences. State the affected scope and consumers, whether PR intent changes, and the main trade-off against accepting. Separate evidence from assumptions. If the reviewer proposed no fix, label any inferred approach.
+### Routine changes
 
-Recommend accept, reject, or defer for each entry, with a brief reason and the main downside or uncertainty. When evidence is insufficient, recommend a specific investigation rather than inventing confidence. Keep recommendations separate from the user's decision. Every report must include at least one grounded recommendation; if there are no consequential requests, give a brief overall recommendation supported by the review.
+Summarize inconsequential nits and mechanical fixes in one short line or a compact batch. These must preserve behavior, contracts, and PR intent, have no meaningful trade-off, and be independent of unresolved decisions. Routine means inconsequential, not merely easy.
 
-```markdown
-### R1. Requested change
+Give individual detail only when it helps the user understand the batch. If there are no decisions, say so and summarize the routine changes without inventing options.
 
-Source: [Reviewer](URL) · `file:line` · review state
+Done when every active request is covered by a decision or the routine batch, each decision has options and a recommendation or a targeted investigation, and the user can see what their approval would authorize.
 
-- Request: ...
-- Evidence: ...
-- Consequences: affected scope, intent or contract impact, main trade-off.
-- Recommendation: ... because ... Main downside or uncertainty: ...
+## Act after approval
 
-#### Your decision
+Wait for approval before making changes. Approval authorizes the routine batch and the substantive options the user selects. Clarify ambiguous selections; leave unresolved decisions untouched.
 
-Decision:
-```
+Use the conversation's decisions and conditions when implementing. If the feedback or code has materially changed, check whether the approval still applies. Ask again when a change introduces new consequences or trade-offs.
 
-## Save and stop
-
-Load the `obsidian` skill and its Markdown and project-note references. Save the report in the owning project's `notes/` directory using those conventions. Ask for the destination if the project is unclear. Include brief comment accounting notes and keep empty request categories visible.
-
-Before updating a report, reread it. Preserve IDs and user-written decisions, rationale, and conditions. Give new requests new IDs. Flag materially changed evidence or requests for renewed confirmation beside the original decision.
-
-Done when every fetched comment is accounted for, every active request is classified, consequential entries have recommendations and decision fields, and the report is saved. Return its path, category counts, and coverage limitations. Stop for the user's inline decisions; undecided entries do not block completion.
-
-## Follow-up when requested
-
-Reread the report before acting. Blank or `undecided` entries remain undecided. Clarify ambiguous decisions and materially changed requests before acting on them.
-
-Recommendations and recorded acceptance are not execution instructions. Make code changes, post GitHub replies, or resolve threads only when explicitly requested, within the user's decisions and conditions. Record completed actions separately from decisions.
+Posting GitHub replies and resolving threads require authorization separate from approval to change code. After acting, summarize completed changes, relevant checks, and remaining decisions.
