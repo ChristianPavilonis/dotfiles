@@ -2,6 +2,18 @@
 
 Use these rules before accepting changed code, delegated work, or a risky review conclusion.
 
+## Schedule checks by stage
+
+Choose checks for a behavioral change, not each individual edit. A stable checkpoint is a coherent tested state with no further edits planned for the behavior being checked.
+
+| Stage | Required verification |
+| --- | --- |
+| Editing | The smallest check that distinguishes correct from broken behavior. |
+| Completed behavioral unit | The focused regression plus affected neighboring tests. |
+| Stable integration checkpoint and completion | Relevant broader suites, lint, formatting, and build checks against the combined state. |
+
+Run broader checks at these checkpoints, not automatically after every focused pass. Rerun affected checks when relevant code, dependencies, configuration, fixtures, or environment change, when a failure needs investigation, or when repository guidance requires them. Unrelated edits do not invalidate all evidence. Explicit task gates and repository requirements still apply; scheduling reduces repetition, not required coverage.
+
 ## Prove the real path
 
 Compilation and static checks are necessary when relevant, but they do not prove runtime behavior. Exercise the changed path through the closest real interface and inspect its output or side effect.
@@ -34,7 +46,21 @@ Report each fact with its highest evidence level, evidence, status, and the next
 
 ## Inspect delegated work directly
 
-Treat an agent summary as a map to the evidence. Read the diff and affected files, run or confirm the reported checks, and inspect generated artifacts. Verify the current repository state because a later edit or commit may have changed the target while review was running.
+Treat an agent summary as a map to the evidence. Read the diff and affected files, inspect actual check output and generated artifacts, and compare the tested state with the current target. Apply the evidence reuse rules below rather than rerunning a check solely because another agent executed it.
+
+## Reuse current evidence
+
+Accept an existing check when its exact command, result, tested revision or relevant file fingerprint, and environment are known and still apply. Include uncommitted and untracked inputs in the tested state where relevant. A log alone does not establish which code it tested.
+
+Rerun affected checks when relevant inputs changed, evidence is incomplete, or a suspected defect needs reproduction. Reuse proof only for the behavior and inputs it exercised; a focused pass does not replace missing integration coverage.
+
+For substantial coordinated work, keep a compact record: `Check | tested state | result | elapsed time | log`. Use the existing handoff or validation record rather than creating a separate ledger for a small change.
+
+## Handle known baseline failures
+
+Reproduce an unrelated baseline failure once and retain its command, tested state, failure signature, and evidence that it predates the change. Subsequent validation may isolate affected checks, with exclusions disclosed. Revisit the baseline failure when relevant code or environment changes, its failure signature changes, or its classification becomes uncertain.
+
+An excluded failing suite remains a coverage gap. Report the affected checks that passed and the known failure separately rather than claiming the entire suite passed.
 
 ## Preserve useful proof
 

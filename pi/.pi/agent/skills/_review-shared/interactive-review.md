@@ -12,8 +12,7 @@ Read [target.md](target.md) completely and resolve one reproducible target befor
 
 Apply the lane's intent rule:
 
-- `confirm`: explain the implemented behavior and inferred outcome briefly, then ask the user whether that is the intended change. Continue after confirmation.
-- `infer`: derive intent from the user request, pull request, linked issues, tests, and documentation. Ask one blocking question only when competing interpretations would change the findings.
+- `infer`: use the user's stated outcome when available; otherwise derive intent from the pull request, linked issues, repository guidance, tests, documentation, and changed code. Briefly state the intent and proceed directly to inspection without a confirmation prompt. Ask one blocking question only when unresolved competing interpretations would materially change the findings.
 - `none`: inspect the target without an intent checkpoint.
 
 Done when the lane has enough intent context to distinguish a finding from an unsupported preference.
@@ -44,7 +43,7 @@ Present every accepted finding in one report. Use the lane prefix for stable IDs
 ## <lane> review
 
 Reviewed: <exact target>
-Intent: <confirmed or inferred intent, when relevant>
+Intent: <stated or inferred intent, when relevant>
 
 ### <ID>. <title>
 

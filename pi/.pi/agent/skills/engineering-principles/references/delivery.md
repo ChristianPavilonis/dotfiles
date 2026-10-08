@@ -12,7 +12,7 @@ This part is complete when the new behavior builds on the smallest base that sti
 
 ## Sequence verifiable units
 
-Split the work into the smallest units that end in a meaningful check. Establish the baseline, make one change, run its check, and only then continue. A repeated edit is not one unit merely because the edits look alike.
+Split the work into behavioral units that end in a meaningful check. Establish the relevant baseline, make the related edits for one behavior, and run its focused proof before building on it. A repeated edit is not one unit merely because the edits look alike. Use [verification.md](verification.md) to schedule local and integration checks and reuse evidence that still applies.
 
 Order delivery so a reviewer can follow the proof. Useful sequences include a failing regression before its fix, a baseline before a migration, removal before replacement, and a stable data shape before behavior that depends on it.
 

@@ -11,10 +11,10 @@ Read [`../_review-shared/interactive-review.md`](../_review-shared/interactive-r
 - Reviewer instructions: [solution-reviewer.md](../../agents/solution-reviewer.md)
 - Stable key: `architecture`
 - Finding prefix: `A`
-- Intent rule: `confirm`
+- Intent rule: `infer`
 - Focus: solution shape, responsibility, boundaries, state, invariants, coupling, ordering assumptions, change surface, abstractions, and contracts
-- Finding bar: direct evidence that the target drifts from confirmed intent, creates a brittle dependency, changes an unnecessary contract, or has a smaller shape that preserves required behavior
+- Finding bar: direct evidence that the target drifts from established intent, creates a brittle dependency, changes an unnecessary contract, or has a smaller shape that preserves required behavior
 
 Account for the complete change rather than isolated hunks. A simplification must name what it removes and what capability or flexibility it gives up.
 
-This review is complete when every significant changed boundary and responsibility has been tested against the confirmed intent and all verified findings have been presented in one batch.
+This review is complete when every significant changed boundary and responsibility has been tested against the established intent and all verified findings have been presented in one batch.

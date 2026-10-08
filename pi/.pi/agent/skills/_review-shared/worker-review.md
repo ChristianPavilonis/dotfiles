@@ -1,12 +1,12 @@
 # Worker review
 
-Use this workflow only for an assignment explicitly marked `Review mode: worker`. The coordinator owns target resolution, intent confirmation, final verification, reporting, and user decisions. Inspect this lane directly and return candidates to the coordinator. Leave further delegation to the coordinator.
+Use this workflow only for an assignment explicitly marked `Review mode: worker`. The coordinator owns target resolution, intent assessment, final verification, reporting, and user decisions. Inspect this lane directly and return candidates to the coordinator. Leave further delegation to the coordinator.
 
 ## Accept the contract
 
 Read the assigned lane skill completely. Require its contract plus a coordinator-supplied repository and cwd, exact comparison points and inspection commands, included untracked files, target fingerprint and recomputation commands, known intent and requirements, repository guidance, and review-only authority.
 
-Use supplied confirmed intent for a `confirm` lane. For an `infer` lane, use supplied intent and source context. If a missing requirement or competing interpretation would change a finding, report the blocking question to the coordinator. User questions belong to the coordinator.
+For an `infer` lane, use the supplied stated or inferred intent and source context without requiring user confirmation. If a missing requirement or competing interpretation would materially change a finding, report the blocking question to the coordinator. User questions belong to the coordinator.
 
 Recompute the fingerprint before inspection. Report a mismatch or incomplete contract as blocked rather than resolving a different target. Read applicable repository instructions from the target checkout.
 

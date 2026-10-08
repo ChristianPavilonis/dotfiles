@@ -2,6 +2,7 @@
 name: tdd
 description: Use when the user asks for TDD or a regression test, or when a bug has an obvious cheap local test target. Establish failing-before evidence, make the smallest fix, and prove the check passes afterward. Skip when the available test path is unclear, expensive, integration-heavy, or weak.
 license: MIT, see LICENSE
+disable-model-invocation: true
 ---
 
 # TDD bug fix

@@ -5,14 +5,14 @@ description: Coordinate a general code review of working changes, a branch, comm
 
 # Review
 
-Own one target, one intent checkpoint, and one final report. The specialist skills own their lane rules. Review-only authority permits inspection and safe checks; code edits and GitHub actions require a later explicit request.
+Own one target, one evidence-backed intent summary, and one final report. The specialist skills own their lane rules. Review-only authority permits inspection and safe checks; code edits and GitHub actions require a later explicit request.
 
 ## Prepare the review
 
 1. Read [target.md](../_review-shared/target.md) completely and resolve the target once.
-2. Read the PR or user request, applicable repository guidance, and enough changed code to summarize the intended outcome. Use an outcome already stated by the user as confirmed intent. Otherwise state the inferred outcome and, when architecture is selected, ask for confirmation once before dispatching that lane. Clarify competing requirements here.
+2. Establish intent from the user request, PR, linked issues, applicable repository guidance, tests, documentation, and changed code. Use the user's stated outcome when available; otherwise infer the outcome from that evidence. Briefly state the intent and proceed directly to review without a confirmation prompt. Ask a blocking question only when unresolved competing interpretations would materially change the findings.
 3. Read each selected lane skill from the table below. Select all four by default; honor an explicit subset and state omitted lanes in the report.
-4. Build one target contract with the repository and cwd, exact comparison points and inspection commands, included untracked files, fingerprint and recomputation commands, confirmed intent and source links, requirements, repository guidance, and review-only authority.
+4. Build one target contract with the repository and cwd, exact comparison points and inspection commands, included untracked files, fingerprint and recomputation commands, stated or inferred intent and source links, requirements, repository guidance, and review-only authority.
 
 | Lane | Skill |
 | --- | --- |
@@ -21,7 +21,7 @@ Own one target, one intent checkpoint, and one final report. The specialist skil
 | Code smells | [review-code-smells](../review-code-smells/SKILL.md) |
 | Style | [review-style](../review-style/SKILL.md) |
 
-Done when every selected lane can inspect the same reproducible target and architecture has confirmed intent.
+Done when every selected lane can inspect the same reproducible target with enough intent context to distinguish findings from unsupported preferences.
 
 ## Dispatch independent inspections
 
@@ -48,7 +48,7 @@ Done when every selected lane has an explicit result or a disclosed blocker. Fol
 1. Recompute the target fingerprint. If it changed, discard results for the old target and restart preparation. Ask before restarting repeatedly when the checkout keeps changing.
 2. Check every candidate against cited code and enough surrounding paths, contracts, or check output to establish its premise and consequence. Retain only target-caused claims meeting their originating lane's finding bar. Record unresolved evidence as uncertainty rather than a verified finding.
 3. Merge candidates describing the same underlying issue, preserving lane attribution and supporting evidence. Keep independently actionable issues separate. Agent agreement is not additional proof.
-4. When recommendations conflict, compare them against confirmed intent and contracts. Recommend the smallest change that addresses the verified issue. If the choice depends on user policy or missing evidence, keep one entry with the alternatives, trade-offs, and a specific question or next check.
+4. When recommendations conflict, compare them against the established intent and contracts. Recommend the smallest change that addresses the verified issue. If the choice depends on user policy or missing evidence, keep one entry with the alternatives, trade-offs, and a specific question or next check.
 5. Order findings by concrete impact and urgency. Distinguish behavioral defects from architecture changes and maintenance or style suggestions. Preserve supported lane severity without inventing bug severity for a preference.
 6. Recompute the fingerprint immediately before reporting. Restart if it changed.
 
@@ -62,7 +62,7 @@ Use stable IDs `R1`, `R2`, and so on for this batch. Present one report, not fou
 ## Review
 
 Reviewed: <exact target>
-Intent: <confirmed outcome>
+Intent: <stated or inferred outcome>
 Coverage: <selected lanes, execution mode, and incomplete or omitted coverage>
 
 ### R1. <title>
