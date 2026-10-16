@@ -3,14 +3,11 @@ local finders = require "telescope.finders"
 local make_entry = require "telescope.make_entry"
 local pickers = require "telescope.pickers"
 
-local flatten = vim.tbl_flatten
-
--- i would like to be able to do telescope
--- and have telescope do some filtering on files and some grepping
+-- Separate the search text and file glob with two spaces.
 
 return function(opts)
   opts = opts or {}
-  opts.cwd = opts.cwd and vim.fn.expand(opts.cwd) or vim.loop.cwd()
+  opts.cwd = opts.cwd and vim.fn.expand(opts.cwd) or vim.uv.cwd()
   opts.shortcuts = opts.shortcuts
     or {
       ["l"] = "*.lua",
@@ -49,10 +46,9 @@ return function(opts)
         table.insert(args, string.format(opts.pattern, pattern))
       end
 
-      return flatten {
-        args,
-        { "--color=never", "--no-heading", "--with-filename", "--line-number", "--column", "--smart-case" },
-      }
+      return vim.list_extend(args, {
+        "--color=never", "--no-heading", "--with-filename", "--line-number", "--column", "--smart-case",
+      })
     end,
     entry_maker = make_entry.gen_from_vimgrep(opts),
     cwd = opts.cwd,

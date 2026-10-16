@@ -15,7 +15,6 @@ vim.opt.number = true
 vim.opt.relativenumber = true
 
 vim.opt.wildmode = 'longest:full,full' -- complete the longest common match, and allow tabbing the results to complete them.
-vim.opt.completeopt = 'menuone,longest,preview'
 
 vim.opt.title = true
 vim.opt.mouse = 'a' -- enable mouse for all modes
@@ -39,17 +38,9 @@ vim.opt.undofile = true -- persists undo
 vim.opt.backup = true -- backup files
 vim.opt.backupdir:remove('.') -- keep backups out of the current directory
 
-vim.opt.updatetime = 50
+vim.opt.updatetime = 250
 
 vim.opt.hlsearch = false
 
 vim.opt.cursorline = true
-
-
--- S.D.G.
-
---
--------
---------------
---------
---
+vim.opt.laststatus = 2 -- Use Neovim's built-in statusline.
