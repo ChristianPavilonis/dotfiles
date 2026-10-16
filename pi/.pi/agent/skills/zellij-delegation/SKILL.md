@@ -23,15 +23,13 @@ For delegated checks, read [verification.md](../engineering-principles/reference
 
 ## Choose worker models
 
-Honor any model requested by the user. Otherwise, prefer GPT-6 Luna (`openai-codex/gpt-6-luna`) for scouting and research. For implementation, debugging, design, and reviews, choose a model suited to the task's complexity and risk rather than inheriting the global default.
-
-Confirm availability with `pi --list-models <search>` and pass the exact `provider/model-id` with `--model`. If the preferred model is unavailable, choose an available task-suited alternative and report the substitution to the user.
+Follow the delegated model policy in [AGENTS.md](../../AGENTS.md), reading it if it is not already in context. Resolve models from the current settings, check exact availability, and pass the selected model explicitly for each worker. Include the model choice when announcing assignments.
 
 ## Launch workers
 
 1. Read `ZELLIJ_PANE_ID` from the environment and normalize it to `terminal_<id>`. This is the parent pane, not necessarily the focused pane. Confirm Zellij tools are available. If they are unavailable, continue locally.
 2. Build each worker's assignment as described below and select its model before launching it.
-3. Create each worker with `zellij_new_pane`, an explicit `cwd`, a short task name, `command: "pi --session-dir ~/.pi/agent/worker-sessions --model <provider/model-id> <quoted-assignment>"`, and `closeOnExit: true`. Quote the full assignment as one argument for the launch shell so Pi receives it as its initial prompt. Default to panes in this session's tab. Leave placement and `tabId` unset for automatic pane grouping.
+3. Create each worker with `zellij_new_pane`, an explicit `cwd`, a short task name, `command: "pi --session-dir ~/.pi/agent/worker-sessions --model <provider/model-id> <quoted-assignment>"`, `closeOnExit: true`, and `noFocus: true`. Quote the full assignment as one argument for the launch shell so Pi receives it as its initial prompt. Default to panes in this session's tab. Leave placement and `tabId` unset for automatic pane grouping.
 4. Record the returned pane ID. If creation reports a partial failure, inspect `zellij_list_panes` before retrying so you do not create duplicate workers.
 
 Start each assignment with an instruction to read [worker.md](worker.md). Resolve that file to an absolute path from this skill's directory so the worker can find it from any working directory. Include the path, not a copy of its contents.

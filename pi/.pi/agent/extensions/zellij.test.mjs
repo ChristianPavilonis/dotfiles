@@ -5,30 +5,46 @@ import zellijExtension from "./zellij.ts";
 
 function harness({
 	panes = [{ id: 7, is_plugin: true, tab_id: 99 }, { id: 7, is_plugin: false, tab_id: 0 }],
+	tabs = [{ tab_id: 0, active: true }],
 	listCode = 0, beforeExec = async () => {}, entries = [], sessionId = "session-1",
 } = {}) {
 	const tools = new Map();
 	const commands = new Map();
 	const events = new Map();
 	const calls = [];
-	const failures = { create: false, stack: false };
+	const failures = { create: false, stack: false, focus: false };
 	let nextId = Math.max(42, ...(Array.isArray(panes) ? panes.filter((p) => !p.is_plugin).map((p) => Number(p.id) + 1) : []));
 	const pi = {
 		on: (name, handler) => events.set(name, handler),
 		registerTool: (tool) => tools.set(tool.name, tool),
 		registerCommand: (name, command) => commands.set(name, command),
-		async exec(command, args) {
-			calls.push({ command, args });
+		async exec(command, args, options) {
+			calls.push({ command, args, options });
 			const intercepted = await beforeExec(args);
 			if (intercepted) return intercepted;
+			if (args[1] === "list-tabs") return { code: 0, stdout: JSON.stringify(tabs), stderr: "" };
 			if (args[1] === "list-panes") return { code: listCode, stdout: typeof panes === "string" ? panes : JSON.stringify(panes), stderr: listCode ? "query failed" : "" };
 			if (args[1] === "new-pane") {
 				if (failures.create) return { code: 1, stdout: "", stderr: "creation failed" };
 				const id = nextId++;
-				if (Array.isArray(panes)) panes.push({ id, is_plugin: false, tab_id: Number(args[args.indexOf("--tab-id") + 1]), is_floating: args.includes("--floating") });
+				const tabId = Number(args[args.indexOf("--tab-id") + 1]);
+				if (Array.isArray(panes)) {
+					for (const pane of panes) if (pane.tab_id === tabId) pane.is_focused = false;
+					panes.push({ id, is_plugin: false, tab_id: tabId, is_floating: args.includes("--floating"), is_focused: true });
+				}
+				if (Array.isArray(tabs)) for (const tab of tabs) tab.active = tab.tab_id === tabId;
 				return { code: 0, stdout: `terminal_${id}\n`, stderr: "" };
 			}
 			if (args[1] === "stack-panes" && failures.stack) return { code: 1, stdout: "", stderr: "stack failed" };
+			if (args[1] === "focus-pane-id") {
+				if (failures.focus) return { code: 1, stdout: "", stderr: "focus failed" };
+				const target = panes.find((pane) => `${pane.is_plugin ? "plugin" : "terminal"}_${pane.id}` === args[2]);
+				assert.ok(target, "focus target must exist");
+				for (const pane of panes) if (pane.tab_id === target.tab_id) pane.is_focused = pane === target;
+			}
+			if (args[1] === "go-to-tab-by-id") {
+				for (const tab of tabs) tab.active = tab.tab_id === Number(args[2]);
+			}
 			return { code: 0, stdout: command === "git" ? "/tmp/repo\n" : "", stderr: "" };
 		},
 	};
@@ -44,7 +60,7 @@ function harness({
 		entries.push({ type: "message", message: { role: "toolResult", toolName: "zellij_new_pane", details: result.details } });
 		return result;
 	}
-	return { tools, commands, calls, ctx, create, panes, failures, entries, events };
+	return { tools, commands, calls, ctx, create, panes, tabs, failures, entries, events };
 }
 
 async function insideZellij(run) {
@@ -293,6 +309,140 @@ test("restored group can never include Pi's own pane", () => insideZellij(async 
 	await restored.events.get("session_start")({}, restored.ctx);
 	const second = await restored.create();
 	assert.deepEqual(stackCalls(restored), [[first.details.id, second.details.id]]);
+}));
+
+function focusHarness(options = {}) {
+	return harness({
+		panes: [
+			{ id: 7, is_plugin: false, tab_id: 0, is_focused: true },
+			{ id: 8, is_plugin: false, tab_id: 23, is_focused: true },
+		],
+		tabs: [{ tab_id: 0, active: false }, { tab_id: 23, active: true }],
+		...options,
+	});
+}
+
+for (const placement of [{}, { direction: "right" }, { floating: true }, { stacked: true }, { tabId: 0, direction: "down" }]) {
+	test(`noFocus restores the user's pane in another tab: ${JSON.stringify(placement)}`, () => insideZellij(async () => {
+		const h = focusHarness();
+		const result = await h.create({ ...placement, noFocus: true });
+		assert.equal(result.details.ok, true);
+		assert.equal(h.tabs.find((tab) => tab.active).tab_id, 23);
+		assert.equal(h.panes.find((pane) => pane.id === 8).is_focused, true);
+		assert.deepEqual(h.calls.at(-2).args, ["action", "focus-pane-id", "terminal_8"]);
+		assert.deepEqual(h.calls.at(-1).args, ["action", "go-to-tab-by-id", "23"]);
+	}));
+}
+
+test("noFocus restores focus after stacking and concurrent creation", () => insideZellij(async () => {
+	const h = focusHarness();
+	const results = await Promise.all([h.create({ noFocus: true }), h.create({ noFocus: true }), h.create({ noFocus: true })]);
+	assert.ok(results.every((result) => result.details.ok));
+	assert.deepEqual(h.calls.filter((call) => call.args[1] === "focus-pane-id").map((call) => call.args[2]), ["terminal_8", "terminal_8", "terminal_8"]);
+	assert.equal(h.calls.at(-3).args[1], "stack-panes");
+	assert.equal(h.calls.at(-2).args[1], "focus-pane-id");
+	assert.equal(h.calls.at(-1).args[1], "go-to-tab-by-id");
+}));
+
+test("noFocus preserves a different pane in Pi's own tab", () => insideZellij(async () => {
+	const h = focusHarness();
+	h.panes[0].is_focused = false;
+	h.panes[1].tab_id = 0;
+	h.tabs[0].active = true;
+	h.tabs[1].active = false;
+	assert.equal((await h.create({ noFocus: true })).details.ok, true);
+	assert.equal(h.panes.find((pane) => pane.id === 8).is_focused, true);
+}));
+
+test("noFocus can restore a focused plugin", () => insideZellij(async () => {
+	const h = focusHarness();
+	h.panes[1].is_plugin = true;
+	assert.equal((await h.create({ noFocus: true })).details.ok, true);
+	assert.equal(h.calls.at(-2).args[2], "plugin_8");
+}));
+
+for (const noFocus of [undefined, false]) {
+	test(`noFocus=${noFocus} retains normal creation focus`, () => insideZellij(async () => {
+		const h = focusHarness();
+		assert.equal((await h.create({ noFocus })).details.ok, true);
+		assert.equal(h.tabs.find((tab) => tab.active).tab_id, 0);
+		assert.ok(!h.calls.some((call) => ["list-tabs", "focus-pane-id"].includes(call.args[1])));
+	}));
+}
+
+for (const failure of ["create", "stack"]) {
+	test(`noFocus restores focus on ${failure} failure`, () => insideZellij(async () => {
+		const h = focusHarness();
+		await h.create({ noFocus: true });
+		h.failures[failure] = true;
+		const result = await h.create({ noFocus: true });
+		assert.equal(result.details.ok, false);
+		if (failure === "stack") assert.ok(result.details.id);
+		assert.equal(h.tabs.find((tab) => tab.active).tab_id, 23);
+		assert.equal(h.calls.at(-2).args[1], "focus-pane-id");
+	}));
+}
+
+for (const throws of [false, true]) {
+	test(`noFocus reports restore failure without losing the created pane, throws=${throws}`, () => insideZellij(async () => {
+		const h = focusHarness({ beforeExec: async (args) => {
+			if (throws && args[1] === "focus-pane-id") throw new Error("focus threw");
+		} });
+		h.failures.focus = true;
+		const result = await h.create({ noFocus: true });
+		assert.equal(result.details.reason, "focus_restore_failed");
+		assert.equal(result.isError, true);
+		assert.ok(result.details.id);
+		assert.ok(result.details.paneGroup);
+		assert.match(result.content.at(-1).text, /Do not recreate/);
+		assert.equal(createCalls(h).length, 1);
+	}));
+}
+
+for (const options of [{ tabs: "bad" }, { tabs: [] }, { panes: "bad" }, { panes: [] }, { listCode: 1 }]) {
+	test(`noFocus fails before creation if focus cannot be captured: ${JSON.stringify(options)}`, () => insideZellij(async () => {
+		const h = focusHarness(options);
+		try { await h.create({ noFocus: true }); } catch (error) { assert.match(error.message, /focused Zellij pane/); }
+		assert.equal(createCalls(h).length, 0);
+	}));
+}
+
+test("noFocus reports tab restoration failure with the created pane ID", () => insideZellij(async () => {
+	const h = focusHarness({ beforeExec: async (args) => {
+		if (args[1] === "go-to-tab-by-id") return { code: 1, stdout: "", stderr: "tab disappeared" };
+	} });
+	const result = await h.create({ noFocus: true });
+	assert.equal(result.details.reason, "focus_restore_failed");
+	assert.equal(result.details.focusError, "tab disappeared");
+	assert.ok(result.details.id);
+}));
+
+test("noFocus restores focus on cancelled stacking without losing the created pane", () => insideZellij(async () => {
+	const controller = new AbortController();
+	const h = focusHarness({ beforeExec: async (args) => {
+		if (args[1] === "stack-panes") { controller.abort(); throw new Error("stack aborted"); }
+	} });
+	await h.create({ noFocus: true });
+	const tool = h.tools.get("zellij_new_pane");
+	const result = await tool.execute("call", { noFocus: true }, controller.signal, undefined, h.ctx);
+	assert.equal(result.details.reason, "stack_failed");
+	assert.ok(result.details.id);
+	assert.equal(h.calls.at(-2).options.signal, undefined);
+	assert.equal(h.calls.at(-1).options.signal, undefined);
+	assert.equal(h.tabs.find((tab) => tab.active).tab_id, 23);
+}));
+
+test("noFocus restores focus without the cancelled signal when creation throws", () => insideZellij(async () => {
+	const controller = new AbortController();
+	const h = focusHarness({ beforeExec: async (args) => {
+		if (args[1] === "new-pane") { controller.abort(); throw new Error("creation aborted"); }
+	} });
+	const tool = h.tools.get("zellij_new_pane");
+	await assert.rejects(tool.execute("call", { noFocus: true }, controller.signal, undefined, h.ctx), /creation aborted/);
+	assert.equal(h.calls.at(-2).args[1], "focus-pane-id");
+	assert.equal(h.calls.at(-2).options.signal, undefined);
+	assert.equal(h.calls.at(-1).options.signal, undefined);
+	assert.equal(h.tabs.find((tab) => tab.active).tab_id, 23);
 }));
 
 test("a new Pi session does not adopt another session's group", () => insideZellij(async () => {

@@ -455,6 +455,7 @@ const ZELLIJ_NEW_PANE_PARAMS = {
 		direction: { type: "string", enum: ["right", "down"], description: "Open pane to the right or below." },
 		floating: { type: "boolean", description: "Open as a floating pane. Conflicts with direction and stacked." },
 		stacked: { type: "boolean", description: "Explicitly open as a stacked pane. Conflicts with direction and floating. If no placement is specified, open right first, then join this Pi session's own stack." },
+		noFocus: { type: "boolean", description: "Restore the previously focused pane and tab after creation and stacking. May briefly change focus. Defaults to false." },
 		tabId: { type: "integer", description: "Optional target tab ID. Defaults to this Pi session's tab, regardless of the user's focused tab." },
 		command: { type: "string", description: "Optional command to run in the pane. Defaults to the user's shell." },
 		closeOnExit: { type: "boolean", description: "Close the pane when its command exits. Defaults to false." },
@@ -783,7 +784,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 				};
 			}
 
-			const operation = paneCreationQueue.then(async () => {
+			const createPane = async () => {
 				if (signal?.aborted) throw new Error("Pane creation cancelled.");
 				const automatic = placementCount === 0;
 				const { tabId, panes } = await paneTarget(ctx, params.tabId, signal, automatic);
@@ -840,6 +841,47 @@ export default function zellijExtension(pi: ExtensionAPI) {
 					content: [{ type: "text" as const, text: `Opened new Zellij pane ${id}${previousIds.length > 0 ? " in this Pi session's stack" : " to the right"}.` }],
 					details: { ...details, stacked: previousIds.length > 0, paneGroup },
 				};
+			};
+			const operation = paneCreationQueue.then(async () => {
+				if (!params.noFocus) return createPane();
+				if (signal?.aborted) throw new Error("Pane creation cancelled.");
+
+				// is_focused is per tab, so select the active tab before finding its pane.
+				const tabsResult = await runZellijAction(pi, ctx, ["action", "list-tabs", "--json", "--all"], signal);
+				if (tabsResult.ok === false) return zellijToolFailure(tabsResult);
+				const tabs = parseJson<ZellijTab[]>(tabsResult.stdout);
+				const tabId = tabs.ok && Array.isArray(tabs.value)
+					? numberFrom(tabs.value.find((tab) => tab?.active)?.tab_id) : undefined;
+				const panesResult = await runZellijAction(pi, ctx, ["action", "list-panes", "--json", "--all"], signal);
+				if (panesResult.ok === false) return zellijToolFailure(panesResult);
+				const panes = parseJson<ZellijPane[]>(panesResult.stdout);
+				const focusedPane = panes.ok && Array.isArray(panes.value) && tabId !== undefined
+					? panes.value.find((pane) => pane?.is_focused && numberFrom(pane.tab_id) === tabId) : undefined;
+				if (!focusedPane || !/^(terminal|plugin)_\d+$/.test(paneDisplayId(focusedPane))) {
+					throw new Error("Could not determine the focused Zellij pane. No pane was created.");
+				}
+				const previousPaneId = paneDisplayId(focusedPane);
+				let result: Awaited<ReturnType<typeof createPane>>;
+				let focusError: string | undefined;
+				try {
+					result = await createPane();
+				} finally {
+					// Cleanup must still run when creation or stacking is cancelled.
+					for (const args of [["action", "focus-pane-id", previousPaneId], ["action", "go-to-tab-by-id", String(tabId)]]) {
+						try {
+							const restored = await runZellijAction(pi, ctx, args);
+							if (restored.ok === false) focusError = restored.message;
+						} catch (error) {
+							focusError = error instanceof Error ? error.message : String(error);
+						}
+					}
+				}
+				if (focusError) return {
+					isError: true,
+					content: [...result.content, { type: "text" as const, text: `Could not restore focus to ${previousPaneId}: ${focusError}. Do not recreate any pane reported above.` }],
+					details: { ...result.details, ok: false, reason: "focus_restore_failed", focusError, previousPaneId },
+				};
+				return result;
 			});
 			paneCreationQueue = operation.then(() => {}, () => {});
 			return operation;

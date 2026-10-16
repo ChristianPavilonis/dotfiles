@@ -32,7 +32,7 @@ Otherwise, read [the Pi session reference](references/pi-sessions.md) before sea
 - open questions or blockers; and
 - artifacts such as notes, branches, commits, issues, and pull requests.
 
-For one to three relevant conversations, inspect them directly. When more substantial history would crowd the main context, load the `pi-subagents` skill and give disjoint session slices to read-only scouts. The parent keeps scope, checks citations, and writes the final brief.
+For one to three relevant conversations, inspect them directly. When more substantial history would crowd the main context, read [zellij-delegation](../zellij-delegation/SKILL.md) and assign disjoint, bounded session slices to read-only Pi workers. The parent keeps scope, checks citations, and writes the final brief. If Zellij is unavailable, inspect the same bounded slices locally and report any unread gaps.
 
 This step is complete when every relevant conversation has a cited record or is named as an unread gap.
 

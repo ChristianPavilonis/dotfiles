@@ -1,7 +1,6 @@
 ---
 name: code-smell-reviewer
 description: Reviews a code diff against the fixed 12-smell catalog and reports matching smells only
-model: openai-codex/gpt-5.6-terra
 thinking: high
 tools: read, grep, find, ls, bash
 systemPromptMode: replace

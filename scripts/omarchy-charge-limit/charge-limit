@@ -1,0 +1,119 @@
+#!/usr/bin/python3 -I
+"""Restricted root helper for Framework charge limits."""
+
+import fcntl
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+import tempfile
+
+STATE_DIR = Path("/var/lib/omarchy-charge-limit")
+TOOL = "/usr/bin/framework_tool"
+PRESETS = (60, 80, 100)
+
+
+def parse_limit(value):
+    if value not in tuple(str(preset) for preset in PRESETS):
+        raise ValueError("Choose 60, 80, or 100 percent")
+    return int(value)
+
+
+def parse_command(args):
+    if args in (["status"], ["restore"]):
+        return args[0], None
+    if len(args) == 2 and args[0] == "set":
+        return "set", parse_limit(args[1])
+    raise ValueError("Usage: omarchy-charge-limit status | set {60|80|100} | restore")
+
+
+def run_tool(*args):
+    result = subprocess.run(
+        [TOOL, "--charge-limit", *args],
+        capture_output=True, text=True, timeout=10,
+        env={"PATH": "/usr/bin", "LANG": "C", "LC_ALL": "C"},
+    )
+    if result.returncode:
+        raise RuntimeError((result.stderr or result.stdout).strip() or "Framework Tool failed")
+    return result.stdout
+
+
+def actual_limit():
+    output = run_tool()
+    match = re.search(r"^Minimum \d+%, Maximum (\d+)%$", output, re.MULTILINE)
+    if not match or not 0 <= int(match[1]) <= 100:
+        raise RuntimeError("Cannot read charge limit from Framework Tool")
+    return int(match[1])
+
+
+def saved_limit():
+    try:
+        return parse_limit((STATE_DIR / "limit").read_text().strip())
+    except FileNotFoundError:
+        return None
+
+
+def save_limit(limit):
+    fd, name = tempfile.mkstemp(prefix=".limit-", dir=STATE_DIR)
+    try:
+        with os.fdopen(fd, "w") as stream:
+            stream.write(f"{limit}\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.chmod(name, 0o644)
+        os.replace(name, STATE_DIR / "limit")
+        directory = os.open(STATE_DIR, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(directory)
+        finally:
+            os.close(directory)
+    finally:
+        if os.path.exists(name):
+            os.unlink(name)
+
+
+def apply_limit(limit):
+    run_tool(str(limit))
+    actual = actual_limit()
+    if actual != limit:
+        raise RuntimeError(f"Controller reports {actual}% after requesting {limit}%")
+    return actual
+
+
+def execute(command, limit):
+    saved = saved_limit()
+    if command == "set":
+        actual = apply_limit(limit)
+        save_limit(limit)
+        saved = limit
+    elif command == "restore":
+        if saved is None:
+            raise RuntimeError("No saved charge limit")
+        actual = apply_limit(saved)
+    else:
+        actual = actual_limit()
+    return {"actual": actual, "saved": saved}
+
+
+def main():
+    try:
+        command, limit = parse_command(sys.argv[1:])
+        if os.geteuid() != 0:
+            raise PermissionError("Run through pkexec")
+        os.umask(0o022)
+        STATE_DIR.mkdir(mode=0o755, parents=True, exist_ok=True)
+        # One lock covers boot restoration, reads, and popup writes.
+        with (STATE_DIR / "lock").open("a") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            result = execute(command, limit)
+        print(json.dumps(result))
+        return 0
+    except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as error:
+        print(json.dumps({"error": str(error)}))
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,7 +1,6 @@
 ---
 name: correctness-reviewer
 description: Reviews a code diff for concrete correctness, security, compatibility, error-handling, and test failures
-model: openai-codex/gpt-5.6-terra
 thinking: high
 tools: read, grep, find, ls, bash
 systemPromptMode: replace

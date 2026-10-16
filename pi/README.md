@@ -12,6 +12,18 @@ This package holds my local Pi customizations and is meant to be linked into `~/
 - `skills/` — Skill directories containing `SKILL.md` plus any helper scripts or references.
 - `themes/` contains durable themes used outside Omarchy. Omarchy generates its active `omarchy-system` theme at runtime in `~/.pi/agent/themes/`.
 
+## Delegated models
+
+`settings.json` holds the model choices. Keep its startup model and `subagents.defaultModel` aligned. The scout override supplies the lightweight model; custom agent profiles inherit the subagent default instead of pinning model versions. `AGENTS.md` applies this policy to explicit worker launches, including Zellij delegation. The session-title extension selects its lightweight model separately.
+
+Check these choices after changing them:
+
+```sh
+node --test pi/model-policy.test.mjs
+```
+
+Run the command from the dotfiles root. Reload active Pi sessions to pick up policy and extension changes. Resumed sessions retain their previous active model, so changing defaults alone does not switch them.
+
 ## Notes
 
 - Keep global Pi preferences and package selections in `settings.json`. Outside Omarchy, Pi writes interactive preference and package changes through the stowed symlink, so Git shows the changes.

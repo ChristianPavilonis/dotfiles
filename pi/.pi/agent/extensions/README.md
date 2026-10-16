@@ -14,11 +14,9 @@ Typical files:
 - `my-extension/index.ts`
 
 Current local extensions include:
-- `commit.ts` — `/commit [instructions]` spawns a background forked pi agent on `openai-codex/gpt-5.6-luna` to inspect changes and create one local git commit
 - `daily-work-log.ts` — appends one JSONL record per non-extension user input to `~/.pi/agent/logs/YYYY-MM-DD.jsonl`
-- `note.ts` — `/note <prompt>` spawns a background forked pi agent to write/update an Obsidian note without interrupting the current session
 - `notify-done.ts` — sends Omarchy completion notifications on Linux, with click-to-focus for the owning Kitty/Zellij session and pane
-- `session-title.ts` — auto-generates an untitled new session's display name after the first prompt using `openai-codex/gpt-5.6-luna`
+- `session-title.ts` — auto-generates an untitled new session's display name after the first prompt using `openai-codex/gpt-6-luna`
 - `model-harpoon.ts` — opens a model picker on Alt+M
 - `thinking-harpoon.ts` — opens a descending thinking-level picker on Alt+T
 - `zellij.ts` opens tabs and panes, reads pane output, and sends pane input. Pane creation defaults to the tab containing Pi's `ZELLIJ_PANE_ID`, regardless of the user's focused tab. An explicit `tabId` overrides this default.
@@ -28,6 +26,8 @@ Current local extensions include:
 `zellij_new_pane` and the pane commands `/zl`, `/zj`, `/zf`, `/nvim`, `/gd`, `/zfork`, and `/zreview` look up Pi's owning tab before creating a pane. The lookup follows Pi's pane if it moves to another tab and needs no persisted startup state. If the lookup fails, creation stops rather than falling back to the user's focused tab.
 
 The installed Zellij 0.44.3 build returned a pane ID without creating a pane during an isolated `--near-current-pane` check. This extension uses `list-panes --json --all` and explicit `--tab-id` targeting instead.
+
+`zellij_new_pane` accepts `noFocus: true` to restore the user's previously focused pane and tab after creation and stacking. The default is false; slash commands keep their existing focus behavior. Zellij 0.44.3 has no native `--no-focus`, so focus may briefly change. Capture and restoration run inside the creation queue, including cleanup on failure or cancellation. Capture failures stop creation; restoration failures report any created pane ID so callers can inspect it rather than launch a duplicate.
 
 ## Automatic tool pane stacks
 
@@ -52,8 +52,18 @@ Run the regression tests with Node's TypeScript stripping support:
 node --test pi/.pi/agent/extensions/zellij.test.mjs
 ```
 
-The opt-in integration test needs Zellij and util-linux `script`. It creates and cleans up an isolated session, checking stack geometry, unrelated focus, reload, closed panes, and concurrent creation:
+The opt-in integration test needs Zellij and util-linux `script`. It creates and cleans up an isolated session, checking stack geometry, focus restoration in the same and unrelated tabs, reload, closed panes, and concurrent creation:
 
 ```sh
 PI_ZELLIJ_INTEGRATION_TEST=1 node --test pi/.pi/agent/extensions/zellij.integration.test.mjs
 ```
+
+## Nushell tool results
+
+Run the result-contract regression tests with Node's TypeScript stripping support:
+
+```sh
+node --test pi/.pi/agent/extensions/nushell.test.mjs
+```
+
+These tests mock process execution; they run no shell commands or model requests.

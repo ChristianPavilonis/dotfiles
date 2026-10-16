@@ -1,0 +1,20 @@
+[Unit]
+Description=Restore saved Framework battery charge limit
+After=systemd-udev-trigger.service
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/omarchy-charge-limit restore
+StateDirectory=omarchy-charge-limit
+StateDirectoryMode=0755
+TimeoutStartSec=30
+Restart=on-failure
+RestartSec=3
+ProtectSystem=strict
+ProtectHome=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

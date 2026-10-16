@@ -1,7 +1,6 @@
 ---
 name: solution-reviewer
 description: Reviews a change as a whole for intent alignment, brittle architecture, unnecessary scope, and concrete simplifications
-model: openai-codex/gpt-5.6-sol
 thinking: high
 tools: read, grep, find, ls, bash
 systemPromptMode: replace

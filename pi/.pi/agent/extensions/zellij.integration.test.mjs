@@ -67,10 +67,17 @@ test("automatic panes form one owned stack despite unrelated focus", {
 		return { tool: tools.get("zellij_new_pane"), events };
 	}
 	let extension = load();
-	async function create() {
-		const result = await extension.tool.execute("check", { name: "auto-stack-check", command: "sleep 240", useNu: false }, undefined, undefined, ctx);
+	let expectedFocus;
+	async function create(params = {}) {
+		const result = await extension.tool.execute("check", { name: "auto-stack-check", command: "sleep 240", useNu: false, noFocus: true, ...params }, undefined, undefined, ctx);
 		assert.equal(result.details.ok, true, JSON.stringify(result));
 		entries.push({ type: "message", message: { role: "toolResult", toolName: "zellij_new_pane", details: result.details } });
+		if (expectedFocus) await waitFor(async () => {
+			const tabs = JSON.parse(await action("list-tabs", "--json", "--all"));
+			const activeTab = tabs.find((tab) => tab.active);
+			const focused = (await panes()).find((pane) => pane.tab_id === activeTab?.tab_id && pane.is_focused);
+			return focused && `terminal_${focused.id}` === expectedFocus;
+		});
 		return result.details.id;
 	}
 	function terminal(rows, id) { return rows.find((pane) => !pane.is_plugin && `terminal_${pane.id}` === id); }
@@ -97,6 +104,7 @@ test("automatic panes form one owned stack despite unrelated focus", {
 		await waitFor(async () => terminal(await panes(), "terminal_0"));
 		const otherTab = Number(await action("new-tab", "--name", "unrelated", "--", "sleep", "240"));
 		await action("go-to-tab-by-id", String(otherTab));
+		expectedFocus = `terminal_${(await panes()).find((pane) => pane.tab_id === otherTab && pane.is_focused).id}`;
 		const first = await create();
 		await assertStack([first]);
 		// Select Pi, not its tool pane, then switch away before each later request.
@@ -122,6 +130,19 @@ test("automatic panes form one owned stack despite unrelated focus", {
 		// Exercise the real queued path, without waiting for each creation individually.
 		const concurrent = await Promise.all([create(), create()]);
 		await assertStack([fresh, ...concurrent]);
+
+		// Also preserve a different pane in the same tab, not just focus in another tab.
+		await action("go-to-tab-by-id", "0");
+		await action("focus-pane-id", "terminal_0");
+		expectedFocus = "terminal_0";
+		await create();
+		await action("focus-pane-id", fresh);
+		expectedFocus = fresh;
+		await create({ direction: "down" });
+		await create({ floating: true });
+		expectedFocus = undefined;
+		const foreground = await create({ noFocus: false, direction: "down" });
+		await waitFor(async () => terminal(await panes(), foreground)?.is_focused);
 	} finally {
 		await exec("zellij", ["kill-session", session]).catch(() => {});
 		client.stdin.end();

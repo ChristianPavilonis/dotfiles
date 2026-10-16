@@ -16,6 +16,7 @@
     "npm:@narumitw/pi-usage"
   ],
   "defaultThinkingLevel": "high",
+  "defaultTools": ["+codemode"],
   "editorPaddingX": 1,
   "quietStartup": true,
   "voice": {
@@ -37,12 +38,12 @@
   "tuiMode": "fullscreen",
   "outputPad": 1,
   "subagents": {
+    "defaultModel": "openai-codex/gpt-6.1-sol",
     "agentOverrides": {
       "reviewer": {
         "disabled": true
       },
       "worker": {
-        "model": "openai-codex/gpt-6-luna",
         "thinking": "medium"
       },
       "scout": {
@@ -50,7 +51,6 @@
         "thinking": "low"
       },
       "delegate": {
-        "model": "openai-codex/gpt-6-luna",
         "thinking": "medium"
       }
     }
