@@ -24,6 +24,10 @@ node --test pi/model-policy.test.mjs
 
 Run the command from the dotfiles root. Reload active Pi sessions to pick up policy and extension changes. Resumed sessions retain their previous active model, so changing defaults alone does not switch them.
 
+## Session handoff
+
+[Move an existing Pi conversation between machines](session-handoff.md) with `/handoff` or the `session_handoff` tool. The default target is `homelab`. Code travels through a verified branch push; finalized session history travels over SSH and resumes in a named Zellij tab. Configure machine-specific paths in unmanaged `~/.pi/agent/handoff.json`. The guide covers round trips, pull-based return, retries, and frozen-source recovery.
+
 ## Notes
 
 - Keep global Pi preferences and package selections in `settings.json`. Outside Omarchy, Pi writes interactive preference and package changes through the stowed symlink, so Git shows the changes.

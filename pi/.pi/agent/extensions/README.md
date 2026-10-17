@@ -19,6 +19,7 @@ Current local extensions include:
 - `session-title.ts` — auto-generates an untitled new session's display name after the first prompt using `openai-codex/gpt-6-luna`
 - `model-harpoon.ts` — opens a model picker on Alt+M
 - `thinking-harpoon.ts` — opens a descending thinking-level picker on Alt+T
+- `session-handoff/` provides `/handoff` and `session_handoff` for explicit SSH conversation transfer and retry-safe Zellij launch. See [setup, round trips, and recovery](../../../session-handoff.md).
 - `zellij.ts` opens tabs and panes, reads pane output, and sends pane input. Pane creation defaults to the tab containing Pi's `ZELLIJ_PANE_ID`, regardless of the user's focused tab. An explicit `tabId` overrides this default.
 
 ## Zellij pane targeting
@@ -56,6 +57,15 @@ The opt-in integration test needs Zellij and util-linux `script`. It creates and
 
 ```sh
 PI_ZELLIJ_INTEGRATION_TEST=1 node --test pi/.pi/agent/extensions/zellij.integration.test.mjs
+```
+
+## Session handoff tests
+
+The focused tests use temporary Git repositories and mocked destination executables. The opt-in integration checks the real Pi `agent_settled` boundary, SSH encoding through a local adapter, and isolated Zellij launch without paid model work:
+
+```sh
+node --test pi/.pi/agent/extensions/session-handoff.test.mjs
+PI_HANDOFF_INTEGRATION_TEST=1 node --test pi/.pi/agent/extensions/session-handoff.integration.test.mjs
 ```
 
 ## Nushell tool results
