@@ -19,7 +19,7 @@ Use this skill for any work in `~/Documents/MyObsidianVault/`. Load only the ref
 
 For a request spanning categories, read every applicable reference. For example, a project note that should appear in a Base requires both `markdown.md` and `project-notes.md`; changing a Base requires `bases.md`.
 
-After creating or editing a note, open it if it's not open with `obsidian open path="vault/relative/path.md" newtab`. Run the command directly and report any CLI failure instead of checking for an Obsidian process first.
+Open a note only when the user asks for it.
 
 ## Guardrails
 
