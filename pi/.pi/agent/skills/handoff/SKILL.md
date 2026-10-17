@@ -8,6 +8,12 @@ disable-model-invocation: true
 
 Use this skill when the current agent has finished planning and the user wants another Pi agent to execute the plan in an isolated worktree.
 
+## Ownership
+
+The new agent owns the task and communicates with the user in its own tab. This is an independent session, not a delegated worker. Keep parent pane IDs, worker instructions, and requests to report back out of the plan and prompt. The new agent handles implementation, validation, blockers, and the final summary in its own conversation.
+
+The original agent's handoff ends once the new tab is launched and the plan path, worktree, and tab are confirmed to the user. Leave the new session open for the user and continue the original conversation independently. Do not poll, collect results, send follow-ups, or close the handoff tab unless the user asks.
+
 This is the preferred flow:
 
 1. Write the plan to a temporary markdown file.
@@ -27,7 +33,7 @@ This is the preferred flow:
 
 ## Plan file
 
-Create a durable temp directory and write the plan as markdown:
+Create a temp directory and write the plan as markdown:
 
 ```bash
 mkdir -p /tmp/pi-handoffs
@@ -43,6 +49,7 @@ The plan file should include:
 - Validation commands to run
 - Risks, gotchas, and open questions
 - Any constraints from the user
+- Use the writing-for-agents skill
 
 ## Worktree creation
 
@@ -70,7 +77,7 @@ Example:
 {
   "cwd": "/path/to/worktree",
   "name": "pi-<short-slug>",
-  "prompt": "Implement the plan in /tmp/pi-handoffs/20260514-153000-short-slug.md. Read it first, then make the changes, run validation, and summarize results."
+  "prompt": "You own this task as an independent agent, not a delegated worker. Read /tmp/pi-handoffs/20260514-153000-short-slug.md, implement the plan, run validation, and report blockers and results to the user here. Do not message the originating agent or wait for its acknowledgment."
 }
 ```
 

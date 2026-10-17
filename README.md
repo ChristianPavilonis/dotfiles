@@ -126,14 +126,59 @@ cd ~/dotfiles
 ## Managed packages
 
 - `aerospace` -> `~/.aerospace.toml` (macOS only)
+- `gh-dash` -> `~/.config/gh-dash`
 - `git` -> `~/.gitconfig`
 - `kitty` -> `~/.config/kitty`
 - `nu` -> `~/.config/nushell`
 - `nvim` -> `~/.config/nvim`
+- `omarchy` -> theme templates, SD card importer, and udiskie hook (Omarchy Linux only)
 - `pi` -> `~/.pi/*`
 - `starship` -> `~/.config/starship.toml`
 - `yesman` -> `~/.config/yesman/*` (legacy plugins and standalone extensions)
 - `zellij` -> `~/.config/zellij`
+
+## SD card imports on Omarchy
+
+After `stow -t ~ omarchy`, restart udiskie or log out and back in. Omarchy's
+existing udiskie autostart loads `~/.config/udiskie/config.yml`.
+Requires system Python with PyGObject/GTK4, udiskie, and notify-send, already
+installed on this desktop. `~/.local/bin` must be on udiskie's PATH.
+
+Mounting an external drive with a `DCIM` directory opens a folder-name prompt.
+Enter `weekend-trip` to copy into `~/Pictures/Imports/weekend-trip/`.
+Cancel leaves everything alone. Nothing deletes or modifies source media.
+
+The importer flattens these files into the chosen folder:
+- RAW and JPEG photos under `DCIM/`, including Sony `.ARW` files.
+- MP4s under `DCIM/` or Sony's `PRIVATE/M4ROOT/CLIP/`.
+
+It excludes video thumbnails, proxy clips in `SUB/`, XML sidecars, databases,
+LUTs, and all other formats. Paths and extensions are case-insensitive.
+Other camera video layouts need an explicit addition to the scanner.
+
+Each file is SHA-256 verified before publication. Identical existing files are
+skipped; different files sharing a name receive `-1`, `-2`, etc. Existing files
+are never overwritten. A Stop button keeps completed copies and removes the
+current partial copy. Retry into the same folder to resume. Power loss or a
+forced kill can leave a hidden `.sd-import-*` temporary file in the destination;
+it is not treated as a completed import. One import window runs at a time.
+Wait for completion before safely ejecting the card.
+
+Code: `omarchy/.local/bin/sd-card-import`.
+
+```bash
+# Read-only scan of a mounted card
+sd-card-import device_mounted True /run/media/$USER/F02F-2C1E --scan
+
+# Manually open the prompt for an already mounted card
+sd-card-import device_mounted True /run/media/$USER/F02F-2C1E
+
+# Tests use temporary fixtures, never the real card
+/usr/bin/python -B -m unittest discover -s scripts/tests -p 'test_sd_card_import.py' -v
+```
+
+To disable automatic prompts, remove `program_options.event_hook` from the
+udiskie config and restart udiskie or log out and back in.
 
 ## Daily stow commands
 
@@ -154,37 +199,27 @@ stow -D -t ~ <package>
 2. Mirror the target path under that package (for example `foo/.config/foo/config.toml`).
 3. Run `stow -R -t ~ foo`.
 
-## Unified Fallout Terminal theme
+## Omarchy themes
 
-Theme colors live in `themes/<family>/{dark,light}.json`. The native Kitty,
-Pi, Starship, Nushell, Zellij, and Neovim files are generated from those sources:
+Omarchy owns the active palette on Linux. Kitty, Pi, and Neovim read Omarchy's
+standard generated files. Templates in `omarchy/.config/omarchy/themed/` add
+matching Starship, Nushell, and Zellij output.
 
-```bash
-bun scripts/theme.ts generate
-bun scripts/theme.ts check
-```
-
-Generated files are committed because GNU Stow links the native configs directly.
-Do not edit generated theme files by hand. Change `activeVariant` in
-`themes/profile.json`, then run `bun scripts/theme.ts generate` to select the
-active generated variant. Kitty automatically selects its dark, light, and
-no-preference variants from the reserved `*.auto.conf` files. From Nushell, theme
-families and variants can be swapped with:
+Use Omarchy's switcher or CLI:
 
 ```nu
+theme                  # open the Omarchy switcher
 theme list
 theme current
-theme dark
-theme light
-theme toggle
-theme nord
-theme nord light
+theme nord             # shorthand for `omarchy theme set nord`
+omarchy theme set nord
 ```
 
-When run inside Zellij 0.44.3+, the command also applies the selected dark/light
-theme to the current session. Outside Zellij, the generated configuration is used
-by new sessions. Nushell can also override the generated default for one new shell
-with `DOTFILES_THEME_VARIANT=light`.
+`./install` stows the user templates and runs `omarchy theme refresh`. Kitty,
+Pi, and Starship pick up regenerated colors immediately. Start a new Nushell or
+Zellij session after switching themes. Restart Neovim to load its new colorscheme.
+The synchronized setup is enabled when `omarchy` is installed; the static
+Starship and Nushell defaults remain usable elsewhere.
 
 ## Pi customizations
 
@@ -194,8 +229,8 @@ The `pi/` package is linked into `~/.pi` and is laid out for Pi's global config:
 - `pi/.pi/agent/keybindings.json` — custom Pi shortcuts
 - `pi/.pi/agent/extensions/` — TypeScript extensions
 - `pi/.pi/agent/prompts/` — Markdown prompt templates
+- `pi/.pi/agent/system-prompts/` — focused system prompts used by shell launchers
 - `pi/.pi/agent/skills/` — skills with `SKILL.md`
-- `pi/.pi/agent/themes/` — generated theme JSON files
 
 If `~/.pi/agent/settings.json` already exists as a regular machine-local file,
 `./install` preserves it while stowing the rest of the Pi package. Runtime state

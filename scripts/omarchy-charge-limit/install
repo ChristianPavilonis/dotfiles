@@ -1,0 +1,37 @@
+#!/bin/bash
+set -euo pipefail
+
+# Run from a terminal with sudo, or through pkexec for graphical authentication.
+[[ $EUID == 0 ]] || { echo 'Run this installer as root.' >&2; exit 1; }
+[[ $# == 1 && $1 =~ ^[a-z_][a-z0-9_-]*$ ]] || { echo 'Pass the local login name.' >&2; exit 1; }
+user=$1
+id "$user" >/dev/null
+source_dir=$(cd -- "$(dirname -- "$0")" && pwd)
+
+[[ $(</sys/class/dmi/id/sys_vendor) == Framework ]] || { echo 'This requires a Framework laptop.' >&2; exit 1; }
+[[ -x /usr/bin/framework_tool ]] || { echo 'Install framework-system first.' >&2; exit 1; }
+
+install -d -o root -g root -m 755 /usr/local/libexec /var/lib/omarchy-charge-limit
+install -o root -g root -m 755 "$source_dir/charge-limit" /usr/local/libexec/omarchy-charge-limit
+install -o root -g root -m 644 "$source_dir/omarchy-charge-limit.service" /etc/systemd/system/omarchy-charge-limit.service
+install -o root -g root -m 644 "$source_dir/com.local.omarchy.charge-limit.policy" /usr/share/polkit-1/actions/com.local.omarchy.charge-limit.policy
+
+# Only this login in an active local session gets password-free access.
+# The root-owned helper accepts no paths, commands, or Framework Tool flags.
+rule=$(mktemp)
+trap 'rm -f "$rule"' EXIT
+printf '%s\n' \
+  'polkit.addRule(function(action, subject) {' \
+  "  if (action.id === 'com.local.omarchy.charge-limit' && subject.user === '$user' && subject.local && subject.active) {" \
+  '    return polkit.Result.YES;' \
+  '  }' \
+  '});' >"$rule"
+install -o root -g root -m 644 "$rule" /etc/polkit-1/rules.d/49-omarchy-charge-limit.rules
+
+if [[ ! -f /var/lib/omarchy-charge-limit/limit ]]; then
+  /usr/local/libexec/omarchy-charge-limit set 80
+fi
+systemctl daemon-reload
+systemctl enable omarchy-charge-limit.service
+systemctl start omarchy-charge-limit.service
+printf 'Charge-limit helper installed for %s. Saved limit restored.\n' "$user"

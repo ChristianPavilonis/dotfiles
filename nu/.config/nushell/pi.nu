@@ -2,15 +2,31 @@
 
 const PI_WORKLOG_DIR = ("~/.pi/agent/logs" | path expand)
 
-# Launch pi in plan mode to address PR review comments
-# Requires the @ifi/pi-plan extension package.
+# Launch pi to evaluate the current PR's review comments.
 def picrc [] {
-  pi "/plan" "Look at the current PR's review comments using gh CLI commands. Identify any requested changes or actionable review feedback. Create a plan to address each valid comment, organized by file and priority."
+  pi "/skill:review-reviewers"
 }
 
 # Launch pi with the Trusted Server review prompt for the current branch's PR.
 def pipr [] {
   pi "/ts-review"
+}
+
+# Launch pi in the Obsidian vault for an interactive weekly planning session.
+def planweek [] {
+  let vault = ($env.HOME | path join "Documents" "MyObsidianVault")
+  let dotfiles = ($env | get -o DOTFILES_ROOT | default ($env.HOME | path join "dotfiles"))
+  let planner_prompt = ($dotfiles | path join "pi" ".pi" "agent" "system-prompts" "weekly-planner.md")
+
+  if not ($vault | path exists) {
+    error make { msg: $"Obsidian vault not found: ($vault)" }
+  }
+  if not ($planner_prompt | path exists) {
+    error make { msg: $"Weekly planner prompt not found: ($planner_prompt)" }
+  }
+
+  cd $vault
+  ^pi --no-approve --system-prompt (open $planner_prompt --raw) --name "Weekly planning" "Begin the planning conversation."
 }
 
 def _worklog-default-date [] {

@@ -1,4 +1,6 @@
 [user]
 	signingkey = ~/.ssh/id_ed25519
+[gpg]
+	program = /usr/bin/gpg
 [gpg "ssh"]
-	allowedSignersFile = /home/christian/.ssh/allowed_signers
+	allowedSignersFile = /home/pav/.ssh/allowed_signers

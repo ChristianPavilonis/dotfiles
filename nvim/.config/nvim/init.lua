@@ -1,22 +1,21 @@
-require("christian/options")
+require('christian.options')
 
--- Install package manager
---    https://github.com/folke/lazy.nvim
---    `:help lazy.nvim.txt` for more info
-local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
-if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system {
-	'git',
-	'clone',
-	'--filter=blob:none',
-	'https://github.com/folke/lazy.nvim.git',
-	'--branch=stable', -- latest stable release
-	lazypath,
-  }
+local lazypath = vim.fn.stdpath('data') .. '/lazy/lazy.nvim'
+if not vim.uv.fs_stat(lazypath) then
+    vim.fn.system({
+        'git', 'clone', '--filter=blob:none',
+        'https://github.com/folke/lazy.nvim.git', '--branch=stable', lazypath,
+    })
 end
 vim.opt.rtp:prepend(lazypath)
 
--- create new files in the plugins/ directory to register new plugins.
-require('lazy').setup("christian/plugins")
+local theme = require('christian.theme')
+require('lazy').setup({
+    spec = {
+        { import = 'christian.plugins' },
+        theme.plugins,
+    },
+})
+vim.cmd.colorscheme(theme.colorscheme)
 
-require("christian/keybinds")
+require('christian.keybinds')

@@ -1,4 +1,5 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import { performance } from "node:perf_hooks";
 
 type NotifyContext = {
 	hasUI?: boolean;
@@ -11,6 +12,12 @@ type ZellijTarget = {
 };
 
 type ForkPlacement = "tab" | "left" | "down" | "up" | "right";
+
+type PaneGroup = {
+	owner: string;
+	tabId: number;
+	paneIds: string[];
+};
 
 type ZellijActionSuccess = {
 	ok: true;
@@ -134,7 +141,7 @@ function buildNewPaneArgs(options: {
 	if (options.floating) args.push("--floating");
 	else if (options.stacked) args.push("--stacked");
 	else if (options.direction) args.push("--direction", options.direction);
-	args.push("--", ...(options.command ?? [getDefaultShell()]));
+	if (options.command) args.push("--", ...options.command);
 	return args;
 }
 
@@ -447,8 +454,9 @@ const ZELLIJ_NEW_PANE_PARAMS = {
 		name: { type: "string", description: "Optional Zellij pane name." },
 		direction: { type: "string", enum: ["right", "down"], description: "Open pane to the right or below." },
 		floating: { type: "boolean", description: "Open as a floating pane. Conflicts with direction and stacked." },
-		stacked: { type: "boolean", description: "Open as a stacked pane. Conflicts with direction and floating." },
-		tabId: { type: "integer", description: "Optional target tab ID." },
+		stacked: { type: "boolean", description: "Explicitly open as a stacked pane. Conflicts with direction and floating. If no placement is specified, open right first, then join this Pi session's own stack." },
+		noFocus: { type: "boolean", description: "Restore the previously focused pane and tab after creation and stacking. May briefly change focus. Defaults to false." },
+		tabId: { type: "integer", description: "Optional target tab ID. Defaults to this Pi session's tab, regardless of the user's focused tab." },
 		command: { type: "string", description: "Optional command to run in the pane. Defaults to the user's shell." },
 		closeOnExit: { type: "boolean", description: "Close the pane when its command exits. Defaults to false." },
 		useNu: { type: "boolean", description: "Run command through `nu -l -c`. Defaults to true when command is provided." },
@@ -474,6 +482,54 @@ const ZELLIJ_FOCUS_TAB_PARAMS = {
 } as const;
 
 export default function zellijExtension(pi: ExtensionAPI) {
+	const paneGroups = new Map<number, string[]>();
+	let paneCreationQueue: Promise<void> = Promise.resolve();
+
+	function groupOwner(sessionId: string): string {
+		return JSON.stringify([process.pid, performance.timeOrigin, process.env.ZELLIJ_SESSION_NAME, process.env.ZELLIJ_PANE_ID, sessionId]);
+	}
+
+	// These panes are physical resources, so reload reads all entries, not only the current branch.
+	pi.on("session_start", async (_event, ctx) => {
+		paneGroups.clear();
+		const owner = groupOwner(ctx.sessionManager.getSessionId());
+		for (const entry of ctx.sessionManager.getEntries()) {
+			if (entry.type !== "message" || entry.message.role !== "toolResult" || entry.message.toolName !== "zellij_new_pane") continue;
+			const group = entry.message.details?.paneGroup as Partial<PaneGroup> | undefined;
+			if (!group || group.owner !== owner || typeof group.tabId !== "number" || !Number.isInteger(group.tabId) || group.tabId < 0) continue;
+			if (!Array.isArray(group.paneIds) || !group.paneIds.every((id) => typeof id === "string" && /^terminal_\d+$/.test(id))) continue;
+			paneGroups.set(group.tabId, [...new Set(group.paneIds)]);
+		}
+	});
+
+	async function paneTarget(ctx: NotifyContext, explicitTabId?: number, signal?: AbortSignal, includePanes = false): Promise<{ tabId: number; panes: ZellijPane[] }> {
+		if (explicitTabId !== undefined && !includePanes) return { tabId: explicitTabId, panes: [] };
+
+		const ownPaneId = process.env.ZELLIJ_PANE_ID?.trim();
+		if (explicitTabId === undefined && (!ownPaneId || !/^\d+$/.test(ownPaneId))) {
+			throw new Error("Cannot determine this Pi session's Zellij pane. Supply an explicit tabId.");
+		}
+
+		const result = await runZellijAction(pi, ctx, ["action", "list-panes", "--json", "--all"], signal);
+		if (result.ok === false) throw new Error(result.message);
+		const parsed = parseJson<ZellijPane[]>(result.stdout);
+		if (parsed.ok === false || !Array.isArray(parsed.value) || !parsed.value.every((pane) => pane !== null && typeof pane === "object")) {
+			throw new Error("Could not parse Zellij panes JSON to determine this Pi session's tab.");
+		}
+		const ownPane = parsed.value.find((pane) => !pane.is_plugin && numberFrom(pane.id) === Number(ownPaneId));
+		const tabId = explicitTabId ?? numberFrom(ownPane?.tab_id);
+		if (tabId === undefined || !Number.isInteger(tabId) || tabId < 0) {
+			throw new Error("Could not locate this Pi session's Zellij tab. Supply an explicit tabId.");
+		}
+
+		return { tabId, panes: parsed.value };
+	}
+
+	async function newPaneArgs(ctx: NotifyContext, options: Parameters<typeof buildNewPaneArgs>[0]): Promise<string[]> {
+		const { tabId } = await paneTarget(ctx, options.tabId);
+		return buildNewPaneArgs({ ...options, tabId });
+	}
+
 	pi.registerTool({
 		name: "zellij_new_tab",
 		label: "Zellij New Tab",
@@ -717,7 +773,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 	pi.registerTool({
 		name: "zellij_new_pane",
 		label: "Zellij New Pane",
-		description: "Open a new Zellij pane, optionally running a command, and return its pane ID.",
+		description: "Open a Zellij pane in this Pi session's tab and return its ID. With no placement specified, the first pane opens right and later panes join this session's stack. Explicit direction, floating, or stacked overrides this grouping. An explicit tabId overrides the target tab.",
 		parameters: ZELLIJ_NEW_PANE_PARAMS as any,
 		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
 			const placementCount = [params.direction, params.floating, params.stacked].filter(Boolean).length;
@@ -728,26 +784,107 @@ export default function zellijExtension(pi: ExtensionAPI) {
 				};
 			}
 
-			const cwd = params.cwd?.trim() || ctx.cwd;
-			const command = buildCommand(params.command, params.useNu);
-			const zellijArgs = buildNewPaneArgs({
-				cwd,
-				name: params.name,
-				direction: params.direction,
-				floating: params.floating,
-				stacked: params.stacked,
-				tabId: params.tabId,
-				command,
-				closeOnExit: params.closeOnExit,
-			});
-			const result = await runZellijAction(pi, ctx, zellijArgs, signal);
-			if (result.ok === false) return zellijToolFailure(result);
+			const createPane = async () => {
+				if (signal?.aborted) throw new Error("Pane creation cancelled.");
+				const automatic = placementCount === 0;
+				const { tabId, panes } = await paneTarget(ctx, params.tabId, signal, automatic);
+				const ownPaneId = `terminal_${process.env.ZELLIJ_PANE_ID?.trim()}`;
+				const livePaneIds = new Set(panes
+					.filter((pane) => !pane.is_plugin && !pane.is_floating && !pane.is_suppressed
+						&& numberFrom(pane.tab_id) === tabId && paneDisplayId(pane) !== ownPaneId)
+					.map(paneDisplayId));
+				const previousIds = automatic ? (paneGroups.get(tabId) ?? []).filter((id) => livePaneIds.has(id)) : [];
+				const cwd = params.cwd?.trim() || ctx.cwd;
+				const command = buildCommand(params.command, params.useNu);
+				const direction = automatic && previousIds.length === 0 ? "right" : params.direction;
+				const result = await runZellijAction(pi, ctx, buildNewPaneArgs({
+					cwd,
+					name: params.name,
+					direction,
+					floating: params.floating,
+					stacked: params.stacked,
+					tabId,
+					command,
+					closeOnExit: params.closeOnExit,
+				}), signal);
+				if (result.ok === false) return zellijToolFailure(result);
 
-			const id = result.stdout.trim() || undefined;
-			return {
-				content: [{ type: "text", text: `Opened new Zellij pane${id ? ` ${id}` : ""}.` }],
-				details: { ok: true, id, cwd, name: params.name, command, direction: params.direction, floating: params.floating, stacked: params.stacked, tabId: params.tabId },
+				const id = result.stdout.trim() || undefined;
+				const details = { ok: true, id, cwd, name: params.name, command, direction, floating: params.floating, stacked: params.stacked, tabId };
+				if (!automatic) return {
+					content: [{ type: "text" as const, text: `Opened new Zellij pane${id ? ` ${id}` : ""}.` }],
+					details,
+				};
+				if (!id || !/^terminal_\d+$/.test(id)) return {
+					content: [{ type: "text" as const, text: "Zellij created a pane but did not return a valid terminal ID. Do not recreate it; inspect the panes before continuing." }],
+					details: { ...details, ok: false, reason: "invalid_pane_id", stdout: result.stdout },
+				};
+
+				// Remember creation before attempting the stack, so a failed join cannot lose its ID.
+				const paneIds = [...previousIds, id];
+				paneGroups.set(tabId, paneIds);
+				const paneGroup: PaneGroup = { owner: groupOwner(ctx.sessionManager.getSessionId()), tabId, paneIds };
+				if (previousIds.length > 0) {
+					let stackError: string | undefined;
+					try {
+						const stacked = await runZellijAction(pi, ctx, ["action", "stack-panes", "--", ...paneIds], signal);
+						if (stacked.ok === false) stackError = stacked.message;
+					} catch (error) {
+						stackError = error instanceof Error ? error.message : String(error);
+					}
+					if (stackError) return {
+						content: [{ type: "text" as const, text: `Pane ${id} was created, but could not join its stack: ${stackError}. Do not recreate it.` }],
+						details: { ...details, ok: false, reason: "stack_failed", stacked: false, paneGroup },
+					};
+				}
+				return {
+					content: [{ type: "text" as const, text: `Opened new Zellij pane ${id}${previousIds.length > 0 ? " in this Pi session's stack" : " to the right"}.` }],
+					details: { ...details, stacked: previousIds.length > 0, paneGroup },
+				};
 			};
+			const operation = paneCreationQueue.then(async () => {
+				if (!params.noFocus) return createPane();
+				if (signal?.aborted) throw new Error("Pane creation cancelled.");
+
+				// is_focused is per tab, so select the active tab before finding its pane.
+				const tabsResult = await runZellijAction(pi, ctx, ["action", "list-tabs", "--json", "--all"], signal);
+				if (tabsResult.ok === false) return zellijToolFailure(tabsResult);
+				const tabs = parseJson<ZellijTab[]>(tabsResult.stdout);
+				const tabId = tabs.ok && Array.isArray(tabs.value)
+					? numberFrom(tabs.value.find((tab) => tab?.active)?.tab_id) : undefined;
+				const panesResult = await runZellijAction(pi, ctx, ["action", "list-panes", "--json", "--all"], signal);
+				if (panesResult.ok === false) return zellijToolFailure(panesResult);
+				const panes = parseJson<ZellijPane[]>(panesResult.stdout);
+				const focusedPane = panes.ok && Array.isArray(panes.value) && tabId !== undefined
+					? panes.value.find((pane) => pane?.is_focused && numberFrom(pane.tab_id) === tabId) : undefined;
+				if (!focusedPane || !/^(terminal|plugin)_\d+$/.test(paneDisplayId(focusedPane))) {
+					throw new Error("Could not determine the focused Zellij pane. No pane was created.");
+				}
+				const previousPaneId = paneDisplayId(focusedPane);
+				let result: Awaited<ReturnType<typeof createPane>>;
+				let focusError: string | undefined;
+				try {
+					result = await createPane();
+				} finally {
+					// Cleanup must still run when creation or stacking is cancelled.
+					for (const args of [["action", "focus-pane-id", previousPaneId], ["action", "go-to-tab-by-id", String(tabId)]]) {
+						try {
+							const restored = await runZellijAction(pi, ctx, args);
+							if (restored.ok === false) focusError = restored.message;
+						} catch (error) {
+							focusError = error instanceof Error ? error.message : String(error);
+						}
+					}
+				}
+				if (focusError) return {
+					isError: true,
+					content: [...result.content, { type: "text" as const, text: `Could not restore focus to ${previousPaneId}: ${focusError}. Do not recreate any pane reported above.` }],
+					details: { ...result.details, ok: false, reason: "focus_restore_failed", focusError, previousPaneId },
+				};
+				return result;
+			});
+			paneCreationQueue = operation.then(() => {}, () => {});
+			return operation;
 		},
 	});
 
@@ -805,7 +942,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 		description: "Open a new Zellij pane to the right",
 		handler: async (_args, ctx) => {
 			await execZellij(pi, ctx, {
-				args: ["action", "new-pane", "--direction", "right", "--cwd", ctx.cwd],
+				args: await newPaneArgs(ctx, { cwd: ctx.cwd, direction: "right" }),
 				successMessage: (id) => `Opened right pane${id ? ` ${id}` : ""}`,
 			});
 		},
@@ -815,7 +952,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 		description: "Open a new Zellij pane below",
 		handler: async (_args, ctx) => {
 			await execZellij(pi, ctx, {
-				args: ["action", "new-pane", "--direction", "down", "--cwd", ctx.cwd],
+				args: await newPaneArgs(ctx, { cwd: ctx.cwd, direction: "down" }),
 				successMessage: (id) => `Opened lower pane${id ? ` ${id}` : ""}`,
 			});
 		},
@@ -825,7 +962,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 		description: "Open a new floating Zellij pane",
 		handler: async (_args, ctx) => {
 			await execZellij(pi, ctx, {
-				args: ["action", "new-pane", "--floating", "--cwd", ctx.cwd],
+				args: await newPaneArgs(ctx, { cwd: ctx.cwd, floating: true }),
 				successMessage: (id) => `Opened floating pane${id ? ` ${id}` : ""}`,
 			});
 		},
@@ -835,7 +972,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 		description: "Open nvim in a stacked Zellij pane",
 		handler: async (_args, ctx) => {
 			await execZellij(pi, ctx, {
-				args: ["action", "new-pane", "--stacked", "--close-on-exit", "--cwd", ctx.cwd, "--", "nvim"],
+				args: await newPaneArgs(ctx, { cwd: ctx.cwd, stacked: true, closeOnExit: true, command: ["nvim"] }),
 				successMessage: (id) => `Opened stacked nvim pane${id ? ` ${id}` : ""}`,
 			});
 		},
@@ -845,7 +982,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 		description: "Open git diff",
 		handler: async (_args, ctx) => {
 			await execZellij(pi, ctx, {
-				args: ["action", "new-pane", "--stacked", "--close-on-exit", "--cwd", ctx.cwd, "--", ...nu("gd")],
+				args: await newPaneArgs(ctx, { cwd: ctx.cwd, stacked: true, closeOnExit: true, command: nu("gd") }),
 				successMessage: (id) => `Opened stacked git diff pane${id ? ` ${id}` : ""}`,
 			});
 		},
@@ -877,7 +1014,7 @@ export default function zellijExtension(pi: ExtensionAPI) {
 
 			// Zellij creates panes only to the right or below. Move the new pane afterward for left/up.
 			const createDirection = placement === "down" || placement === "up" ? "down" : "right";
-			const created = await runZellijAction(pi, ctx, buildNewPaneArgs({
+			const created = await runZellijAction(pi, ctx, await newPaneArgs(ctx, {
 				cwd: ctx.cwd,
 				name: "pi-fork",
 				direction: createDirection,
@@ -921,19 +1058,13 @@ export default function zellijExtension(pi: ExtensionAPI) {
 			const reviewPrompt = buildReviewPrompt(args);
 
 			await execZellij(pi, ctx, {
-				args: [
-					"action",
-					"new-pane",
-					"--direction",
-					"right",
-					"--close-on-exit",
-					"--cwd",
-					repoRoot,
-					"--name",
-					"review",
-					"--",
-					...nu(`pi ${nuString(reviewPrompt)}`),
-				],
+				args: await newPaneArgs(ctx, {
+					cwd: repoRoot,
+					name: "review",
+					direction: "right",
+					closeOnExit: true,
+					command: nu(`pi ${nuString(reviewPrompt)}`),
+				}),
 				successMessage: (id) =>
 					`Opened review pane${id ? ` ${id}` : ""}${args.trim().length > 0 ? ` for: ${args.trim()}` : ""}`,
 			});

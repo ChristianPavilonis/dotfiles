@@ -5,11 +5,7 @@ set -euo pipefail
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OS_NAME="$(uname -s)"
 
-<<<<<<< HEAD
-COMMON_PACKAGES=(git kitty nu nvim obsidian pi starship yesman zellij)
-=======
-COMMON_PACKAGES=(git kitty nu nvim starship yesman zellij)
->>>>>>> 084c9b03ebc60b7ef1a9165aa6901ca07820553b
+COMMON_PACKAGES=(gh-dash git kitty nu nvim obsidian starship yesman zellij)
 MACOS_PACKAGES=(aerospace)
 
 if ! command -v stow >/dev/null 2>&1; then
@@ -45,13 +41,47 @@ fi
 
 stow -d "$DOTFILES" -t "$HOME" "${COMMON_PACKAGES[@]}"
 
-# Preserve an existing machine-local Pi settings file while still stowing the
-# durable themes, extensions, prompts, and skills from the repository.
-if [ -e "$HOME/.pi/agent/settings.json" ] && [ ! -L "$HOME/.pi/agent/settings.json" ]; then
-  echo "Preserving existing machine-local ~/.pi/agent/settings.json"
+use_omarchy=false
+if [ "$OS_NAME" = "Linux" ] && command -v omarchy >/dev/null 2>&1; then
+  use_omarchy=true
+  stow -d "$DOTFILES" -t "$HOME" omarchy
+fi
+
+pi_settings="$HOME/.pi/agent/settings.json"
+repo_pi_settings="$DOTFILES/pi/.pi/agent/settings.json"
+if [ "$use_omarchy" = true ] && [ -f "$pi_settings" ] && [ ! -L "$pi_settings" ]; then
+  # Omarchy updates the active theme in its machine-local Pi settings.
+  echo "Preserving existing Omarchy-managed ~/.pi/agent/settings.json"
   stow --ignore='settings\\.json$' -d "$DOTFILES" -t "$HOME" pi
 else
+  # Pi writes preference and package changes through this link, which keeps
+  # non-Omarchy settings visible to Git.
+  if [ -f "$pi_settings" ] && [ ! -L "$pi_settings" ]; then
+    if ! cmp -s "$pi_settings" "$repo_pi_settings"; then
+      echo "Error: $pi_settings differs from $repo_pi_settings"
+      echo "Reconcile the files before running install again."
+      exit 1
+    fi
+    rm "$pi_settings"
+  fi
   stow -d "$DOTFILES" -t "$HOME" pi
+fi
+
+if [ "$use_omarchy" = true ]; then
+  # Remove links left by the retired dotfiles theme generator. Omarchy writes
+  # its generated Pi theme into the machine-local themes directory instead.
+  for legacy_pi_theme in \
+    fallout-terminal-dark.json \
+    fallout-terminal-light.json \
+    fallout-terminal.json \
+    nord-dark.json \
+    nord-light.json \
+    README.md; do
+    legacy_pi_theme_path="$HOME/.pi/agent/themes/$legacy_pi_theme"
+    if [ -L "$legacy_pi_theme_path" ]; then
+      rm "$legacy_pi_theme_path"
+    fi
+  done
 fi
 
 # Link platform-specific git config.
@@ -100,7 +130,7 @@ if [ "$OS_NAME" = "Darwin" ]; then
   nu_default_dir="$HOME/Library/Application Support/nushell"
   mkdir -p "$nu_default_dir"
 
-  for nu_file in config.nu env.nu mise.nu theme.nu; do
+  for nu_file in config.nu env.nu mise.nu; do
     target="$nu_default_dir/$nu_file"
     source_file="$DOTFILES/nu/.config/nushell/$nu_file"
 
@@ -132,6 +162,19 @@ if [ ! -e "$HOME/.cache/starship/init.nu" ]; then
   cat <<'EOF' > "$HOME/.cache/starship/init.nu"
 export-env {}
 EOF
+fi
+
+if [ "$OS_NAME" = "Linux" ] && command -v omarchy >/dev/null 2>&1; then
+  zellij_runtime="$HOME/.local/state/dotfiles/zellij"
+  mkdir -p "$zellij_runtime"
+  ln -sfn "$HOME/.config/zellij/config.kdl" "$zellij_runtime/config.kdl"
+  ln -sfn "$HOME/.config/zellij/layouts" "$zellij_runtime/layouts"
+  ln -sfn "$HOME/.local/state/omarchy/current/theme" "$zellij_runtime/themes"
+
+  omarchy theme refresh
+  if [ -f "$HOME/.pi/agent/settings.json" ] && [ ! -L "$HOME/.pi/agent/settings.json" ]; then
+    omarchy-theme-set-pi --activate
+  fi
 fi
 
 echo "Done. Dotfiles linked with stow."

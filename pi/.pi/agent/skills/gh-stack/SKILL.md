@@ -8,6 +8,7 @@ description: >
 metadata:
   author: github
   version: "0.1.0"
+disable-model-invocation: true
 ---
 
 # gh-stack

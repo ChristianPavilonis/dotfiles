@@ -2,7 +2,7 @@ import { completeSimple } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
 const TITLE_PROVIDER = "openai-codex";
-const TITLE_MODEL = "gpt-5.3-codex-spark";
+const TITLE_MODEL = "gpt-6-luna";
 const STATUS_KEY = "session-title";
 const MAX_TITLE_LENGTH = 60;
 

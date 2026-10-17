@@ -1,0 +1,8 @@
+program_options:
+  # udiskie formats each argument separately; card labels never become shell code.
+  event_hook:
+    - /usr/bin/env
+    - sd-card-import
+    - "{event}"
+    - "{is_external}"
+    - "{mount_path}"

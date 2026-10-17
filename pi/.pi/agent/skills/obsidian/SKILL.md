@@ -19,9 +19,10 @@ Use this skill for any work in `~/Documents/MyObsidianVault/`. Load only the ref
 
 For a request spanning categories, read every applicable reference. For example, a project note that should appear in a Base requires both `markdown.md` and `project-notes.md`; changing a Base requires `bases.md`.
 
+Open a note only when the user asks for it.
+
 ## Guardrails
 
 - The vault is `~/Documents/MyObsidianVault/`.
 - When creating a project note, follow `project-notes.md` exactly: include its required frontmatter and final `#### Links` section.
-- Do not use the Obsidian CLI unless Obsidian is running; use filesystem tools for direct file edits.
 - Keep the detailed rules in the references instead of duplicating them here.

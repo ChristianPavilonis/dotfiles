@@ -1,0 +1,65 @@
+palette = 'omarchy'
+add_newline = false
+
+format = "$directory$git_branch$git_status$fill$cmd_duration$line_break$character"
+right_format = "$status"
+
+[palettes.omarchy]
+accent = '{{ accent }}'
+foreground = '{{ foreground }}'
+muted = '{{ muted }}'
+red = '{{ red }}'
+
+[directory]
+style = 'bold fg:accent'
+read_only_style = 'fg:muted'
+format = '[$path]($style)[$read_only]($read_only_style) '
+truncation_length = 3
+truncation_symbol = '…/'
+home_symbol = '~'
+
+[git_branch]
+symbol = 'BR:'
+style = 'fg:accent'
+format = '[[ $symbol$branch ]($style)]($style) '
+
+[git_status]
+style = 'fg:muted'
+format = '[[ $all_status$ahead_behind ]($style)]($style) '
+conflicted = 'CNF:${count}'
+ahead = 'UP:${count}'
+behind = 'DN:${count}'
+diverged = 'DV:${ahead_count}/${behind_count}'
+untracked = 'UN:${count}'
+stashed = 'ST:${count}'
+modified = 'MD:${count}'
+staged = 'SG:${count}'
+renamed = 'RN:${count}'
+deleted = 'DL:${count}'
+
+[fill]
+symbol = ' '
+
+[cmd_duration]
+min_time = 500
+style = 'fg:muted'
+format = '[T+${duration}]($style)'
+
+[status]
+disabled = false
+style = 'bold fg:red'
+success_style = 'fg:muted'
+format = '[EXIT:$status]($style) '
+symbol = ''
+success_symbol = ''
+map_symbol = false
+
+[character]
+success_symbol = '[>](bold fg:accent) '
+error_symbol = '[>](bold fg:red) '
+vimcmd_symbol = '[<](bold fg:muted) '
+
+[aws]
+format = ''
+style = ''
+symbol = ''

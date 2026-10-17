@@ -47,6 +47,7 @@ export default function nushellExtension(pi: ExtensionAPI) {
 			const command = params.command.trim();
 			if (command.length === 0) {
 				return {
+					isError: true,
 					content: [{ type: "text", text: "Command cannot be empty." }],
 					details: { ok: false, reason: "empty_command" },
 				};
@@ -57,6 +58,7 @@ export default function nushellExtension(pi: ExtensionAPI) {
 			const timeout = clampTimeout(params.timeoutMs);
 			const args = buildNuArgs(command, login);
 			const result = await pi.exec("nu", args, { cwd, timeout, signal });
+			const ok = result.code === 0 && !result.killed;
 
 			const stdout = result.stdout.trimEnd();
 			const stderr = result.stderr.trimEnd();
@@ -66,9 +68,10 @@ export default function nushellExtension(pi: ExtensionAPI) {
 			if (textParts.length === 0) textParts.push(`Command exited with code ${result.code}.`);
 
 			return {
+				isError: !ok,
 				content: [{ type: "text", text: textParts.join("\n\n") }],
 				details: {
-					ok: result.code === 0,
+					ok,
 					command,
 					cwd,
 					login,

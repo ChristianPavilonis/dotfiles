@@ -3,5 +3,7 @@
   "app.tools.expand": ["ctrl+o"],
   "app.thinking.toggle": ["ctrl+t"],
   "app.message.followUp": ["alt+enter"],
-  "app.message.dequeue": ["alt+up"]
+  "app.message.dequeue": ["alt+up"],
+  "app.editor.external": ["ctrl+e"],
+  "tui.editor.cursorLineEnd": ["end"]
 }

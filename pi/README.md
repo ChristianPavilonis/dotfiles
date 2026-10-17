@@ -8,12 +8,31 @@ This package holds my local Pi customizations and is meant to be linked into `~/
 - `keybindings.json` — Custom keyboard shortcuts.
 - `extensions/` — TypeScript extensions that add tools, commands, hooks, UI, or custom providers. Example: `model-leader.ts` for a `ctrl+x` model palette.
 - `prompts/` — Markdown prompt templates you can run with `/name`.
+- `system-prompts/` — Focused system prompts loaded by shell commands such as `planweek`.
 - `skills/` — Skill directories containing `SKILL.md` plus any helper scripts or references.
-- `themes/` — generated JSON theme files for Pi's TUI colors. Edit the canonical sources in `~/dotfiles/themes/<family>/` and run `bun scripts/theme.ts generate` instead of editing these files directly.
+- `themes/` contains durable themes used outside Omarchy. Omarchy generates its active `omarchy-system` theme at runtime in `~/.pi/agent/themes/`.
+
+## Delegated models
+
+`settings.json` holds the model choices. Keep its startup model and `subagents.defaultModel` aligned. The scout override supplies the lightweight model; custom agent profiles inherit the subagent default instead of pinning model versions. `AGENTS.md` applies this policy to explicit worker launches, including Zellij delegation. The session-title extension selects its lightweight model separately.
+
+Check these choices after changing them:
+
+```sh
+node --test pi/model-policy.test.mjs
+```
+
+Run the command from the dotfiles root. Reload active Pi sessions to pick up policy and extension changes. Resumed sessions retain their previous active model, so changing defaults alone does not switch them.
+
+## Session handoff
+
+[Move an existing Pi conversation between machines](session-handoff.md) with `/handoff` or the `session_handoff` tool. The default target is `homelab`. Code travels through a verified branch push; finalized session history travels over SSH and resumes in a named Zellij tab. Configure machine-specific paths in unmanaged `~/.pi/agent/handoff.json`. The guide covers round trips, pull-based return, retries, and frozen-source recovery.
 
 ## Notes
 
-- Keep machine- or project-specific tweaks here when I want Pi to behave differently from the defaults.
+- Keep global Pi preferences and package selections in `settings.json`. Outside Omarchy, Pi writes interactive preference and package changes through the stowed symlink, so Git shows the changes.
+- The install script refuses to overwrite a divergent regular `~/.pi/agent/settings.json` outside Omarchy. Reconcile it with the repository copy first.
+- Omarchy keeps its Pi settings machine-local because its theme integration updates that file at runtime.
 - Stow only the durable config files here (`settings.json`, `keybindings.json`, `extensions/`, `prompts/`, `skills/`, `themes/`).
 - Leave runtime state out of the repo: `~/.pi/agent/auth.json`, `~/.pi/agent/sessions/`, and similar local cache/state files should stay unmanaged.
 - Pi also supports optional files like `AGENTS.md` and `SYSTEM.md` under `~/.pi/agent/` if I want to add them later.

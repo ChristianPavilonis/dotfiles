@@ -10,6 +10,15 @@ neovim = "latest"
 zellij = "0.44.3"
 gh = "latest"
 fzf = "latest"
+codex = "latest"
+pi = "latest"
+"aqua:dlvhdr/diffnav" = "latest"
+gemini = { version = "latest", allow_builds = ["@github/keytar", "node-pty"] }
+yazi = "latest"
+copilot = "latest"
+
+[settings.upgrade]
+auto_prune = false
 
 # Keep this intentionally small for VPS hosts.
 # Add more runtimes only when the server needs them.
